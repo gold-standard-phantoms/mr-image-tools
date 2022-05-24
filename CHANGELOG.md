@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Not Versioned
 
+### Changed
+
+- Deverged from ASLDRO as new MRImageTools library
+
 ### Added
 
 - Filter that assigns values to regions specified in a segmentation mask.

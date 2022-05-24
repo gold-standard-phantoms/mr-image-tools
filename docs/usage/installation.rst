@@ -1,20 +1,20 @@
 Installation
 ============
 
-ASLDRO can be installed as a module directly from the python package index.  Once installed it can
-simply be run as a command-line tool.  For more information how to use a python package in this
+MRImageTools can be installed as a module directly from the python package index.
+For more information how to use a python package in this
 way please see https://docs.python.org/3/installing/index.html
 
 Python Version
 --------------
 
-We recommend using the latest version of Python. ASL DRO supports Python
-3.7 and newer.
+We recommend using the latest version of Python. MRImageTools supports Python
+3.8 and newer.
 
 Dependencies
 ------------
 
-These distributions will be installed automatically when installing ASL DRO.
+These distributions will be installed automatically when installing MRImageTools.
 
 * `nibabel`_ provides read / write access to some common neuroimaging file formats
 * `numpy`_ provides efficient calculations with arrays and matrices
@@ -86,16 +86,15 @@ Your shell prompt will change to show the name of the activated
 environment.
 
 
-Install ASL DRO
+Install MRImageTools
 ---------------
 
 Within the activated environment, use the following command to install
-ASL DRO:
+MRImageTools:
 
 .. code-block:: sh
 
-    $ pip install asldro
+    $ pip install mrimagetools
 
-ASL DRO is now installed. Check out the :doc:`quickstart` or go to the
-:doc:`Documentation Overview </index>`.
+MRImageTools is now installed. Go to the :doc:`Documentation Overview </index>`.
 

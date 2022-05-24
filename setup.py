@@ -55,19 +55,19 @@ def get_version(rel_path) -> str:
 
 
 setup(
-    name="asldro",
-    version=get_version("src/asldro/__init__.py"),
+    name="mrimagetools",
+    version=get_version("src/mrimagetools/__init__.py"),
     author="Gold Standard Phantoms",
     author_email="info@goldstandardphantoms.com",
-    description="ASL Digital Reference Object",
+    description="MR Image Tools",
     long_description=long_description,
     long_description_content_type="text/markdown",
     license="MIT",
-    url="https://github.com/gold-standard-phantoms/asldro",
+    url="https://github.com/gold-standard-phantoms/mrimagetools",
     project_urls={
-        "Documentation": "https://asldro.readthedocs.io/",
-        "Code": "https://github.com/gold-standard-phantoms/asldro",
-        "Issue tracker": "https://github.com/gold-standard-phantoms/asldro/issues",
+        "Documentation": "https://mrimagetools.readthedocs.io/",
+        "Code": "https://github.com/gold-standard-phantoms/mrimagetools",
+        "Issue tracker": "https://github.com/gold-standard-phantoms/mrimagetools/issues",
     },
     packages=find_packages(where="src"),
     package_dir={"": "src"},
@@ -79,8 +79,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     install_requires=requirements,
     include_package_data=True,
-    entry_points={"console_scripts": ["asldro=asldro.cli:main"]},
 )

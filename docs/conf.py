@@ -22,8 +22,8 @@ sys.path.append(os.path.join(os.path.dirname(__name__), "../src"))
 
 # -- Project information -----------------------------------------------------
 
-project = "ASL DRO"
-copyright = "2020, 2021, Gold Standard Phantoms"
+project = "MRImageTools"
+copyright = "2020 - 2022, Gold Standard Phantoms"
 author = "Tom Hampshire, Aaron Oliver-Taylor"
 
 

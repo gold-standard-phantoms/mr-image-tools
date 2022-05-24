@@ -7,4 +7,4 @@ method, this part of the documentation is for you.
 .. toctree::
    :maxdepth: 4
 
-   _api/asldro
+   _api/mrimagetools

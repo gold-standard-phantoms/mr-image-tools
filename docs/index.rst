@@ -1,4 +1,4 @@
-Welcome to ASL DRO's documentation
+Welcome to MRImageTool's documentation
 ===================================
 
 .. include:: usage/overview.rst
@@ -7,13 +7,8 @@ Welcome to ASL DRO's documentation
    :maxdepth: 4
    :caption: Contents:
 
+   usage/overview
    usage/installation
-   usage/quickstart
-   usage/parameters
-   usage/dro_output
-   usage/ground_truth
-   usage/custom_ground_truth
-   usage/asl_quantification
    usage/development
    usage/references
    api

@@ -1,4 +1,4 @@
 include *.md
-recursive-include src/asldro/data *.json *.json.license *.nii.gz
+recursive-include src/mrimagetools/data *.json *.json.license *.nii.gz
 recursive-include requirements *.txt
-recursive-include src/asldro/validators/schemas *.json
+recursive-include src/mrimagetools/validators/schemas *.json
