@@ -1,12 +1,12 @@
 """ ScaleOffsetFilter Class"""
 
 import numpy as np
+
 from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
-
 from mrimagetools.validators.parameters import (
-    ParameterValidator,
     Parameter,
+    ParameterValidator,
     isinstance_validator,
 )
 

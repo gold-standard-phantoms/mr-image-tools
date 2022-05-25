@@ -8,8 +8,8 @@ from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationErr
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
-    isinstance_validator,
     for_each_validator,
+    isinstance_validator,
 )
 
 
@@ -35,7 +35,7 @@ class CreateVolumesFromSegMask(BaseFilter):
       ``'seg_mask'``. The order matches the order given in ``'label_values'``.
     :type 'label_names': list[str]
     :param 'quantities': Dictionary, containing key/value pairs where the key name defines a
-      a quantity, and the value is an array of floats that define the value to assign to each 
+      a quantity, and the value is an array of floats that define the value to assign to each
       region. The order of these floats matches the order given in ``'label_values'``.
     :param 'units': List of strings defining the units that correspond with each quantity given
       in the dictionary ``'quantities'``, as given by the order defined in that dictionary.
@@ -123,7 +123,7 @@ class CreateVolumesFromSegMask(BaseFilter):
         'label_names', list[str], must be same length as 'label_values'
         'label_values', list[int],all values must be unique, must match the number of
         unique values in 'seg_mask'
-        'quantities', dict, each of the keys must be a list the length of 
+        'quantities', dict, each of the keys must be a list the length of
         'label_values' and the values a float or int type.
         'units', list[str], must be the same length as the number of keys in 'quantities'
         """
@@ -134,14 +134,20 @@ class CreateVolumesFromSegMask(BaseFilter):
                     validators=isinstance_validator(BaseImageContainer)
                 ),
                 self.KEY_LABEL_VALUES: Parameter(
-                    validators=[for_each_validator(isinstance_validator(int)),]
+                    validators=[
+                        for_each_validator(isinstance_validator(int)),
+                    ]
                 ),
                 self.KEY_LABEL_NAMES: Parameter(
-                    validators=[for_each_validator(isinstance_validator(str)),]
+                    validators=[
+                        for_each_validator(isinstance_validator(str)),
+                    ]
                 ),
                 self.KEY_QUANTITIES: Parameter(validators=isinstance_validator(dict)),
                 self.KEY_UNITS: Parameter(
-                    validators=[for_each_validator(isinstance_validator(str)),]
+                    validators=[
+                        for_each_validator(isinstance_validator(str)),
+                    ]
                 ),
             },
         )
@@ -218,4 +224,3 @@ class CreateVolumesFromSegMask(BaseFilter):
             raise FilterInputValidationError(
                 f"'units' must be the same length as number of keys in 'quantities'"
             )
-

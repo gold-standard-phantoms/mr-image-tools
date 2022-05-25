@@ -1,15 +1,15 @@
 """Pipeline to combine fuzzy masks into a single segmentation mask"""
 
+import json
 import logging
 import os
 
-import json
 import nibabel as nib
 
 from mrimagetools.containers.image import BaseImageContainer
+from mrimagetools.filters.combine_fuzzy_masks_filter import CombineFuzzyMasksFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.filters.combine_fuzzy_masks_filter import CombineFuzzyMasksFilter
 from mrimagetools.validators.schemas.index import SCHEMAS
 
 logger = logging.getLogger(__name__)
@@ -57,4 +57,3 @@ def combine_fuzzy_masks(
         )
 
     return combine_masks_filter.outputs[CombineFuzzyMasksFilter.KEY_SEG_MASK]
-

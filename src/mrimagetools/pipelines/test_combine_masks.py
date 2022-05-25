@@ -1,15 +1,15 @@
 """Tests for combine_masks.py"""
 
-from copy import deepcopy
-import os
-import pytest
-from tempfile import TemporaryDirectory
-import jsonschema
 import json
+import os
+from copy import deepcopy
+from tempfile import TemporaryDirectory
 
-import numpy as np
+import jsonschema
 import nibabel as nib
+import numpy as np
 import numpy.testing
+import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.pipelines.combine_masks import combine_fuzzy_masks
@@ -18,7 +18,7 @@ from mrimagetools.validators.schemas.index import SCHEMAS
 
 @pytest.fixture(name="validation_data")
 def input_data_fixture():
-    """ Fixture with test data"""
+    """Fixture with test data"""
 
     mask_data = np.array(
         (

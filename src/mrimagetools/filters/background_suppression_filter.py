@@ -1,18 +1,22 @@
 """Background Suppression Filter"""
+from typing import List, Union
+
 import numpy as np
-from scipy.optimize import minimize, OptimizeResult
-from mrimagetools.containers.image import BaseImageContainer, COMPLEX_IMAGE_TYPE
+import numpy.typing as npt
+from scipy.optimize import OptimizeResult, minimize
+
+from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
-    from_list_validator,
-    isinstance_validator,
-    greater_than_equal_to_validator,
-    greater_than_validator,
-    for_each_validator,
     Parameter,
     ParameterValidator,
-    range_inclusive_validator,
+    for_each_validator,
+    from_list_validator,
+    greater_than_equal_to_validator,
+    greater_than_validator,
+    isinstance_validator,
     or_validator,
+    range_inclusive_validator,
 )
 
 
@@ -334,11 +338,11 @@ class BackgroundSuppressionFilter(BaseFilter):
     def calculate_mz(
         initial_mz: np.ndarray,
         t1: np.ndarray,
-        inv_pulse_times: list,
+        inv_pulse_times: Union[List[float], np.ndarray],
         sat_pulse_time: float,
         mag_time: float,
-        inv_eff: np.ndarray,
-        sat_eff: np.ndarray = 1.0,
+        inv_eff: Union[float, np.ndarray],
+        sat_eff: Union[np.ndarray, float] = 1.0,
     ) -> np.ndarray:
         r"""Calculates the longitudinal magnetisation after
         a sequence of background suppression pulses :cite:p:`Mani1997`
@@ -409,11 +413,11 @@ class BackgroundSuppressionFilter(BaseFilter):
         return initial_mz * (
             1
             + ((1 - sat_eff) - 1)
-            * inv_eff ** num_pulses
+            * inv_eff**num_pulses
             * np.exp(-np.divide(mag_time, t1, out=np.zeros_like(t1), where=t1 != 0))
             + np.sum(
                 [
-                    ((inv_eff ** (m + 1)) - (inv_eff ** m))
+                    ((inv_eff ** (m + 1)) - (inv_eff**m))
                     * np.exp(-np.divide(tm, t1, out=np.zeros_like(t1), where=t1 != 0))
                     for m, tm in enumerate(inv_pulse_times)
                 ],
@@ -468,7 +472,7 @@ class BackgroundSuppressionFilter(BaseFilter):
     def optimise_inv_pulse_times(
         sat_time: float,
         t1: np.ndarray,
-        pulse_eff: np.ndarray,
+        pulse_eff: Union[np.ndarray, float],
         num_pulses: int,
         method: str = "Nelder-Mead",
     ) -> OptimizeResult:

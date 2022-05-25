@@ -2,24 +2,27 @@
 # pylint: disable=duplicate-code
 
 from typing import Tuple, Union
-import pytest
-import numpy as np
-import numpy.testing
+
 import nibabel as nib
 import nilearn as nil
-import mrimagetools.utils.resampling as rs
-from mrimagetools.containers.image import (
-    NiftiImageContainer,
-    BaseImageContainer,
-    NumpyImageContainer,
-)
+import numpy as np
+import numpy.testing
+import pytest
 
 import mrimagetools.data.affine_test_data as atd
+import mrimagetools.utils.resampling as rs
+from mrimagetools.containers.image import (
+    BaseImageContainer,
+    NiftiImageContainer,
+    NumpyImageContainer,
+)
 
 TEST_VOLUME_DIMENSIONS = (32, 32, 32)
 TEST_NIFTI_ONES = nib.Nifti2Image(np.zeros(TEST_VOLUME_DIMENSIONS), affine=np.eye(4))
 TEST_NIFTI_ONES.header.set_xyzt_units("mm", "sec")
-TEST_NIFTI_CONTAINER_ONES = NiftiImageContainer(nifti_img=TEST_NIFTI_ONES,)
+TEST_NIFTI_CONTAINER_ONES = NiftiImageContainer(
+    nifti_img=TEST_NIFTI_ONES,
+)
 TEST_NUMPY_CONTAINER_ONES = NumpyImageContainer(
     np.zeros(TEST_VOLUME_DIMENSIONS), affine=np.eye(4)
 )
@@ -33,8 +36,18 @@ MOCK_DATA = (
         (0.0, 0.0, 0.0),  # rotation
         (0.0, 0.0, 0.0),  # rotation_origin
         (32, 32, 32),  # target_shape
-        (10.0, 10.0, 10.0, 1.0,),  # expected_target
-        (10.0, 10.0, 10.0, 1.0,),  # expected_resampled
+        (
+            10.0,
+            10.0,
+            10.0,
+            1.0,
+        ),  # expected_target
+        (
+            10.0,
+            10.0,
+            10.0,
+            1.0,
+        ),  # expected_resampled
     ),
     (
         TEST_NIFTI_ONES,  # image
@@ -42,8 +55,18 @@ MOCK_DATA = (
         (0.0, 0.0, 0.0),  # rotation
         (0.0, 0.0, 0.0),  # rotation_origin
         (16, 16, 16),  # target_shape
-        (20.0, 20.0, 20.0, 1.0,),  # expected_target
-        (20.0, 20.0, 20.0, 1.0,),  # expected_resampled
+        (
+            20.0,
+            20.0,
+            20.0,
+            1.0,
+        ),  # expected_target
+        (
+            20.0,
+            20.0,
+            20.0,
+            1.0,
+        ),  # expected_resampled
     ),
     (
         TEST_NIFTI_ONES,  # image
@@ -51,8 +74,18 @@ MOCK_DATA = (
         (0.0, 0.0, 0.0),  # rotation
         (0.0, 0.0, 0.0),  # rotation_origin
         (16, 16, 16),  # target_shape
-        (-70.0, 20.0, 20.0, 1.0,),  # expected_target
-        (20.0, 20.0, 20.0, 1.0,),  # expected_resampled
+        (
+            -70.0,
+            20.0,
+            20.0,
+            1.0,
+        ),  # expected_target
+        (
+            20.0,
+            20.0,
+            20.0,
+            1.0,
+        ),  # expected_resampled
     ),
     (
         TEST_NIFTI_CONTAINER_ONES,  # image
@@ -60,8 +93,18 @@ MOCK_DATA = (
         (0.0, 45.0, 0.0),  # rotation
         (0.0, 0.0, 0.0),  # rotation_origin
         (16, 16, 16),  # target_shape
-        (-0.000000000, 20.000000000, 28.284271247, 1.000000000,),  # expected_target
-        (20.0, 20.0, 20.0, 1.0,),  # expected_resampled
+        (
+            -0.000000000,
+            20.000000000,
+            28.284271247,
+            1.000000000,
+        ),  # expected_target
+        (
+            20.0,
+            20.0,
+            20.0,
+            1.0,
+        ),  # expected_resampled
     ),
     (
         TEST_NUMPY_CONTAINER_ONES,  # image
@@ -69,8 +112,18 @@ MOCK_DATA = (
         (0.0, 45.0, 0.0),  # rotation
         (0.0, 0.0, 5.0),  # rotation_origin
         (16, 16, 16),  # target_shape
-        (-17.677669530, 20.000000000, 8.535533906, 1.000000000,),  # expected_target
-        (20.0, 20.0, 20.0, 1.0,),  # expected_resampled
+        (
+            -17.677669530,
+            20.000000000,
+            8.535533906,
+            1.000000000,
+        ),  # expected_target
+        (
+            20.0,
+            20.0,
+            20.0,
+            1.0,
+        ),  # expected_resampled
     ),
 )
 
@@ -124,7 +177,7 @@ def test_transform_resample_affine(
 
 
 def test_transform_resample_image_mock_data():
-    """ Test the transform_resample_image function with mock data"""
+    """Test the transform_resample_image function with mock data"""
     # Create some synthetic data
 
     rotation = (0.0, 0.0, 45.0)
@@ -157,7 +210,7 @@ def test_transform_resample_image_mock_data():
     numpy.testing.assert_array_equal(resampled_affine, resampled_nifti_2.affine)
 
 
-def create_test_image() -> Tuple[NiftiImageContainer, Tuple[float, float, float]]:
+def create_test_image() -> Tuple[nib.Nifti2Image, Tuple[float, float, float]]:
     grid = np.mgrid[0:128, 0:128]
     circle = (
         np.sum((grid - np.array([32, 32])[:, np.newaxis, np.newaxis]) ** 2, axis=0)
@@ -183,9 +236,9 @@ def create_test_image() -> Tuple[NiftiImageContainer, Tuple[float, float, float]
         ((1, 0, 0, -64), (0, 1, 0, -64), (0, 0, 1, -0.5), (0, 0, 0, 1))
     )
 
-    rotation_origin = tuple(
+    rotation_origin: Tuple[float, float, float] = tuple(
         np.array(nil.image.coord_transform(75, 32, 0, source_affine)).astype(float)
-    )
+    )  # type: ignore
 
     image[
         tuple(
@@ -203,51 +256,61 @@ def create_test_image() -> Tuple[NiftiImageContainer, Tuple[float, float, float]
     image[
         tuple(
             np.rint(
-                nil.image.coord_transform(0, 0, 0, np.linalg.inv(source_affine),)
+                nil.image.coord_transform(
+                    0,
+                    0,
+                    0,
+                    np.linalg.inv(source_affine),
+                )
             ).astype(np.int32)
         )
     ] = 6.0
 
-    nifti_to_return = nib.Nifti2Image(image, affine=source_affine)
+    nifti_to_return: nib.Nifti2Image = nib.Nifti2Image(image, affine=source_affine)
     nifti_to_return.header.set_xyzt_units("mm", "sec")
     return (nifti_to_return, rotation_origin)
 
 
 @pytest.mark.parametrize(
-    "theta, expected", atd.ROT_X_TEST_DATA,
+    "theta, expected",
+    atd.ROT_X_TEST_DATA,
 )
 def test_rot_x_mat(theta: float, expected: np.ndarray):
-    """ Tests rot_x_mat with some angles, comparing against expected values """
+    """Tests rot_x_mat with some angles, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.rot_x_mat(theta), expected, 6)
 
 
 @pytest.mark.parametrize(
-    "theta, expected", atd.ROT_Y_TEST_DATA,
+    "theta, expected",
+    atd.ROT_Y_TEST_DATA,
 )
 def test_rot_y_mat(theta: float, expected: np.ndarray):
-    """ Tests rot_y_mat with some angles, comparing against expected values """
+    """Tests rot_y_mat with some angles, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.rot_y_mat(theta), expected, 6)
 
 
 @pytest.mark.parametrize(
-    "theta, expected", atd.ROT_Z_TEST_DATA,
+    "theta, expected",
+    atd.ROT_Z_TEST_DATA,
 )
 def test_rot_z_mat(theta: float, expected: np.ndarray):
-    """ Tests rot_z_mat with some angles, comparing against expected values """
+    """Tests rot_z_mat with some angles, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.rot_z_mat(theta), expected, 6)
 
 
 @pytest.mark.parametrize(
-    "vector, expected", atd.TRANSLATE_TEST_DATA,
+    "vector, expected",
+    atd.TRANSLATE_TEST_DATA,
 )
 def test_translate_mat(vector: Tuple[float, float, float], expected: np.ndarray):
-    """ Tests translate_mat with some translation vectors, comparing against expected values """
+    """Tests translate_mat with some translation vectors, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.translate_mat(vector), expected, 6)
 
 
 @pytest.mark.parametrize(
-    "scale, expected", atd.SCALE_TEST_DATA,
+    "scale, expected",
+    atd.SCALE_TEST_DATA,
 )
 def test_scale_mat(scale: Tuple[float, float, float], expected: np.ndarray):
-    """ Tests scale_mat with some scale factors, comparing against expected values """
+    """Tests scale_mat with some scale factors, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.scale_mat(scale), expected, 6)

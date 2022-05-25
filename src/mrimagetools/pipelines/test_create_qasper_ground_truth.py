@@ -2,6 +2,7 @@
 
 import numpy as np
 
+
 def calc_cbf_gkm_casl(
     delta_m,
     m0,

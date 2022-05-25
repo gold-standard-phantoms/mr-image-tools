@@ -2,14 +2,12 @@
 Used to create a standard interface for ND images which can
 be instantiated with either NIFTI files or using numpy arrays """
 
-from copy import deepcopy
 from abc import ABC, abstractmethod
-from typing import Union, Tuple, Type
+from copy import deepcopy
+from typing import Tuple, Type, Union
 
-
-import numpy as np
 import nibabel as nib
-
+import numpy as np
 
 UNITS_METERS = "meter"
 UNITS_MILLIMETERS = "mm"
@@ -108,7 +106,7 @@ class BaseImageContainer(ABC):
 
     @property
     def metadata(self) -> dict:
-        """ Get the metadata """
+        """Get the metadata"""
         return self._metadata
 
     @metadata.setter
@@ -121,7 +119,7 @@ class BaseImageContainer(ABC):
         self._metadata = value
 
     def clone(self) -> "BaseImageContainer":
-        """ Makes a deep copy of all member variables in a new ImageContainer """
+        """Makes a deep copy of all member variables in a new ImageContainer"""
         return deepcopy(self)
 
     @abstractmethod
@@ -137,22 +135,21 @@ class BaseImageContainer(ABC):
     @property
     @abstractmethod
     def has_nifti(self):
-        """ Returns True if the image has an associated nifti container """
+        """Returns True if the image has an associated nifti container"""
 
     @property
     @abstractmethod
-    def image(self):
-        """ Return the image data as a numpy array """
+    def image(self) -> np.ndarray:
+        """Return the image data as a numpy array"""
 
     @image.setter
-    @abstractmethod
     def image(self, new_image: np.ndarray):
-        """ Sets the image data """
+        """Sets the image data"""
 
     @property
     @abstractmethod
     def affine(self) -> np.ndarray:
-        """ Return a 4x4 numpy array with the image affine transformation """
+        """Return a 4x4 numpy array with the image affine transformation"""
 
     @property
     @abstractmethod
@@ -164,6 +161,10 @@ class BaseImageContainer(ABC):
         'mm'
         'micron'
         """
+
+    @space_units.setter
+    def space_units(self, units: str):
+        pass
 
     @property
     @abstractmethod
@@ -177,39 +178,33 @@ class BaseImageContainer(ABC):
         """
 
     @time_units.setter
-    @abstractmethod
     def time_units(self, units: str):
-        pass
-
-    @space_units.setter
-    @abstractmethod
-    def space_units(self, units: str):
         pass
 
     @property
     @abstractmethod
     def voxel_size_mm(self) -> np.ndarray:
-        """ Returns the voxel size in mm """
+        """Returns the voxel size in mm"""
 
     @property
     @abstractmethod
     def time_step_seconds(self) -> float:
-        """ Return the time step in seconds """
+        """Return the time step in seconds"""
 
     @property
     @abstractmethod
-    def shape(self) -> Tuple[int]:
-        """ Returns the shape of the image [x, y, z, t, etc] """
+    def shape(self) -> Tuple[int, ...]:
+        """Returns the shape of the image [x, y, z, t, etc]"""
 
     @staticmethod
     def _validate_time_units(units: str):
-        """ Checks whether the given time units is a valid string """
+        """Checks whether the given time units is a valid string"""
         if units not in [UNITS_MICROSECONDS, UNITS_MILLISECONDS, UNITS_SECONDS]:
             raise ValueError(f'Unit "{units}" not in time units')
 
     @staticmethod
     def _validate_space_units(units: str):
-        """ Checks whether the given space units is a valid string """
+        """Checks whether the given space units is a valid string"""
         if units not in [UNITS_MICRONS, UNITS_MILLIMETERS, UNITS_METERS]:
             raise ValueError(f'Unit "{units}" not in space units')
 
@@ -267,16 +262,16 @@ class NumpyImageContainer(BaseImageContainer):
         self._affine: np.ndarray = affine
         self._space_units: str = space_units
         self._time_units: str = time_units
-        self._voxel_size: np.array = np.array(voxel_size)
+        self._voxel_size: np.ndarray = np.array(voxel_size)
         self._time_step: float = time_step
         super().__init__(**kwargs)  # Call super last as we check member variables
 
     def as_numpy(self) -> "NumpyImageContainer":
-        """ Returns self """
+        """Returns self"""
         return self
 
     def as_nifti(self) -> "NiftiImageContainer":
-        """ Return the NumpyImageContainer as a NiftiImageContainer."""
+        """Return the NumpyImageContainer as a NiftiImageContainer."""
         new_image_container = NiftiImageContainer(
             nifti_img=nib.Nifti2Image(dataobj=self.image, affine=self._affine),
             data_domain=self.data_domain,
@@ -284,7 +279,7 @@ class NumpyImageContainer(BaseImageContainer):
             metadata=self.metadata,
         )
         # Use the image setter as it sets the dtype in the header
-        new_image_container.image = self.image
+        new_image_container.image = np.copy(self.image)
         # Set the units first
         new_image_container.space_units = self.space_units
         new_image_container.time_units = self.time_units
@@ -295,17 +290,17 @@ class NumpyImageContainer(BaseImageContainer):
 
     @property
     def has_nifti(self):
-        """ Returns True if the image has an associated nifti container """
+        """Returns True if the image has an associated nifti container"""
         return False
 
     @property
     def image(self):
-        """ Return the image data as a numpy array """
+        """Return the image data as a numpy array"""
         return self._image
 
     @image.setter
     def image(self, new_image: np.ndarray):
-        """ Sets the image data - does not copy it! """
+        """Sets the image data - does not copy it!"""
         self._image = new_image
 
     @property
@@ -316,7 +311,7 @@ class NumpyImageContainer(BaseImageContainer):
 
     @property
     def affine(self):
-        """ Return a 4x4 numpy array with the image affine transformation """
+        """Return a 4x4 numpy array with the image affine transformation"""
         return self._affine
 
     @property
@@ -353,7 +348,7 @@ class NumpyImageContainer(BaseImageContainer):
 
     @property
     def voxel_size_mm(self):
-        """ Returns the voxel size in mm """
+        """Returns the voxel size in mm"""
         return self._voxel_size * self._space_units_to_mm(self.space_units)
 
     @voxel_size_mm.setter
@@ -368,17 +363,17 @@ class NumpyImageContainer(BaseImageContainer):
 
     @property
     def time_step_seconds(self):
-        """ Return the time step in seconds """
+        """Return the time step in seconds"""
         return self._time_step * self._time_units_to_seconds(self.time_units)
 
     @time_step_seconds.setter
     def time_step_seconds(self, time_step: float):
-        """ Set the time step in seconds """
+        """Set the time step in seconds"""
         self._time_step = time_step / self._time_units_to_seconds(self._time_units)
 
     @property
     def shape(self):
-        """ Returns the shape of the image [x, y, z, t, etc] """
+        """Returns the shape of the image [x, y, z, t, etc]"""
         return self._image.shape
 
 
@@ -398,13 +393,17 @@ class NiftiImageContainer(BaseImageContainer):
 
     @property
     def nifti_type(self) -> Union[Type[nib.Nifti1Image], Type[nib.Nifti2Image]]:
-        """ Return the type of NIFTI data contained here (nib.Nifti1Image or nib.Nifti2Image) """
+        """Return the type of NIFTI data contained here (nib.Nifti1Image or nib.Nifti2Image)"""
         return type(self.nifti_image)
 
     @property
     def has_nifti(self):
-        """ Returns True if the image has an associated nifti container """
+        """Returns True if the image has an associated nifti container"""
         return True
+
+    def clone(self) -> "NiftiImageContainer":
+        """Makes a deep copy of all member variables in a new ImageContainer"""
+        return deepcopy(self)
 
     @property
     def image(self):
@@ -414,8 +413,18 @@ class NiftiImageContainer(BaseImageContainer):
         return np.asanyarray(self.nifti_image.dataobj)
         # return self.nifti_image.get_fdata()
 
+    @image.setter
+    def image(self, new_image: np.ndarray):
+        """Sets the image data"""
+        self.nifti_image = self.nifti_type(
+            dataobj=new_image, affine=self.affine, header=self.header
+        )
+        # Make sure the header matches the new image data
+        self.nifti_image.set_data_dtype(new_image.dtype)
+        self.nifti_image.update_header()
+
     def as_numpy(self) -> "NumpyImageContainer":
-        """ Return the NiftiImageContainer as a NumpyImageContainer."""
+        """Return the NiftiImageContainer as a NumpyImageContainer."""
         new_image_container = NumpyImageContainer(
             image=self.image,
             affine=self.affine,
@@ -432,18 +441,8 @@ class NiftiImageContainer(BaseImageContainer):
         return new_image_container
 
     def as_nifti(self) -> "NiftiImageContainer":
-        """ Returns self """
+        """Returns self"""
         return self
-
-    @image.setter
-    def image(self, new_image: np.ndarray):
-        """ Sets the image data """
-        self.nifti_image = self.nifti_type(
-            dataobj=new_image, affine=self.affine, header=self.header
-        )
-        # Make sure the header matches the new image data
-        self.nifti_image.set_data_dtype(new_image.dtype)
-        self.nifti_image.update_header()
 
     @property
     def header(self) -> Union[nib.Nifti1Header, nib.Nifti2Header]:
@@ -453,7 +452,7 @@ class NiftiImageContainer(BaseImageContainer):
 
     @property
     def affine(self):
-        """ Return a 4x4 numpy array with the image affine transformation """
+        """Return a 4x4 numpy array with the image affine transformation"""
         return self.nifti_image.affine
 
     @property
@@ -490,7 +489,7 @@ class NiftiImageContainer(BaseImageContainer):
 
     @property
     def voxel_size_mm(self):
-        """ Returns the voxel size in mm """
+        """Returns the voxel size in mm"""
         return self.header["pixdim"][1:4] * self._space_units_to_mm(self.space_units)
 
     @voxel_size_mm.setter
@@ -505,17 +504,17 @@ class NiftiImageContainer(BaseImageContainer):
 
     @property
     def time_step_seconds(self):
-        """ Return the time step in seconds """
+        """Return the time step in seconds"""
         return self.header["pixdim"][4] * self._time_units_to_seconds(self.time_units)
 
     @time_step_seconds.setter
     def time_step_seconds(self, time_step: float):
-        """ Set the time step in seconds """
+        """Set the time step in seconds"""
         self.header["pixdim"][4] = time_step / self._time_units_to_seconds(
             self.time_units
         )
 
     @property
     def shape(self):
-        """ Returns the shape of the image [x, y, z, t, etc] """
+        """Returns the shape of the image [x, y, z, t, etc]"""
         return self.nifti_image.shape

@@ -1,22 +1,25 @@
 """Pipeline to generate a ground truth image and save"""
+import json
 import logging
 import os
+from typing import Union
 
-import json
 import nibabel as nib
 
 from mrimagetools.filters.create_volumes_from_seg_mask import CreateVolumesFromSegMask
+from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
 from mrimagetools.filters.image_tools import FloatToIntImageFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
 from mrimagetools.validators.schemas.index import SCHEMAS
 
 logger = logging.getLogger(__name__)
 
 
 def generate_hrgt(
-    hrgt_params_filename: str, seg_mask_filename: str, output_dir: str = None
+    hrgt_params_filename: str,
+    seg_mask_filename: str,
+    output_dir: Union[str, None] = None,
 ) -> dict:
     # pylint: disable=too-many-locals, too-many-statements
     """Generates a high-resolution ground truth (hrgt) based on:
@@ -79,4 +82,3 @@ def generate_hrgt(
         nib.save(create_volume_filter.outputs["image"].nifti_image, nifti_filename)
 
     return create_volume_filter.outputs
-

@@ -2,16 +2,15 @@
 
 import numpy as np
 
-
 from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
-    greater_than_validator,
-    range_inclusive_validator,
     for_each_validator,
+    greater_than_validator,
     isinstance_validator,
+    range_inclusive_validator,
 )
 
 
@@ -35,7 +34,7 @@ class CombineFuzzyMasksFilter(BaseFilter):
       priority. The order corresponds with the order of the masks in 'fuzzy_mask', and all values
       must be unique. If 'fuzzy_mask' is a single image then this input can be omitted.
     :type 'region_priority': list[int] or int
-    :param 'threshold': The threshold value, below which a region's contributions to a voxel are 
+    :param 'threshold': The threshold value, below which a region's contributions to a voxel are
       ignored. Must be between 0 and 1.0. Defaults to 0.05.
     :type 'threshold': float, optional
 
@@ -45,7 +44,7 @@ class CombineFuzzyMasksFilter(BaseFilter):
     Once run, the filter will populate the dictionary :class:`CombineFuzzyMasksFilter.outputs`
     with the following entries
 
-    :param 'seg_label': A segmentation mask image constructed from the inputs, defining exclusive 
+    :param 'seg_label': A segmentation mask image constructed from the inputs, defining exclusive
       regions (one region per voxel). The image data type is numpy.int16.
     :type 'seg_label': BaseImageContainer
 
@@ -174,7 +173,9 @@ class CombineFuzzyMasksFilter(BaseFilter):
                         ]
                     ),
                     self.KEY_REGION_VALUES: Parameter(
-                        validators=[for_each_validator(isinstance_validator(int)),]
+                        validators=[
+                            for_each_validator(isinstance_validator(int)),
+                        ]
                     ),
                     self.KEY_REGION_PRIORITY: Parameter(
                         validators=[
@@ -233,7 +234,9 @@ class CombineFuzzyMasksFilter(BaseFilter):
             fuzzy_mask_image_validator = ParameterValidator(
                 parameters={
                     self.KEY_FUZZY_MASK: Parameter(
-                        validators=[range_inclusive_validator(0.0, 1.0),]
+                        validators=[
+                            range_inclusive_validator(0.0, 1.0),
+                        ]
                     ),
                     self.KEY_REGION_PRIORITY: Parameter(
                         validators=[greater_than_validator(0)],

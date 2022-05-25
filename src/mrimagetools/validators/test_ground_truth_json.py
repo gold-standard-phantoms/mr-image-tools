@@ -1,12 +1,12 @@
 """ Tests for the ground truth JSON validator """
-from jsonschema.exceptions import ValidationError
 import pytest
+from jsonschema.exceptions import ValidationError
 
 from mrimagetools.validators.ground_truth_json import validate_input
 
 
 def test_valid_ground_truth_json():
-    """ Test valid grouth truth raises no error """
+    """Test valid grouth truth raises no error"""
     json = {
         "quantities": [
             "perfusion_rate",
@@ -29,7 +29,7 @@ def test_valid_ground_truth_json():
 
 
 def test_ground_truth_typos_a():
-    """ Test ground with typos in required fields raises error """
+    """Test ground with typos in required fields raises error"""
     json = {
         "quantties": [
             "perfusion_rate",
@@ -53,7 +53,7 @@ def test_ground_truth_typos_a():
 
 
 def test_ground_truth_typos_b():
-    """ Test ground with typos in required fields raises error """
+    """Test ground with typos in required fields raises error"""
     json = {
         "quantities": [
             "perfusion_rate",
@@ -77,7 +77,7 @@ def test_ground_truth_typos_b():
 
 
 def test_ground_truth_typos_c():
-    """ Test ground with typos in required fields raises error """
+    """Test ground with typos in required fields raises error"""
     json = {
         "quantities": [
             "perfusion_rate",
@@ -101,7 +101,7 @@ def test_ground_truth_typos_c():
 
 
 def test_ground_truth_json_missing_quantities():
-    """ Test missing 'quantities' property raises error """
+    """Test missing 'quantities' property raises error"""
     json = {
         "units": ["ml/100g/min", "s", "s", "s", "s", "", ""],
         "segmentation": {"grey_matter": 1, "white_matter": 2, "csf": 3, "vascular": 4},
@@ -116,7 +116,7 @@ def test_ground_truth_json_missing_quantities():
 
 
 def test_ground_truth_json_missing_segmentation():
-    """ Test missing 'segmentation' property raises error """
+    """Test missing 'segmentation' property raises error"""
     json = {
         "quantities": [
             "perfusion_rate",
@@ -139,7 +139,7 @@ def test_ground_truth_json_missing_segmentation():
 
 
 def test_ground_truth_missing_parameters():
-    """ Test missing 'parameters' property raises error """
+    """Test missing 'parameters' property raises error"""
     json = {
         "quantities": [
             "perfusion_rate",
@@ -158,7 +158,7 @@ def test_ground_truth_missing_parameters():
 
 
 def test_ground_truth_missing_units():
-    """ Test missing 'parameters' property raises error """
+    """Test missing 'parameters' property raises error"""
     json = {
         "quantities": [
             "perfusion_rate",

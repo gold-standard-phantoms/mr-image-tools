@@ -2,10 +2,10 @@
 
 
 from typing import Union
-import pytest
 
 import numpy as np
 import numpy.testing
+import pytest
 from numpy.random import default_rng
 
 from mrimagetools.utils.generate_numeric_function import (
@@ -106,7 +106,7 @@ def test_generate_gaussian_function():
     g_1d = generate_gaussian_function(xx, yy, zz)
 
     numpy.testing.assert_array_almost_equal(
-        g_1d, np.exp(-(xx ** 2) / (2 * (1 / (2 * np.sqrt(2 * np.log(2)))) ** 2))
+        g_1d, np.exp(-(xx**2) / (2 * (1 / (2 * np.sqrt(2 * np.log(2)))) ** 2))
     )
 
 

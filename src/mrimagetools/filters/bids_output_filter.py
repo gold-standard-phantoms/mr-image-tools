@@ -1,55 +1,58 @@
 """ BidsOutputFilter """
-import os
-import logging
-from typing import Union, List
-from datetime import datetime, timezone
 import json
-from jsonschema import validate
+import logging
+import os
+from datetime import datetime, timezone
+from typing import List, Union
+
 import git
-
-import numpy as np
 import nibabel as nib
+import numpy as np
+from git.exc import InvalidGitRepositoryError
+from jsonschema import validate
 
+from mrimagetools import __version__
 from mrimagetools.containers.image import (
-    BaseImageContainer,
-    IMAGINARY_IMAGE_TYPE,
     COMPLEX_IMAGE_TYPE,
+    IMAGINARY_IMAGE_TYPE,
     MAGNITUDE_IMAGE_TYPE,
     PHASE_IMAGE_TYPE,
     REAL_IMAGE_TYPE,
+    BaseImageContainer,
+)
+from mrimagetools.data.filepaths import ASL_BIDS_SCHEMA, M0SCAN_BIDS_SCHEMA
+from mrimagetools.filters.background_suppression_filter import (
+    BackgroundSuppressionFilter,
 )
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.filters.gkm_filter import GkmFilter
+from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
+from mrimagetools.filters.mri_signal_filter import MriSignalFilter
+from mrimagetools.filters.transform_resample_image_filter import (
+    TransformResampleImageFilter,
+)
+from mrimagetools.utils.general import map_dict
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
-    isinstance_validator,
+    for_each_validator,
     from_list_validator,
     greater_than_equal_to_validator,
-    for_each_validator,
-    regex_validator,
-    or_validator,
+    isinstance_validator,
     non_empty_list_validator,
+    or_validator,
+    regex_validator,
 )
-from mrimagetools.filters.gkm_filter import GkmFilter
-from mrimagetools.filters.mri_signal_filter import MriSignalFilter
-from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
-from mrimagetools.filters.transform_resample_image_filter import TransformResampleImageFilter
-from mrimagetools.utils.general import map_dict
 from mrimagetools.validators.user_parameter_input import (
     ASL,
-    STRUCTURAL,
+    ASL_CONTEXT,
     GROUND_TRUTH,
     MODALITY,
-    ASL_CONTEXT,
-    SUPPORTED_IMAGE_TYPES,
+    STRUCTURAL,
     SUPPORTED_ASL_CONTEXTS,
+    SUPPORTED_IMAGE_TYPES,
     SUPPORTED_STRUCT_MODALITY_LABELS,
 )
-from mrimagetools.filters.background_suppression_filter import BackgroundSuppressionFilter
-
-from mrimagetools.data.filepaths import ASL_BIDS_SCHEMA, M0SCAN_BIDS_SCHEMA
-
-from mrimagetools import __version__
 
 logger = logging.getLogger(__name__)
 
@@ -1013,7 +1016,7 @@ This dataset comprises of the following image series:
                 )
                 updated_version = version + "-unverified"
 
-        except git.exc.InvalidGitRepositoryError:
+        except InvalidGitRepositoryError:
             logger.info(
                 "no git repo present, most likely running"
                 "from an installed pypi package"

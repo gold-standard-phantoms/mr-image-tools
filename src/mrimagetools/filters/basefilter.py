@@ -2,8 +2,8 @@
 
 import copy
 import logging
-from typing import List, Mapping, Any
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Mapping, Union
 
 from mrimagetools.utils.general import map_dict
 
@@ -11,10 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class BaseFilterException(Exception):
-    """ Exceptions for this modules """
+    """Exceptions for this modules"""
 
     def __init__(self, msg: str):
-        """ :param msg: The message to display """
+        """:param msg: The message to display"""
         super().__init__()
         self.msg = msg
 
@@ -23,17 +23,17 @@ class BaseFilterException(Exception):
 
 
 class FilterInputKeyError(Exception):
-    """ Used to show an error with a filter's input keys
-    e.g. multiple values have been assigned to the same input """
+    """Used to show an error with a filter's input keys
+    e.g. multiple values have been assigned to the same input"""
 
 
 class FilterInputValidationError(Exception):
-    """ Used to show an error when running the validation on the filter's inputs
-    i.e. when running _validate_inputs() """
+    """Used to show an error when running the validation on the filter's inputs
+    i.e. when running _validate_inputs()"""
 
 
 class FilterLoopError(Exception):
-    """ Used when a loop is detected in the filter chain """
+    """Used when a loop is detected in the filter chain"""
 
     def __init__(self):
         super().__init__("A loop has been detected in the filters")
@@ -41,6 +41,8 @@ class FilterLoopError(Exception):
 
 FILTER = "filter"
 IO_MAP = "io_map"
+
+FilterDictType = Dict[str, Any]
 
 
 class BaseFilter(ABC):
@@ -50,11 +52,11 @@ class BaseFilter(ABC):
 
     def __init__(self, name: str = "Unknown"):
         self.name = name
-        self.inputs = {}
-        self.outputs = {}
+        self.inputs: FilterDictType = {}
+        self.outputs: FilterDictType = {}
 
         # A placeholder for inputs before they are bound
-        self._i = {}
+        self._i: FilterDictType = {}
 
         # Parent filters (a list of dict {FILTER: Filter, IO_MAP: dict/None})
         self.parent_dict_list = []  # type: List[Dict]
@@ -113,7 +115,7 @@ class BaseFilter(ABC):
             self.add_input(key, value)
 
     def add_child_filter(self, child: "BaseFilter", io_map: Mapping[str, str] = None):
-        """ See documentation for `add_parent_filter` """
+        """See documentation for `add_parent_filter`"""
         child.add_parent_filter(parent=self, io_map=io_map)
 
     def add_parent_filter(self, parent: "BaseFilter", io_map: Mapping[str, str] = None):

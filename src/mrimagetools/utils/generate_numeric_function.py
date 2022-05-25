@@ -1,10 +1,13 @@
 """Functions to generate arrays of mathematical function values"""
 
-from typing import Union
 from copy import deepcopy
+from typing import Union
+
 import numpy as np
+import numpy.typing as npt
 
 from mrimagetools.utils.resampling import rot_z_mat, translate_mat
+
 
 # A function for testing generate array functions
 def generate_point_function(
@@ -18,7 +21,7 @@ def generate_point_function(
     by ``loc`` is 1.0. If ``loc`` is out of bounds then no point is created.
     Can be used with :func:`generate_circular_function_array`.
 
-    
+
     :param xx: Array of x-coordinates, generate by meshgrid. Can be sparse.
     :type xx: np.ndarray
     :param yy: Array of y-coordinates, generate by meshgrid. Can be sparse.
@@ -28,7 +31,7 @@ def generate_point_function(
     :param loc: location of the point, :math:`[x_0, y_0, z_0]`, defaults to np.zeros((3,))
     :type loc: Union[tuple, list, np.ndarray], optional
 
-    
+
     :return: An array with shape the result of broadcasting ``xx``, ``yy``, and ``zz``,
       where the element closes to the location defined by ``loc`` is 1.0, other elements are 0.0.
       If ``loc`` is out of bounds all elements are 0.0.
@@ -150,7 +153,7 @@ def generate_circular_function_array(
     array_size: int,
     array_angular_increment: Union[float, int],
     func_params: dict,
-    array_origin: Union[np.ndarray, list, tuple] = (0.0, 0.0, 0.0),
+    array_origin: npt.ArrayLike = (0.0, 0.0, 0.0),
 ) -> np.ndarray:
     """
     Produces a superposition of the supplied function in a circular array. The circular
@@ -175,7 +178,7 @@ def generate_circular_function_array(
       step.
     :type array_angular_increment: Union[float, int]
     :param func_params: A dictionary of function parameters. Must have entries:
-    
+
       * 'loc': np.ndarray, list or tuple length 3, :math:`[x_0, y_0, z_0]` values.
     :type func_params: dict
     :param array_origin: The origin of the circular array, :math:`[x_{a,0}, y_{a,0}, z_{a,0}]`,
@@ -186,7 +189,7 @@ def generate_circular_function_array(
     :raises ValueError: If value of `func_params['loc']` is not a np.ndarray, list or tuple.
     :raises ValueError: If value of `func_params['loc']` is not 1D and of lenght 3
 
-    :return: An array, comprising the function output arrayed at each position, normalised so 
+    :return: An array, comprising the function output arrayed at each position, normalised so
       that its maximum value is 1.0
     :rtype: np.ndarray
     """
@@ -206,7 +209,7 @@ def generate_circular_function_array(
             "value of `func_params['loc']` must be a np.ndarray, list or tuple"
         )
 
-    array_origin: np.ndarray = np.asarray(array_origin)
+    array_origin = np.asarray(array_origin)
     func_params = deepcopy(func_params)
     # create the function origin in homogeneous coords
     func_origin_homogeneous: np.ndarray = np.append(np.asarray(func_params["loc"]), 1)
@@ -233,4 +236,3 @@ def generate_circular_function_array(
     out /= np.amax(out)
 
     return out
-

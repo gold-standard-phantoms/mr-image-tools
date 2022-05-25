@@ -1,32 +1,30 @@
 """ parameters.py tests """
 from types import SimpleNamespace
-import pytest
+
 import numpy as np
+import pytest
+
+from mrimagetools.containers.image import BaseImageContainer, NumpyImageContainer
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
     ValidationError,
     and_validator,
-    shape_validator,
+    for_each_validator,
+    from_list_validator,
+    greater_than_equal_to_validator,
+    greater_than_validator,
+    has_attribute_value_validator,
+    isinstance_validator,
+    list_of_type_validator,
+    non_empty_list_validator,
+    of_length_validator,
     or_validator,
     range_exclusive_validator,
     range_inclusive_validator,
-    from_list_validator,
-    list_of_type_validator,
-    of_length_validator,
-    non_empty_list_validator,
     regex_validator,
     reserved_string_list_validator,
-    greater_than_validator,
-    greater_than_equal_to_validator,
-    for_each_validator,
-    isinstance_validator,
-    has_attribute_value_validator,
-    and_validator,
-)
-from mrimagetools.containers.image import (
-    NumpyImageContainer,
-    BaseImageContainer,
+    shape_validator,
 )
 
 
@@ -501,7 +499,10 @@ def test_or_validator_creator():
 def test_or_validator():
     """Test the or_validator"""
     validator = or_validator(
-        [range_inclusive_validator(0, 1), range_exclusive_validator(100, 200),]
+        [
+            range_inclusive_validator(0, 1),
+            range_exclusive_validator(100, 200),
+        ]
     )
     assert (
         str(validator) == "Value(s) must be between 0 and 1 (inclusive) OR "
@@ -540,7 +541,10 @@ def test_and_validator_creator():
 def test_and_validator():
     """Test the and_validator"""
     validator = and_validator(
-        [range_inclusive_validator(0, 10), range_exclusive_validator(5, 15),]
+        [
+            range_inclusive_validator(0, 10),
+            range_exclusive_validator(5, 15),
+        ]
     )
 
     assert (

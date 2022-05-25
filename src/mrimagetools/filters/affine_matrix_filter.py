@@ -1,13 +1,15 @@
 """ Affine Matrix Filter """
 
 from typing import Tuple
+
 import numpy as np
+
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
-    ParameterValidator,
     Parameter,
-    isinstance_validator,
+    ParameterValidator,
     for_each_validator,
+    isinstance_validator,
     range_inclusive_validator,
 )
 
@@ -179,7 +181,7 @@ class AffineMatrixFilter(BaseFilter):
         self.outputs[self.KEY_AFFINE_INVERSE] = np.linalg.inv(output_affine)
 
     def _validate_inputs(self):
-        """ Checks that the inputs meet their validation criteria
+        """Checks that the inputs meet their validation criteria
 
         `'rotation'` (optional) must be a Tuple of floats of length 3, each value -180 to 180
         inclusive,default (optional) = (0.0, 0.0, 0.0)

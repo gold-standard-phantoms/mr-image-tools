@@ -2,15 +2,15 @@
 import numpy as np
 
 from mrimagetools.containers.image import (
-    BaseImageContainer,
     COMPLEX_IMAGE_TYPE,
-    SPATIAL_DOMAIN,
     INVERSE_DOMAIN,
+    SPATIAL_DOMAIN,
+    BaseImageContainer,
 )
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
-    ParameterValidator,
     Parameter,
+    ParameterValidator,
     isinstance_validator,
 )
 

@@ -1,5 +1,6 @@
 """ Ground truth loader filter """
 import copy
+
 import jsonschema
 import numpy as np
 
@@ -8,8 +9,8 @@ from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationErr
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
-    isinstance_validator,
     for_each_validator,
+    isinstance_validator,
 )
 from mrimagetools.validators.schemas.index import SCHEMAS
 
@@ -48,7 +49,7 @@ class GroundTruthLoaderFilter(BaseFilter):
     :type 'parameter_override': dict
     :param 'ground_truth_modulate': dictionary with keys corresponding with quantity names.
       The possible dictionary values (both optional) are:
-    
+
       .. code-block:: python
 
         {
@@ -314,4 +315,3 @@ class GroundTruthLoaderFilter(BaseFilter):
                 "'lambda_blood_brain' must be present in either the input 'quantities' list or"
                 " as a key in 'parameters'"
             )
-

@@ -4,7 +4,7 @@ be found on the class 'ParameterValidator'
 """
 import re
 from copy import deepcopy
-from typing import Tuple, Union, List, Dict, Callable, Any, Type
+from typing import Any, Callable, Dict, List, Tuple, Type, Union
 
 from mrimagetools.containers.image import BaseImageContainer
 
@@ -215,11 +215,11 @@ def regex_validator(pattern: str, case_insensitive: bool = False) -> Validator:
     except re.error as exc:
         raise ValueError(f"{pattern} is not a valid python regex pattern") from exc
     return Validator(
-        lambda value: re.match(
-            pattern, value, flags=re.IGNORECASE if case_insensitive else 0
+        lambda value: bool(
+            re.match(pattern, value, flags=re.IGNORECASE if case_insensitive else 0)
         )
-        if isinstance(value, str)  # must be a string for regex to match
-        else None is not None,
+        if isinstance(value, str)
+        else False,
         f"Value must match pattern {pattern}{' (ignoring case)' if case_insensitive else ''}",
     )
 
@@ -250,7 +250,7 @@ def reserved_string_list_validator(
             )
 
     concat_strings = "|".join(strings)
-    pattern = fr"^({concat_strings})({delimiter}({concat_strings}))*$"
+    pattern = rf"^({concat_strings})({delimiter}({concat_strings}))*$"
     return Validator(
         regex_validator(pattern=pattern, case_insensitive=case_insensitive).func,
         f"Value must be a string combination of {strings} separated by "
@@ -386,7 +386,8 @@ def shape_validator(keys: List[BaseImageContainer], maxdim: int = None) -> Valid
         return keys_exist and have_shape and shapes_match
 
     return Validator(
-        validate, criteria_message=f"{keys} must all have the same shapes",
+        validate,
+        criteria_message=f"{keys} must all have the same shapes",
     )
 
 

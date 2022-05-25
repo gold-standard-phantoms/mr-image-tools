@@ -1,24 +1,23 @@
 """ Tests for BidsOutputFilter """
-from copy import deepcopy
-from typing import Tuple
-from unittest.mock import Mock, patch
-import os
 import datetime
 import json
+import os
+from copy import deepcopy
 from tempfile import TemporaryDirectory
-import pytest
-import git
+from typing import Tuple
+from unittest.mock import Mock, patch
 
+import git
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
-
-from mrimagetools.filters.bids_output_filter import BidsOutputFilter
-from mrimagetools.filters.basefilter import FilterInputValidationError
-from mrimagetools.containers.image import NiftiImageContainer
-from mrimagetools.utils.filter_validation import validate_filter_inputs
+import pytest
 
 from mrimagetools import __version__
+from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.filters.basefilter import FilterInputValidationError
+from mrimagetools.filters.bids_output_filter import BidsOutputFilter
+from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 TEST_VOLUME_DIMENSIONS = (32, 32, 32)
 TEST_NIFTI_ONES = nib.Nifti2Image(

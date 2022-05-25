@@ -1,15 +1,17 @@
 """Pipeline to perform ASL quantification and save CBF map"""
+import json
 import logging
 import os
-import json
+
 import nibabel as nib
+
+from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
-from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.filters.load_asl_bids_filter import LoadAslBidsFilter
+from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
+from mrimagetools.utils.general import map_dict, splitext
 from mrimagetools.validators.schemas.index import SCHEMAS
-from mrimagetools.utils.general import splitext, map_dict
 
 PASL_DEFAULT_PARAMS = {
     "QuantificationModel": "whitepaper",
@@ -50,7 +52,7 @@ BIDS_TO_ASLDRO_MAPPING = {
 def asl_quantification(
     asl_nifti_filename: str, quant_params_filename: str = None, output_dir: str = None
 ) -> dict:
-    """Performs ASL quantification on an ASL BIDS file, optionally using 
+    """Performs ASL quantification on an ASL BIDS file, optionally using
     quantification parameters.
 
     :param asl_nifti_filename: Filename of the ASL NIFTI file. It is assumed
@@ -70,13 +72,13 @@ def asl_quantification(
           is not ``None``.
         :quantification_parameters: A dictionay containing entries with the actual
           quantification parameters used. These are based on parameters contained
-          in the image, 
+          in the image,
 
     :rtype: dict
 
     The quantification parameters are:
 
-        :QuantificationModel: (string) defaults to "whitepaper" 
+        :QuantificationModel: (string) defaults to "whitepaper"
           (see :class:`.AslQuantificationFilter`)
         :ArterialSpinLabelingType: (string) "PCASL", "CASL" or "PASL"
         :PostLabelingDelay: (float) The post labeling delay in seconds.
@@ -86,10 +88,10 @@ def asl_quantification(
         :T1ArterialBlood: (float) If not supplied the default value is based on
             the value of the BIDS field "MagneticFieldStrength":
 
-            :1.5 Tesla: 1.35s 
+            :1.5 Tesla: 1.35s
             :3.0 Tesla: 1.65s
 
-    Valid ASL BIDS files should contain sufficient information to be able to 
+    Valid ASL BIDS files should contain sufficient information to be able to
     calculate a CBF map. The order of precedence (1 = highest) for parameters
     are:
 
@@ -103,7 +105,7 @@ def asl_quantification(
         :LabelingDuration: 1.8
         :LabelingEfficiency: 0.85
 
-    Default quantification parameters for PASL are: 
+    Default quantification parameters for PASL are:
 
         :PostLabelingDelay: 1.8
         :BolusCutOffDelayTime: 0.8

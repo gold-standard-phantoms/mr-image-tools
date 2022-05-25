@@ -1,16 +1,17 @@
 """ Acquire MRI Image Filter tests """
 # pylint: disable=duplicate-code
 
-from copy import deepcopy
 import logging
-import pytest
+from copy import deepcopy
+
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
+import pytest
 
+from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.acquire_mri_image_filter import AcquireMriImageFilter
 from mrimagetools.filters.basefilter import FilterInputValidationError
-from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,12 @@ TEST_NIFTI_ONES = NiftiImageContainer(
     nifti_img=nib.Nifti2Image(
         np.ones(TEST_VOLUME_DIMENSIONS),
         affine=np.array(
-            ((1, 0, 0, -16), (0, 1, 0, -16), (0, 0, 1, -16), (0, 0, 0, 1),)
+            (
+                (1, 0, 0, -16),
+                (0, 1, 0, -16),
+                (0, 0, 1, -16),
+                (0, 0, 0, 1),
+            )
         ),
     )
 )
@@ -59,7 +65,7 @@ def test_acquire_mri_image_filter_validate_inputs_required():
 
 
 def test_acquire_mri_image_filter_mocked_filter_run():
-    """ Test the AcquireMriImageFilter with some mock data """
+    """Test the AcquireMriImageFilter with some mock data"""
     params = {
         "t1": TEST_NIFTI_ONES,
         "t2": TEST_NIFTI_ONES,

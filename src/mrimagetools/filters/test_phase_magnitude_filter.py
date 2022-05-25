@@ -1,24 +1,25 @@
 """ PhaseMagnitudeFilter tests """
 
 from typing import Tuple
-import pytest
+
+import nibabel as nib
 import numpy as np
 import numpy.testing as nptesting
+import pytest
 from numpy.random import default_rng
-import nibabel as nib
-from mrimagetools.filters.basefilter import FilterInputValidationError
 
-from mrimagetools.filters.phase_magnitude_filter import PhaseMagnitudeFilter
 from mrimagetools.containers.image import (
-    BaseImageContainer,
     COMPLEX_IMAGE_TYPE,
-    MAGNITUDE_IMAGE_TYPE,
-    REAL_IMAGE_TYPE,
     IMAGINARY_IMAGE_TYPE,
-    NiftiImageContainer,
+    MAGNITUDE_IMAGE_TYPE,
     PHASE_IMAGE_TYPE,
+    REAL_IMAGE_TYPE,
     SPATIAL_DOMAIN,
+    BaseImageContainer,
+    NiftiImageContainer,
 )
+from mrimagetools.filters.basefilter import FilterInputValidationError
+from mrimagetools.filters.phase_magnitude_filter import PhaseMagnitudeFilter
 
 
 @pytest.fixture(name="test_data")
@@ -44,7 +45,10 @@ def fixture_test_image():
         magnitude_data,
         phase_data,
         NiftiImageContainer(
-            nifti_img=nib.Nifti1Image(dataobj=complex_data, affine=np.eye(4),),
+            nifti_img=nib.Nifti1Image(
+                dataobj=complex_data,
+                affine=np.eye(4),
+            ),
             image_type=COMPLEX_IMAGE_TYPE,
             data_domain=SPATIAL_DOMAIN,
         ),
@@ -115,8 +119,7 @@ def test_phase_magnitude_filter_validator_phase_input(
 def test_phase_magnitude_filter_real_input(
     test_data: Tuple[np.ndarray, np.ndarray, BaseImageContainer]
 ):
-    """Run the phase_magnitude_filter with non-complex data and image_type=REAL_IMAGE_TYPE.
-    """
+    """Run the phase_magnitude_filter with non-complex data and image_type=REAL_IMAGE_TYPE."""
     _, _, image_container = test_data
 
     # real input
@@ -140,8 +143,7 @@ def test_phase_magnitude_filter_real_input(
 def test_phase_magnitude_filter_imaginary_input(
     test_data: Tuple[np.ndarray, np.ndarray, BaseImageContainer]
 ):
-    """Run the phase_magnitude_filter with non-complex data and image_type=IMAGINARY_IMAGE_TYPE.
-    """
+    """Run the phase_magnitude_filter with non-complex data and image_type=IMAGINARY_IMAGE_TYPE."""
     _, _, image_container = test_data
 
     # real input
@@ -165,8 +167,7 @@ def test_phase_magnitude_filter_imaginary_input(
 def test_phase_magnitude_filter_magnitude_input(
     test_data: Tuple[np.ndarray, np.ndarray, BaseImageContainer]
 ):
-    """Run the phase_magnitude_filter with non-complex data and image_type=MAGNITUDE_IMAGE_TYPE.
-    """
+    """Run the phase_magnitude_filter with non-complex data and image_type=MAGNITUDE_IMAGE_TYPE."""
     _, _, image_container = test_data
 
     # real input

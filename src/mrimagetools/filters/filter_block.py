@@ -6,9 +6,9 @@ from mrimagetools.filters.basefilter import BaseFilter
 
 
 class FilterBlock(BaseFilter):
-    """ A filter made from multiple, chained filters. Used for when
+    """A filter made from multiple, chained filters. Used for when
     the same configuration of filters is used multiple times, or needs
-    to be tested as a whole """
+    to be tested as a whole"""
 
     @abstractmethod
     def _create_filter_block(self) -> BaseFilter:

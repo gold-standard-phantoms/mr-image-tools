@@ -1,6 +1,7 @@
 """Index of the JSON schema files"""
-import os
 import json
+import os
+
 from jsonschema import Draft7Validator
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))

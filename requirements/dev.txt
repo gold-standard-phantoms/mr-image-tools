@@ -4,3 +4,4 @@
 pandoc-eqnos
 pandoc-fignos
 pandoc-tablenos
+pre-commit==2.19.0

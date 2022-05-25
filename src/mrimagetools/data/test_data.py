@@ -1,7 +1,8 @@
 """ Test the data here is valid """
 import json
-from mrimagetools.validators.ground_truth_json import validate_input
+
 from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
+from mrimagetools.validators.ground_truth_json import validate_input
 
 
 def test_hrgt_icbm_2009a_nls_3t():
