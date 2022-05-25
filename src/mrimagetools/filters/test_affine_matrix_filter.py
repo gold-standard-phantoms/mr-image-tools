@@ -2,11 +2,13 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
-import pytest
+
 import numpy as np
 import numpy.testing
-from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+import pytest
+
 from mrimagetools.filters.affine_matrix_filter import AffineMatrixFilter
+from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 
 # input validation dictionary, [0] in each tuple passes, after that should fail validation
 INPUT_VALIDATION_DICTIONARY = {
@@ -98,7 +100,7 @@ MOCK_DATA = (
 
 
 def add_multiple_inputs_to_filter(input_filter: BaseFilter, input_data: dict):
-    """ Adds the data held within the input_data dictionary to the filter's inputs """
+    """Adds the data held within the input_data dictionary to the filter's inputs"""
     for key in input_data:
         input_filter.add_input(key, input_data[key])
 

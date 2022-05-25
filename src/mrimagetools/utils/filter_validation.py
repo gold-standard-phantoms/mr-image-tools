@@ -1,10 +1,13 @@
 """Utility functions for testing filters"""
 from copy import deepcopy
+from typing import Type
+
 import pytest
+
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 
 
-def validate_filter_inputs(filter_to_test: BaseFilter, validation_data: dict):
+def validate_filter_inputs(filter_to_test: Type[BaseFilter], validation_data: dict):
     """Tests a filter with a validation data dictionary.  Checks that FilterInputValidationErrors
     are raised when data is missing or incorrect.
 
@@ -12,7 +15,7 @@ def validate_filter_inputs(filter_to_test: BaseFilter, validation_data: dict):
     :type filter_to_test: BaseFilter
     :param validation_data: A dictionary, where each key is an input parameter
       for the filter, and the value is a list/tuple where:
-        
+
         :[0]: is_optional
         :[1]: a value that should pass
         :[2:end]: values that should fail

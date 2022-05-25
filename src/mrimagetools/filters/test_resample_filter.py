@@ -1,14 +1,15 @@
 """ Resample Filter Tests """
 # pylint: disable=duplicate-code
 
-import pytest
-import numpy as np
-import numpy.testing
 import nibabel as nib
 import nilearn as nil
+import numpy as np
+import numpy.testing
+import pytest
+
 from mrimagetools.containers.image import NiftiImageContainer, NumpyImageContainer
-from mrimagetools.filters.resample_filter import ResampleFilter
 from mrimagetools.filters.affine_matrix_filter import AffineMatrixFilter
+from mrimagetools.filters.resample_filter import ResampleFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 TEST_VOLUME_DIMENSIONS = (32, 32, 32)
@@ -45,7 +46,7 @@ def test_resample_filter_validate_inputs(validation_data: dict):
 
 
 def test_resample_filter_mock_data():
-    """ Test the resample_filter with some mock data """
+    """Test the resample_filter with some mock data"""
 
     # Create some synthetic data
     grid = np.mgrid[0:128, 0:128]
@@ -104,18 +105,22 @@ def test_resample_filter_mock_data():
 
     # compare outputs: image data
     numpy.testing.assert_array_equal(
-        np.asanyarray(resampled_image.dataobj), resampled_numpy_container.image,
+        np.asanyarray(resampled_image.dataobj),
+        resampled_numpy_container.image,
     )
     numpy.testing.assert_array_equal(
-        np.asanyarray(resampled_image.dataobj), resampled_nifti_container.image,
+        np.asanyarray(resampled_image.dataobj),
+        resampled_nifti_container.image,
     )
 
     # compare outputs: affine
     numpy.testing.assert_array_equal(
-        resampled_image.affine, resampled_numpy_container.affine,
+        resampled_image.affine,
+        resampled_numpy_container.affine,
     )
     numpy.testing.assert_array_equal(
-        resampled_image.affine, resampled_nifti_container.affine,
+        resampled_image.affine,
+        resampled_nifti_container.affine,
     )
 
 
@@ -215,7 +220,14 @@ def test_resample_filter_single_point_transformations(
     # define world coordinate origin (x,y,z) = (0,0,0) at (i,j,k) = (50,50,50)
     # and 1 voxel == 1mm isotropically
     # therefore according to RAS+:
-    affine = np.array(((1, 0, 0, -50), (0, 1, 0, -50), (0, 0, 1, -50), (0, 0, 0, 1),))
+    affine = np.array(
+        (
+            (1, 0, 0, -50),
+            (0, 1, 0, -50),
+            (0, 0, 1, -50),
+            (0, 0, 0, 1),
+        )
+    )
 
     # define a vector in this space: world coords (10, 10, 10)
     vector_image_coords = np.rint(
@@ -260,7 +272,7 @@ def test_resample_filter_single_point_transformations(
 
 
 def test_resample_filter_metadata():
-    """Tests the metadata output of the resample filter """
+    """Tests the metadata output of the resample filter"""
     test_image = TEST_NIFTI_ONES.clone()
     # add some meta data
     test_image.metadata = {

@@ -1,29 +1,29 @@
 """ Tests for image_tools.py """
 
-import pytest
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
+import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
-from mrimagetools.filters.image_tools import FloatToIntImageFilter
 from mrimagetools.filters.basefilter import FilterInputValidationError
+from mrimagetools.filters.image_tools import FloatToIntImageFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 # [multiplier, expected_datatype]
 FTI_DTYPE_TEST_DATA = [
-    [2 ** 16 - 1, np.uint16],
-    [2 ** 16, np.uint32],
-    [2 ** 32 - 1, np.uint32],
-    [2 ** 32, np.uint64],
-    [2 ** 64 - 1, np.uint64],
+    [2**16 - 1, np.uint16],
+    [2**16, np.uint32],
+    [2**32 - 1, np.uint32],
+    [2**32, np.uint64],
+    [2**64 - 1, np.uint64],
     [1, np.uint16],
     [-1, np.int16],
-    [-(2 ** 15) + 1, np.int16],
-    [-(2 ** 15), np.int32],
-    [-(2 ** 31) + 1, np.int32],
-    [-(2 ** 31), np.int64],
-    [-(2 ** 63) + 1, np.int64],
+    [-(2**15) + 1, np.int16],
+    [-(2**15), np.int32],
+    [-(2**31) + 1, np.int32],
+    [-(2**31), np.int64],
+    [-(2**63) + 1, np.int64],
 ]
 
 # [multiplier, method, expected]
@@ -91,7 +91,8 @@ def test_float_to_int_filter_data_types(multiplier: float, expected_datatype: np
     output_image: NiftiImageContainer = float_to_int_filter.outputs["image"]
     assert output_image.image.dtype == expected_datatype
     numpy.testing.assert_array_equal(
-        output_image.image, np.rint(input_image.image).astype(expected_datatype),
+        output_image.image,
+        np.rint(input_image.image).astype(expected_datatype),
     )
 
 
@@ -109,5 +110,6 @@ def test_float_to_int_filter_methods(multiplier, method, expected):
     float_to_int_filter.run()
     output_image: NiftiImageContainer = float_to_int_filter.outputs["image"]
     numpy.testing.assert_array_equal(
-        output_image.image, expected,
+        output_image.image,
+        expected,
     )

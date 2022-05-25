@@ -3,23 +3,23 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
-import pytest
-import numpy as np
-import jsonschema
 
-import numpy.testing
+import jsonschema
 import nibabel as nib
+import numpy as np
+import numpy.testing
+import pytest
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.filters.create_volumes_from_seg_mask import CreateVolumesFromSegMask
-from mrimagetools.utils.filter_validation import validate_filter_inputs
 from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
+from mrimagetools.utils.filter_validation import validate_filter_inputs
 from mrimagetools.validators.schemas.index import SCHEMAS
 
 
 @pytest.fixture(name="validation_data")
 def input_validation_dict_fixture():
-    """Returns an object of tuples containing test data for input validation of the 
+    """Returns an object of tuples containing test data for input validation of the
     GroundTruthLoaderFilter"""
 
     seg_data_4D = np.stack([i * np.ones((2, 2, 3), dtype=np.uint16) for i in range(4)])
@@ -92,7 +92,12 @@ def test_create_volumes_from_seg_mask_with_mock_data(validation_data: dict):
     # image_info
     assert create_volumes_filter.outputs["image_info"] == {
         "quantities": ["quant1", "quant2", "seg_label"],
-        "segmentation": {"reg0": 0, "reg1": 1, "reg2": 2, "reg3": 3,},
+        "segmentation": {
+            "reg0": 0,
+            "reg1": 1,
+            "reg2": 2,
+            "reg3": 3,
+        },
         "units": ["unit1", "unit2", ""],
     }
 

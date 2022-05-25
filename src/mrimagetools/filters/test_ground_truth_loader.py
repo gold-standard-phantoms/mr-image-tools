@@ -2,17 +2,17 @@
 # pylint: disable=duplicate-code
 from copy import deepcopy
 
-import pytest
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
+import pytest
 
+from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.containers.image import NiftiImageContainer
-from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
 
 
 @pytest.fixture(name="input_validation_dict")
@@ -21,7 +21,8 @@ def input_validation_dict_fixture():
     input validation of the GroundTruthLoaderFilter"""
     test_volume_dimensions = (3, 3, 3, 1, 7)
     test_nifti_ones = nib.Nifti2Image(
-        np.ones(test_volume_dimensions), affine=np.eye(4),
+        np.ones(test_volume_dimensions),
+        affine=np.eye(4),
     )
 
     test_nifti_con_ones = NiftiImageContainer(nifti_img=test_nifti_ones)
@@ -264,7 +265,11 @@ def test_ground_truth_loader_filter_with_mock_data(mock_data: dict):
         "magnetic_field_strength": 3.0,
         "quantity": "seg_label",
         "units": "",
-        "segmentation": {"csf": 3, "grey_matter": 1, "white_matter": 2,},
+        "segmentation": {
+            "csf": 3,
+            "grey_matter": 1,
+            "white_matter": 2,
+        },
     }
 
 
@@ -300,10 +305,12 @@ def test_ground_truth_loader_filter_with_image_overrides(mock_data: dict):
     gt_filter.add_inputs(mock_data)
     gt_filter.run()
     numpy.testing.assert_array_equal(
-        gt_filter.outputs["m0"].image, np.full(shape=(3, 3, 3), fill_value=5),
+        gt_filter.outputs["m0"].image,
+        np.full(shape=(3, 3, 3), fill_value=5),
     )
     numpy.testing.assert_array_equal(
-        gt_filter.outputs["t1"].image, np.full(shape=(3, 3, 3), fill_value=1.0),
+        gt_filter.outputs["t1"].image,
+        np.full(shape=(3, 3, 3), fill_value=1.0),
     )
 
 

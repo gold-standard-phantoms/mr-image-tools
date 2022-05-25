@@ -2,23 +2,22 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
-import pytest
+
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
+import pytest
 
-
-from mrimagetools.filters.add_complex_noise_filter import AddComplexNoiseFilter
 from mrimagetools.containers.image import (
     BaseImageContainer,
     NiftiImageContainer,
     NumpyImageContainer,
 )
-from mrimagetools.containers.image import NiftiImageContainer
-
+from mrimagetools.filters.add_complex_noise_filter import AddComplexNoiseFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 TEST_VOLUME_DIMENSIONS = (32, 32, 32)
+
 
 @pytest.fixture(name="validation_data")
 def input_validation_data_fixture():
@@ -112,7 +111,7 @@ def simulate_dual_image_snr_measurement_function(
 
 
 def test_add_complex_noise_filter_with_mock_data():
-    """ Test the add complex noise filter with some data """
+    """Test the add complex noise filter with some data"""
     signal_level = 100.0
     snr = 100.0
     seed = 1234
@@ -172,7 +171,7 @@ def test_add_complex_noise_filter_with_mock_data():
 
 
 def test_add_complex_noise_filter_snr_zero():
-    """ Checks that the output image is equal to the input image when snr=0 """
+    """Checks that the output image is equal to the input image when snr=0"""
     signal_level = 100.0
     np.random.seed(0)
     image = np.random.normal(signal_level, 10, (32, 32, 32))

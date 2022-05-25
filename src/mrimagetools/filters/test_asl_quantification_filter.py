@@ -1,26 +1,34 @@
 """Tests for asl_quantification_filter.py"""
 
 from copy import deepcopy
-import pytest
 
-import numpy as np
-from numpy.random import default_rng
-import numpy.testing
 import nibabel as nib
+import numpy as np
+import numpy.testing
+import pytest
+from numpy.random import default_rng
 
 from mrimagetools.containers.image import NiftiImageContainer
-from mrimagetools.utils.filter_validation import validate_filter_inputs
-
 from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.filters.gkm_filter import GkmFilter
+from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 TEST_DIM_3D = (2, 2, 2)
 TEST_DIM_4D = (2, 2, 2, 10)
 TEST_NIFTI_ONES = nib.Nifti2Image(
     np.ones(TEST_DIM_3D),
-    affine=np.array(((1, 0, 0, -16), (0, 1, 0, -16), (0, 0, 1, -16), (0, 0, 0, 1),)),
+    affine=np.array(
+        (
+            (1, 0, 0, -16),
+            (0, 1, 0, -16),
+            (0, 0, 1, -16),
+            (0, 0, 0, 1),
+        )
+    ),
 )
-TEST_NIFTI_CON_ONES = NiftiImageContainer(nifti_img=TEST_NIFTI_ONES,)
+TEST_NIFTI_CON_ONES = NiftiImageContainer(
+    nifti_img=TEST_NIFTI_ONES,
+)
 
 TEST_METADATA = {
     "RepetitionTime": 5.0,
@@ -29,7 +37,12 @@ TEST_METADATA = {
     "FlipAngle": 90,
     "M0Type": "Included",
     "ComplexImageComponent": "REAL",
-    "ImageType": ["ORIGINAL", "PRIMARY", "PERFUSION", "NONE",],
+    "ImageType": [
+        "ORIGINAL",
+        "PRIMARY",
+        "PERFUSION",
+        "NONE",
+    ],
     "BackgroundSuppression": False,
     "VascularCrushing": False,
     "LabelingDuration": 1.8,
@@ -45,14 +58,16 @@ def test_data_wp_fixture() -> dict:
         metadata=TEST_METADATA,
     )
     control_3d = NiftiImageContainer(
-        nib.Nifti2Image(np.ones(TEST_DIM_3D), affine=np.eye(4)), metadata=TEST_METADATA,
+        nib.Nifti2Image(np.ones(TEST_DIM_3D), affine=np.eye(4)),
+        metadata=TEST_METADATA,
     )
     label_4d = NiftiImageContainer(
         nib.Nifti2Image(0.99 * np.ones(TEST_DIM_4D), affine=np.eye(4)),
         metadata=TEST_METADATA,
     )
     control_4d = NiftiImageContainer(
-        nib.Nifti2Image(np.ones(TEST_DIM_4D), affine=np.eye(4)), metadata=TEST_METADATA,
+        nib.Nifti2Image(np.ones(TEST_DIM_4D), affine=np.eye(4)),
+        metadata=TEST_METADATA,
     )
     m0 = NiftiImageContainer(nib.Nifti2Image(np.ones(TEST_DIM_3D), affine=np.eye(4)))
     return {
@@ -146,7 +161,8 @@ def test_data_full_fixture(multiphase_data) -> dict:
         metadata=metadata,
     )
     label_2 = NiftiImageContainer(
-        nib.Nifti2Image(0.99 * np.ones(dim_4d_2), affine=np.eye(4)), metadata=metadata,
+        nib.Nifti2Image(0.99 * np.ones(dim_4d_2), affine=np.eye(4)),
+        metadata=metadata,
     )
     control_2 = NiftiImageContainer(
         nib.Nifti2Image(np.ones(dim_4d_2), affine=np.eye(4)), metadata=metadata
@@ -294,11 +310,19 @@ def test_asl_quantification_verify_casl_numeric(
     """Verifies the numerical output of the asl_quant_wp_casl static method"""
     actual = (
         AslQuantificationFilter.asl_quant_wp_casl(
-            m0, m0 - delta_m, m0, lambda_blood_brain, label_dur, pld, lab_eff, t1,
+            m0,
+            m0 - delta_m,
+            m0,
+            lambda_blood_brain,
+            label_dur,
+            pld,
+            lab_eff,
+            t1,
         ),
     )
     np.testing.assert_array_almost_equal(
-        actual, expected,
+        actual,
+        expected,
     )
 
 
@@ -312,11 +336,19 @@ def test_asl_quantification_filter_verify_pasl_numeric(
     """Verifies the numerical output of the asl_quant_wp_pasl static method"""
     actual = (
         AslQuantificationFilter.asl_quant_wp_pasl(
-            m0, m0 - delta_m, m0, lambda_blood_brain, bol_dur, inv_time, lab_eff, t1,
+            m0,
+            m0 - delta_m,
+            m0,
+            lambda_blood_brain,
+            bol_dur,
+            inv_time,
+            lab_eff,
+            t1,
         ),
     )
     np.testing.assert_array_almost_equal(
-        actual, expected,
+        actual,
+        expected,
     )
 
 
@@ -396,7 +428,12 @@ def test_asl_quantification_filter_with_mock_data_casl(test_data_wp):
     # check the image metadata
     assert asl_quantification_filter.outputs["perfusion_rate"].metadata == {
         "ComplexImageComponent": "REAL",
-        "ImageType": ["DERIVED", "PRIMARY", "PERFUSION", "RCBF",],
+        "ImageType": [
+            "DERIVED",
+            "PRIMARY",
+            "PERFUSION",
+            "RCBF",
+        ],
         "BackgroundSuppression": False,
         "VascularCrushing": False,
         "LabelingDuration": 1.8,
@@ -523,7 +560,12 @@ def test_asl_quantification_filter_with_mock_data_pasl(test_data_wp):
     # check the image metadata
     assert asl_quantification_filter.outputs["perfusion_rate"].metadata == {
         "ComplexImageComponent": "REAL",
-        "ImageType": ["DERIVED", "PRIMARY", "PERFUSION", "RCBF",],
+        "ImageType": [
+            "DERIVED",
+            "PRIMARY",
+            "PERFUSION",
+            "RCBF",
+        ],
         "BackgroundSuppression": False,
         "VascularCrushing": False,
         "LabelingDuration": 1.8,
@@ -593,7 +635,12 @@ def test_asl_quantification_filter_full_mock_data(test_data_full, multiphase_dat
         # check the image metadata
         assert asl_quantification_filter.outputs["perfusion_rate"].metadata == {
             "ComplexImageComponent": "REAL",
-            "ImageType": ["DERIVED", "PRIMARY", "PERFUSION", "RCBF",],
+            "ImageType": [
+                "DERIVED",
+                "PRIMARY",
+                "PERFUSION",
+                "RCBF",
+            ],
             "BackgroundSuppression": False,
             "VascularCrushing": False,
             "LabelingDuration": test_data_full["label_duration"],

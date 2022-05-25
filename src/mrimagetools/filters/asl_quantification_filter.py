@@ -1,21 +1,22 @@
 """ASL quantification filter class"""
-from typing import List
+from typing import List, Union
+
 import numpy as np
 from scipy.optimize import curve_fit
+
+from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.filters.gkm_filter import GkmFilter
-from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
-    for_each_validator,
-    isinstance_validator,
-    greater_than_equal_to_validator,
-    greater_than_validator,
-    from_list_validator,
-    range_inclusive_validator,
     and_validator,
     for_each_validator,
+    from_list_validator,
+    greater_than_equal_to_validator,
+    greater_than_validator,
+    isinstance_validator,
+    range_inclusive_validator,
     shape_validator,
 )
 
@@ -314,13 +315,19 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
             "common": ParameterValidator(
                 parameters={
                     self.KEY_M0: Parameter(
-                        validators=[isinstance_validator(BaseImageContainer),]
+                        validators=[
+                            isinstance_validator(BaseImageContainer),
+                        ]
                     ),
                     self.KEY_CONTROL: Parameter(
-                        validators=[isinstance_validator(BaseImageContainer),]
+                        validators=[
+                            isinstance_validator(BaseImageContainer),
+                        ]
                     ),
                     self.KEY_LABEL: Parameter(
-                        validators=[isinstance_validator(BaseImageContainer),]
+                        validators=[
+                            isinstance_validator(BaseImageContainer),
+                        ]
                     ),
                     self.KEY_LABEL_TYPE: Parameter(
                         validators=from_list_validator(
@@ -354,7 +361,8 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
                     ),
                     self.KEY_MODEL: Parameter(
                         validators=from_list_validator(
-                            [self.WHITEPAPER, self.FULL], case_insensitive=True,
+                            [self.WHITEPAPER, self.FULL],
+                            case_insensitive=True,
                         )
                     ),
                 },
@@ -571,7 +579,7 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
         m0_tissue: np.ndarray,
         lambda_blood_brain: np.ndarray,
         label_duration: float,
-        post_label_delay: np.ndarray or List[float],
+        post_label_delay: Union[np.ndarray, List[float]],
         label_efficiency: float,
         t1_arterial_blood: float,
         t1_tissue: np.ndarray,
@@ -622,7 +630,7 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
 
         :rtype: dict
 
-        ``control``, ``label``, ``m0_tissue``, ``t1_tissue`` and 
+        ``control``, ``label``, ``m0_tissue``, ``t1_tissue`` and
         ``lambda_blood_brain`` must all have
         the same dimensions for the first 3 dimensions.
 

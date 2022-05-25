@@ -1,9 +1,11 @@
 """  MriSignalFilter tests """
 
 from copy import deepcopy
-import pytest
+
 import numpy as np
 import numpy.testing
+import pytest
+
 from mrimagetools.containers.image import NumpyImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.filters.mri_signal_filter import MriSignalFilter
@@ -137,7 +139,7 @@ IR_TIMECOURSE_PARAMS = (
 
 @pytest.fixture(name="mock_data")
 def mock_data_fixture() -> dict:
-    """ creates valid mock test data  """
+    """creates valid mock test data"""
     np.random.seed(0)
     return {
         "t1": NumpyImageContainer(
@@ -166,7 +168,7 @@ def mock_data_fixture() -> dict:
     "validation_data", [TEST_DATA_DICT_GE, TEST_DATA_DICT_SE, TEST_DATA_DICT_IR]
 )
 def test_mri_signal_filter_validate_inputs(validation_data: dict):
-    """ Check a FilterInputValidationError is raised when the
+    """Check a FilterInputValidationError is raised when the
     inputs to the MriSignalFilter are incorrect or missing
     """
     for inputs_key in validation_data:
@@ -260,8 +262,8 @@ def test_mri_signal_filter_validate_inputs(validation_data: dict):
 
 
 def test_mri_signal_filter_validate_inputs_ge_no_t2_star():
-    """ Checks a FilterInputValidationError is raised when
-    'acq_contrast' == 'ge' and 't2_star' is not supplied """
+    """Checks a FilterInputValidationError is raised when
+    'acq_contrast' == 'ge' and 't2_star' is not supplied"""
     test_data = deepcopy(TEST_DATA_DICT_GE)
     # remove the 't2_star' entry
     test_data.pop("t2_star")
@@ -274,7 +276,7 @@ def test_mri_signal_filter_validate_inputs_ge_no_t2_star():
 
 
 def add_multiple_inputs_to_filter(input_filter: BaseFilter, input_data: dict):
-    """ Adds the data held within the input_data dictionary to the filter's inputs """
+    """Adds the data held within the input_data dictionary to the filter's inputs"""
     for key in input_data:
         input_filter.add_input(key, input_data[key])
 
@@ -282,7 +284,7 @@ def add_multiple_inputs_to_filter(input_filter: BaseFilter, input_data: dict):
 
 
 def mri_signal_gradient_echo_function(input_data: dict) -> np.ndarray:
-    """ Function that calculates the gradient echo signal """
+    """Function that calculates the gradient echo signal"""
     t1: np.ndarray = input_data["t1"].image
     t2: np.ndarray = input_data["t2"].image
     m0: np.ndarray = input_data["m0"].image
@@ -309,7 +311,7 @@ def mri_signal_gradient_echo_function(input_data: dict) -> np.ndarray:
 
 
 def mri_signal_spin_echo_function(input_data: dict) -> np.ndarray:
-    """ Function that calculates the spin echo signal """
+    """Function that calculates the spin echo signal"""
     t1: np.ndarray = input_data["t1"].image
     t2: np.ndarray = input_data["t2"].image
     m0: np.ndarray = input_data["m0"].image
@@ -322,7 +324,7 @@ def mri_signal_spin_echo_function(input_data: dict) -> np.ndarray:
 
 
 def mri_signal_inversion_recovery_function(input_data: dict) -> np.ndarray:
-    """ Function that calculates the inversion recovery signal """
+    """Function that calculates the inversion recovery signal"""
     t1: np.ndarray = input_data["t1"].image
     t2: np.ndarray = input_data["t2"].image
     m0: np.ndarray = input_data["m0"].image
@@ -358,8 +360,8 @@ def mri_signal_inversion_recovery_function(input_data: dict) -> np.ndarray:
 
 
 def test_mri_signal_filter_gradient_echo(mock_data):
-    """ Tests the MriSignalFilter for 'acq_contrast' == 'ge':
-    Gradient Echo """
+    """Tests the MriSignalFilter for 'acq_contrast' == 'ge':
+    Gradient Echo"""
     mock_data["acq_contrast"] = "ge"
     mri_signal_filter = MriSignalFilter()
     mri_signal_filter = add_multiple_inputs_to_filter(mri_signal_filter, mock_data)
@@ -395,8 +397,8 @@ def test_mri_signal_filter_gradient_echo(mock_data):
 
 
 def test_mri_signal_filter_spin_echo(mock_data):
-    """ Tests the MriSignalFilter for 'acq_contrast' == 'se':
-    Spin Echo """
+    """Tests the MriSignalFilter for 'acq_contrast' == 'se':
+    Spin Echo"""
     mock_data["acq_contrast"] = "se"
     mri_signal_filter = MriSignalFilter()
     mri_signal_filter = add_multiple_inputs_to_filter(mri_signal_filter, mock_data)
@@ -432,8 +434,8 @@ def test_mri_signal_filter_spin_echo(mock_data):
 
 
 def test_mri_signal_filter_inversion_recovery(mock_data):
-    """ Tests the MriSignalFilter for 'acq_contrast' == 'ir':
-    Inversion Recovery """
+    """Tests the MriSignalFilter for 'acq_contrast' == 'ir':
+    Inversion Recovery"""
     mock_data["acq_contrast"] = "ir"
     mock_data["inversion_flip_angle"] = 180.0
     mock_data["inversion_time"] = 1.0
@@ -485,7 +487,7 @@ def test_mri_signal_timecourse(
     m0: float,
     t2_star: float,
     acq_contrast: str,
-    echo_time: float,
+    echo_time: np.ndarray,
     repetition_time: float,
     expected: float,
 ):
@@ -502,7 +504,7 @@ def test_mri_signal_timecourse(
         expected (float): Array of expected values that the MriSignalFilter should generate
         Should be the same size and shape as 'echo_time'
     """
-    mri_signal_timecourse = np.ndarray(echo_time.shape)
+    mri_signal_timecourse: np.ndarray = np.ndarray(echo_time.shape)
     for idx, te in np.ndenumerate(echo_time):
         params = {
             "t1": NumpyImageContainer(image=np.full((1, 1, 1), t1)),
@@ -542,7 +544,7 @@ def test_mri_signal_timecourse_inversion_recovery(
     repetition_time: float,
     flip_angle: float,
     inversion_angle: float,
-    inversion_time: float,
+    inversion_time: np.ndarray,
     expected: float,
 ):
     """Tests the MriSignalFilter inversion recovery signal over a range of TI's.
@@ -572,7 +574,7 @@ def test_mri_signal_timecourse_inversion_recovery(
 
     """
 
-    mri_signal_timecourse = np.ndarray(inversion_time.shape)
+    mri_signal_timecourse = np.zeros(inversion_time.shape)
     for idx, ti in np.ndenumerate(inversion_time):
         params = {
             "t1": NumpyImageContainer(image=np.full((1, 1, 1), t1)),
@@ -596,7 +598,7 @@ def test_mri_signal_timecourse_inversion_recovery(
 
 
 def test_mri_signal_filter_image_flavour(mock_data):
-    """ Tests the MriSignalFilter when the input "image_flavour" is changed """
+    """Tests the MriSignalFilter when the input "image_flavour" is changed"""
     # check overrides no supplied mag_enc
 
     test_data = deepcopy(mock_data)
@@ -668,4 +670,3 @@ def test_mri_signal_filter_metadata_inheritence(mock_data):
         "key3": "three",
         "key4": 4,
     }
-

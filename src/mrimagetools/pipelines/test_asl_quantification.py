@@ -1,19 +1,21 @@
 """Tests for asl_quantification.py"""
 
+import json
 import os
 import sys
-import pytest
-import jsonschema
-import json
 from unittest.mock import patch
+
+import jsonschema
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
+import pytest
+
 from mrimagetools.containers.image import NiftiImageContainer
-from mrimagetools.validators.schemas.index import SCHEMAS
+from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.pipelines.asl_quantification import asl_quantification
-from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
+from mrimagetools.validators.schemas.index import SCHEMAS
 
 TEST_VOLUME_DIMS = [4, 4, 4]
 
@@ -155,7 +157,9 @@ def pcasl_data_missing_params_fixture(tmp_path, image_data):
         bids_output_filter.outputs[BidsOutputFilter.KEY_FILENAME][1], "w"
     ) as json_file:
         json.dump(
-            new_sidecar, json_file, indent=4,
+            new_sidecar,
+            json_file,
+            indent=4,
         )
 
     return bids_output_filter.outputs
@@ -352,4 +356,3 @@ def test_asl_quantification_pasl(test_pasl_data):
         "BolusCutOffDelayTime": 1.0,
         "T1ArterialBlood": 1.65,
     }
-

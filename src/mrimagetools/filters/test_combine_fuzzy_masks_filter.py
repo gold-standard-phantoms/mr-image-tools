@@ -1,17 +1,15 @@
 """ Tests for CombineFuzzyMasksFilter"""
 
 
-import pytest
-
-import numpy as np
-from numpy.random import default_rng
-import numpy.testing
-
 import nibabel as nib
+import numpy as np
+import numpy.testing
+import pytest
+from numpy.random import default_rng
 
+from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.combine_fuzzy_masks_filter import CombineFuzzyMasksFilter
-from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
@@ -90,7 +88,12 @@ def input_validation_dict_fixture():
             "threshold": [True, 0.1, 2.0, -1.0, "str"],
         },
         "input_validation_dict_fuzzy_mask_image": {
-            "fuzzy_mask": [False, valid_fuzzy_mask_image, 1, "str",],
+            "fuzzy_mask": [
+                False,
+                valid_fuzzy_mask_image,
+                1,
+                "str",
+            ],
             "region_values": [False, 1, "str"],
             "region_priority": [True, 1, 0, "str"],
             "threshold": [True, 0.1, 2.0, -1.0, "str"],
@@ -222,4 +225,3 @@ def test_combine_fuzzy_masks_filter_mock_data_image(validation_data: dict):
             )
         ),
     )
-

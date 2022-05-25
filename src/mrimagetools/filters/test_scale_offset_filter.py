@@ -1,8 +1,9 @@
 """ ScaleOffsetFilter tests """
-import pytest
+import nibabel as nib
 import numpy as np
 import numpy.testing as nptesting
-import nibabel as nib
+import pytest
+
 from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.scale_offset_filter import ScaleOffsetFilter
 
@@ -15,7 +16,7 @@ def fixture_test_image():
     fastest (C-like index order)"""
     return NiftiImageContainer(
         nifti_img=nib.Nifti1Image(
-            dataobj=np.reshape(np.array(range(3 ** 3)), (3, 3, 3)), affine=np.eye(4)
+            dataobj=np.reshape(np.array(range(3**3)), (3, 3, 3)), affine=np.eye(4)
         )
     )
 
@@ -28,7 +29,7 @@ def test_scale_offset_filter_scale_only(test_image: NiftiImageContainer):
     scale_offset_filter.run()
     nptesting.assert_array_equal(
         scale_offset_filter.outputs["image"].image,
-        np.reshape(np.array(range(3 ** 3)) * 0.5, (3, 3, 3)),
+        np.reshape(np.array(range(3**3)) * 0.5, (3, 3, 3)),
     )
 
 
@@ -40,7 +41,7 @@ def test_scale_offset_filter_offset_only(test_image: NiftiImageContainer):
     scale_offset_filter.run()
     nptesting.assert_array_equal(
         scale_offset_filter.outputs["image"].image,
-        np.reshape(np.array(range(3 ** 3)) - 5, (3, 3, 3)),
+        np.reshape(np.array(range(3**3)) - 5, (3, 3, 3)),
     )
 
 
@@ -53,5 +54,5 @@ def test_scale_offset_filter_scale_and_offset(test_image: NiftiImageContainer):
     scale_offset_filter.run()
     nptesting.assert_array_equal(
         scale_offset_filter.outputs["image"].image,
-        np.reshape(np.array(range(3 ** 3)) * 2 - 5.0, (3, 3, 3)),
+        np.reshape(np.array(range(3**3)) * 2 - 5.0, (3, 3, 3)),
     )

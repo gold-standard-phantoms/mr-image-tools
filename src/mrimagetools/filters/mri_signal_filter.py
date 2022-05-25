@@ -1,13 +1,14 @@
 """ MRI Signal Filter """
 
 import numpy as np
-from mrimagetools.containers.image import BaseImageContainer, COMPLEX_IMAGE_TYPE
+
+from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
-    ParameterValidator,
     Parameter,
-    greater_than_equal_to_validator,
+    ParameterValidator,
     from_list_validator,
+    greater_than_equal_to_validator,
     isinstance_validator,
 )
 

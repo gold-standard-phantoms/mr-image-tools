@@ -1,16 +1,19 @@
 """ General Kinetic Model Filter """
 
 import logging
+from typing import Union
+
 import numpy as np
+
 from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
-    ParameterValidator,
     Parameter,
-    range_inclusive_validator,
-    greater_than_equal_to_validator,
+    ParameterValidator,
     from_list_validator,
+    greater_than_equal_to_validator,
     isinstance_validator,
+    range_inclusive_validator,
 )
 
 logger = logging.getLogger(__name__)
@@ -464,7 +467,7 @@ class GkmFilter(BaseFilter):
 
     @staticmethod
     def check_and_make_image_from_value(
-        arg: float or BaseImageContainer,
+        arg: Union[float, BaseImageContainer],
         shape: tuple,
         metadata: dict,
         metadata_key: str,
@@ -498,8 +501,9 @@ class GkmFilter(BaseFilter):
 
         """
 
+        out_array: np.ndarray
         if isinstance(arg, BaseImageContainer):
-            out_array: np.ndarray = arg.image
+            out_array = arg.image
             # Get a flattened view of nD numpy array
             flatten_arr = np.ravel(out_array)
             # Check if all value in array are equal and update metadata if so
@@ -507,13 +511,15 @@ class GkmFilter(BaseFilter):
                 metadata[metadata_key] = flatten_arr[0]
 
         else:
-            out_array: np.ndarray = arg * np.ones(shape)
+            out_array = arg * np.ones(shape)
             metadata[metadata_key] = arg
         return out_array
 
     @staticmethod
     def compute_arrival_state_masks(
-        transit_time: np.ndarray, signal_time: float, label_duration: float,
+        transit_time: np.ndarray,
+        signal_time: float,
+        label_duration: float,
     ) -> dict:
         """Creates boolean masks for each of the states of the delivery curve
 
@@ -825,4 +831,3 @@ class GkmFilter(BaseFilter):
             condition_masks["arrived"]
         ]
         return delta_m
-

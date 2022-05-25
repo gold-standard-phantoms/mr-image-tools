@@ -1,13 +1,13 @@
 """Load ASL BIDS filter class"""
 
-import os
 import json
+import os
 
-import numpy as np
 import nibabel as nib
+import numpy as np
 
-from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,

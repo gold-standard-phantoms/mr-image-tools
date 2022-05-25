@@ -1,17 +1,16 @@
 """ InvertImageFilter tests """
-import pytest
-
-import numpy as np
-from numpy.testing import assert_array_equal
 import nibabel as nib
+import numpy as np
+import pytest
+from numpy.testing import assert_array_equal
 
+from mrimagetools.containers.image import NiftiImageContainer, NumpyImageContainer
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.invert_image_filter import InvertImageFilter
-from mrimagetools.containers.image import NiftiImageContainer, NumpyImageContainer
 
 
 def test_invert_image_filter_outputs():
-    """ Test the invert image filter validator throws appropriate errors"""
+    """Test the invert image filter validator throws appropriate errors"""
     invert_image_filter = InvertImageFilter()
 
     invert_image_filter.add_input("image", 123)  # wrong image input type
@@ -20,7 +19,7 @@ def test_invert_image_filter_outputs():
 
 
 def test_invert_image_filter_with_nifti():
-    """ Test the invert image filter works correctly with NiftiImageContainer"""
+    """Test the invert image filter works correctly with NiftiImageContainer"""
     invert_image_filter = InvertImageFilter()
     array = np.ones(shape=(3, 3, 3, 1), dtype=np.float32)
 
@@ -34,7 +33,7 @@ def test_invert_image_filter_with_nifti():
 
 
 def test_invert_image_filter_with_numpy():
-    """ Test the invert image filter works correctly with NumpyImageContainer"""
+    """Test the invert image filter works correctly with NumpyImageContainer"""
     invert_image_filter = InvertImageFilter()
     array = np.ones(shape=(3, 3, 3, 1), dtype=np.float32)
 

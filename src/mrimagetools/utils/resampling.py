@@ -1,10 +1,11 @@
 """ Utility Functions for the ASL DRO """
 
 from typing import Tuple, Union
-import numpy as np
-from numpy.linalg import inv
+
 import nibabel as nib
 import nilearn as nil
+import numpy as np
+from numpy.linalg import inv
 
 from mrimagetools.containers.image import BaseImageContainer
 

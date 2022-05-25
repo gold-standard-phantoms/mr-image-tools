@@ -1,15 +1,17 @@
 """ CombineTimeSeriesFilter tests """
 import os
-from typing import Mapping
 from tempfile import TemporaryDirectory
-from nibabel.nifti1 import Nifti1Image
-import pytest
+from typing import Mapping, MutableMapping
+
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
+import pytest
+from nibabel.nifti1 import Nifti1Image
+
+from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, NiftiImageContainer
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.combine_time_series_filter import CombineTimeSeriesFilter
-from mrimagetools.containers.image import NiftiImageContainer, COMPLEX_IMAGE_TYPE
 
 
 @pytest.fixture(name="image_containers")
@@ -24,7 +26,7 @@ def fixture_image_containers():
     `to_singleton` is always equal to 10
     `even` is equal to the index of the container, but only present in
     odd indices.
-    `odd` is always equal to 1.5, but is only present in even indices, 
+    `odd` is always equal to 1.5, but is only present in even indices,
     the final image container has an extra `foo` metadata field.
     """
     # create a dummy nifti image for the header
@@ -89,7 +91,7 @@ def test_combine_time_series_filter_good_input(
 
 
 def test_combine_time_series_filter_repeat_index(
-    image_containers: Mapping[str, NiftiImageContainer]
+    image_containers: MutableMapping[str, NiftiImageContainer]
 ):
     """Run the CombineTimeSeriesFilter where we have a repeat input index.
     We should get a FilterInputValidationError error"""
@@ -105,7 +107,7 @@ def test_combine_time_series_filter_repeat_index(
 
 
 def test_combine_time_series_filter_missing_index(
-    image_containers: Mapping[str, NiftiImageContainer]
+    image_containers: MutableMapping[str, NiftiImageContainer]
 ):
     """Run the CombineTimeSeriesFilter where we have a missing input index.
     We should get a FilterInputValidationError error"""
@@ -117,7 +119,7 @@ def test_combine_time_series_filter_missing_index(
 
 
 def test_combine_time_series_filter_mismatched_image_dimensions(
-    image_containers: Mapping[str, NiftiImageContainer]
+    image_containers: MutableMapping[str, NiftiImageContainer]
 ):
     """Run the CombineTimeSeriesFilter where all of the images
     have mismatched dimensions - check we get a FilterInputValidationError"""
@@ -129,11 +131,11 @@ def test_combine_time_series_filter_mismatched_image_dimensions(
 
 
 def test_combine_time_series_filter_non_image(
-    image_containers: Mapping[str, NiftiImageContainer]
+    image_containers: MutableMapping[str, NiftiImageContainer]
 ):
     """Run the CombineTimeSeriesFilter where one of the image inputs
     is not an imagecontainer - check we get a FilterInputValidationError"""
-    image_containers["image_0000006"] = "surprise!!!"
+    image_containers["image_0000006"] = "surprise!!!"  # type: ignore
     a_filter = CombineTimeSeriesFilter()
     a_filter.add_inputs(image_containers)
     with pytest.raises(FilterInputValidationError):
@@ -180,4 +182,3 @@ def test_combine_time_series_filter_with_complex_images():
                 axis=3,
             ),
         )
-

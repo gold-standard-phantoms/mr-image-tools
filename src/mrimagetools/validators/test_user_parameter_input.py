@@ -1,24 +1,26 @@
 """ Tests some user inputs to the model to make sure the validation is performed correctly """
 # pylint: disable=redefined-outer-name
-from copy import deepcopy
 import decimal
+from copy import deepcopy
+
 import numpy
 import pytest
 from numpy.random import default_rng
+
 from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
 from mrimagetools.validators.parameters import ValidationError
 from mrimagetools.validators.user_parameter_input import (
-    DISTRIBUTION_VALIDATOR,
-    IMAGE_TYPE_VALIDATOR,
     ASL,
+    ASL_POST_VALIDATOR,
+    DEFAULT_BS_PARAMS,
+    DEFAULT_GROUND_TRUTH,
+    DISTRIBUTION_VALIDATOR,
     GROUND_TRUTH,
+    IMAGE_TYPE_VALIDATOR,
     STRUCTURAL,
     generate_parameter_distribution,
-    validate_input_params,
     get_example_input_params,
-    DEFAULT_GROUND_TRUTH,
-    DEFAULT_BS_PARAMS,
-    ASL_POST_VALIDATOR,
+    validate_input_params,
 )
 
 

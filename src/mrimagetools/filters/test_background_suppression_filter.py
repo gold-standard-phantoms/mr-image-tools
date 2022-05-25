@@ -1,12 +1,15 @@
 """Tests for background_suppression_filter.py"""
 from copy import deepcopy
-import pytest
+
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
+import pytest
 
-from mrimagetools.filters.background_suppression_filter import BackgroundSuppressionFilter
-from mrimagetools.containers.image import NiftiImageContainer, COMPLEX_IMAGE_TYPE
+from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, NiftiImageContainer
+from mrimagetools.filters.background_suppression_filter import (
+    BackgroundSuppressionFilter,
+)
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
@@ -103,12 +106,12 @@ def calc_mz_function(
         inv_pulse_times = [
             inv_pulse_times,
         ]
-    mz = 1 + ((1 - sat_eff) - 1) * (inv_eff ** num_pulses) * np.exp(
+    mz = 1 + ((1 - sat_eff) - 1) * (inv_eff**num_pulses) * np.exp(
         -np.divide(mag_time, t1, out=np.zeros_like(t1), where=t1 != 0)
     )
 
     for m, tm in enumerate(inv_pulse_times):
-        mz += ((inv_eff ** (m + 1)) - (inv_eff ** m)) * np.exp(
+        mz += ((inv_eff ** (m + 1)) - (inv_eff**m)) * np.exp(
             -np.divide(tm, t1, out=np.zeros_like(t1), where=t1 != 0)
         )
 
@@ -229,9 +232,9 @@ def test_background_suppression_filter_calculate_pulse_efficiency(test_data):
     t1 = np.array((0.24, 0.25, 0.449, 0.450, 2.0, 2.001, 4.2, 4.3))
     pulse_eff = BackgroundSuppressionFilter.calculate_pulse_efficiency(t1)
     pe_fun = lambda x: -(
-        (-2.245e-15) * (x ** 4)
-        + (2.378e-11) * (x ** 3)
-        - (8.987e-8) * (x ** 2)
+        (-2.245e-15) * (x**4)
+        + (2.378e-11) * (x**3)
+        - (8.987e-8) * (x**2)
         + (1.442e-4) * x
         + (9.1555e-1)
     )

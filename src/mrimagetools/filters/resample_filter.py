@@ -1,15 +1,16 @@
 """ Resample Filter """
+import nibabel as nib
 import numpy as np
 from nilearn.image import resample_img
-import nibabel as nib
-from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+
 from mrimagetools.containers.image import BaseImageContainer
+from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
-    ParameterValidator,
     Parameter,
+    ParameterValidator,
+    for_each_validator,
     from_list_validator,
     isinstance_validator,
-    for_each_validator,
 )
 
 
@@ -30,11 +31,11 @@ class ResampleFilter(BaseFilter):
     :param 'shape': Image is resampled according to this new shape.
     :type 'shape': Tuple[int, int, int]
     :param 'interpolation': Defines the interpolation method:
-      
+
         :'continuous': order 3 spline interpolation (default)
         :'linear': order 1 linear interpolation
         :'nearest': nearest neighbour interpolation
-    
+
     :type 'interpolation': str, optional
 
     **Outputs**
@@ -63,7 +64,9 @@ class ResampleFilter(BaseFilter):
 
     def _run(self):
         # Clone the image and perform the resampling
-        resampled_image: BaseImageContainer = self.inputs[self.KEY_IMAGE].as_nifti().clone()
+        resampled_image: BaseImageContainer = (
+            self.inputs[self.KEY_IMAGE].as_nifti().clone()
+        )
         resampled_image.nifti_image = resample_img(
             resampled_image.nifti_image,
             target_affine=self.inputs[self.KEY_AFFINE],

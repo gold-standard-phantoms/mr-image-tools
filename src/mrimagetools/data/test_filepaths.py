@@ -2,8 +2,7 @@
 
 import os
 
-from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
-from mrimagetools.data.filepaths import QASPER_DATA
+from mrimagetools.data.filepaths import GROUND_TRUTH_DATA, QASPER_DATA
 
 
 def test_file_paths_exist():

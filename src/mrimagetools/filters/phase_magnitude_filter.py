@@ -1,21 +1,21 @@
 """ PhaseMagnitudeFilter Class"""
 
 import numpy as np
+
 from mrimagetools.containers.image import (
-    BaseImageContainer,
     COMPLEX_IMAGE_TYPE,
-    REAL_IMAGE_TYPE,
     IMAGINARY_IMAGE_TYPE,
     MAGNITUDE_IMAGE_TYPE,
     PHASE_IMAGE_TYPE,
+    REAL_IMAGE_TYPE,
+    BaseImageContainer,
 )
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
-
 from mrimagetools.validators.parameters import (
-    ParameterValidator,
     Parameter,
-    isinstance_validator,
+    ParameterValidator,
     has_attribute_value_validator,
+    isinstance_validator,
 )
 
 
@@ -24,14 +24,14 @@ class PhaseMagnitudeFilter(BaseFilter):
     its Phase and Magnitude components. Typically, this will be used after
     a :class:`.AcquireMriImageFilter` which contains real and imaginary
     components, however it may also be used with image data that is of type:
-    
+
     * ``REAL_IMAGE_TYPE``: in which case the phase is 0° where the image value is
       positive, and 180° where it is negative.
     * ``IMAGINARY_IMAGE_TYPE``: in which case the phase is 90° where the image value
       is positive, and 270° where it is negative.
     * ``MAGNITUDE_IMAGE_TYPE``: in which case the phase cannot be defined and so
       the output phase image is set to ``None``.
-    
+
 
     **Inputs**
 
@@ -95,7 +95,9 @@ class PhaseMagnitudeFilter(BaseFilter):
         input_validator = ParameterValidator(
             parameters={
                 self.KEY_IMAGE: Parameter(
-                    validators=[isinstance_validator(BaseImageContainer),]
+                    validators=[
+                        isinstance_validator(BaseImageContainer),
+                    ]
                 )
             }
         )

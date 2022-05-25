@@ -1,7 +1,9 @@
 """ BaseFilter tests """
 
 from unittest.mock import call
+
 import pytest
+
 from mrimagetools.filters.basefilter import (
     BaseFilter,
     FilterInputKeyError,
@@ -19,14 +21,14 @@ class BaseFilterTester(BaseFilter):
         super().__init__(name="BaseFilterTester")
 
     def _run(self):
-        """ Dummy run """
+        """Dummy run"""
 
     def _validate_inputs(self):
-        """ Dummy run """
+        """Dummy run"""
 
 
 def test_filter_name():
-    """ Test the name of the filter is set """
+    """Test the name of the filter is set"""
     base_filter = BaseFilterTester()
     assert base_filter.name == "BaseFilterTester"
 
@@ -55,7 +57,7 @@ class SumFilter(BaseFilter):
         self.outputs["sum"] = sum(self.inputs.values())
 
     def _validate_inputs(self):
-        """ All inputs must be integers or floats """
+        """All inputs must be integers or floats"""
         for input_key, input_value in self.inputs.items():
             if not isinstance(input_value, (int, float)):
                 raise FilterInputValidationError(
@@ -64,7 +66,7 @@ class SumFilter(BaseFilter):
 
 
 def test_validate_inputs():
-    """ Filter should only allow int or float inputs """
+    """Filter should only allow int or float inputs"""
     sum_filter = SumFilter()
     sum_filter.add_input("input1", 5)
     sum_filter.run()
@@ -76,7 +78,7 @@ def test_validate_inputs():
 
 
 def test_simple_sum_filter():
-    """ Filter should add all inputs """
+    """Filter should add all inputs"""
     filter_a = SumFilter()
     filter_a.add_input("input_a", 5)
     filter_a.add_input("input_b", 10)
@@ -156,7 +158,7 @@ def test_chained_sum_filter():
 
 
 def test_loop_handling():
-    """ If the filters are chained in a loop, check this is managed gracefully """
+    """If the filters are chained in a loop, check this is managed gracefully"""
     filter_a = SumFilter()
     filter_a.add_input("a", 1)
     filter_b = SumFilter()
@@ -170,7 +172,7 @@ def test_loop_handling():
 
 
 def test_basefilter_add_inputs(mocker):
-    """ Test the add_inputs function """
+    """Test the add_inputs function"""
     mocker.patch.object(SumFilter, "add_input")
     filter_a = SumFilter()
     filter_a.add_inputs({"one": "two", "three": "four"})
@@ -192,7 +194,7 @@ def test_basefilter_add_inputs_with_non_optional_iomap(mocker):
 
 
 def test_basefilter_add_inputs_with_iomap(mocker):
-    """ Test the add_inputs function with an optional io_map """
+    """Test the add_inputs function with an optional io_map"""
     mocker.patch.object(SumFilter, "add_input")
     filter_a = SumFilter()
     filter_a.add_inputs(

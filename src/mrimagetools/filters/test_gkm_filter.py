@@ -2,9 +2,11 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
-import pytest
+
 import numpy as np
 import numpy.testing
+import pytest
+
 from mrimagetools.containers.image import BaseImageContainer, NumpyImageContainer
 from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
@@ -256,10 +258,11 @@ def gkm_pasl_function(input_data: dict) -> np.ndarray:
     t1b: float = input_data["t1_arterial_blood"]
     t1: np.ndarray = input_data["t1_tissue"].image
 
+    m0: np.ndarray
     if isinstance(input_data["m0"], BaseImageContainer):
-        m0: np.ndarray = input_data["m0"].image
+        m0 = input_data["m0"].image
     else:
-        m0: np.ndarray = input_data["m0"] * np.ones(f.shape)
+        m0 = input_data["m0"] * np.ones(f.shape)
 
     # calculate M0b
     m0 = m0 / _lambda
@@ -312,10 +315,11 @@ def gkm_casl_function(input_data: dict) -> np.ndarray:
     t1b: float = input_data["t1_arterial_blood"]
     t1: np.ndarray = input_data["t1_tissue"].image
 
+    m0: np.ndarray
     if isinstance(input_data["m0"], BaseImageContainer):
-        m0: np.ndarray = input_data["m0"].image
+        m0 = input_data["m0"].image
     else:
-        m0: np.ndarray = input_data["m0"] * np.ones(f.shape)
+        m0 = input_data["m0"] * np.ones(f.shape)
 
     # calculate M0b
     m0 = m0 / _lambda
@@ -466,7 +470,7 @@ def test_gkm_filter_casl(casl_input):
 def test_gkm_timecourse(
     f: float,
     delta_t: float,
-    timepoints: np.array,
+    timepoints: np.ndarray,
     label_type: str,
     tau: float,
     alpha: str,
@@ -485,7 +489,7 @@ def test_gkm_timecourse(
         expected (np.ndarray): Array of expected values that the GkmFilter should generate. Should
         be the same size and shape as `timepoints`.
     """
-    delta_m_timecourse = np.ndarray(timepoints.shape)
+    delta_m_timecourse = np.zeros(timepoints.shape)
     for idx, t in np.ndenumerate(timepoints):
         params = {
             "perfusion_rate": NumpyImageContainer(image=f * np.ones((1, 1, 1))),

@@ -4,12 +4,13 @@ For visualising the results of resampling on a test image. Requires
 matplotlib which is not a dependency of mrimagetools
  """
 
-import numpy as np
 import matplotlib.pyplot as plt
 import nilearn as nil
-import mrimagetool.utils.resampling as rs
-from mrimagetools.utils.test_resampling import create_test_image
+import numpy as np
+
+import mrimagetools.utils.resampling as rs
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.utils.test_resampling import create_test_image
 
 
 def check_resampling():

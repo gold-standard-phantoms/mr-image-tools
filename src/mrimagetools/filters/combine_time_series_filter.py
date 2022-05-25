@@ -3,11 +3,12 @@
 import re
 from typing import List, Tuple
 
-import numpy as np
 import nibabel as nib
+import numpy as np
+
 from mrimagetools.containers.image import (
-    BaseImageContainer,
     COMPLEX_IMAGE_TYPE,
+    BaseImageContainer,
     NiftiImageContainer,
 )
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
@@ -22,7 +23,7 @@ class CombineTimeSeriesFilter(BaseFilter):
     * if all values of a given field are the same, for all time-series, use that
       value in the output metadata; else,
     * concatenate the values in a list.
-    
+
     Instance variables of the BaseImageContainer such as ``image_flavour``, will all
     be checked for consistency and copied across to the output image.
 

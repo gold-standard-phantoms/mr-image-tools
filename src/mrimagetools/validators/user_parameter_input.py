@@ -8,34 +8,33 @@ A ValidationError will be raised if any validation rules fail.
 """
 import os
 from copy import deepcopy
-from numpy.random import default_rng
-import numpy as np
+
 import jsonschema
+import numpy as np
+from numpy.random import default_rng
+
 from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
 from mrimagetools.filters.gkm_filter import GkmFilter
-
+from mrimagetools.utils.general import generate_random_numbers, splitext
 from mrimagetools.validators.parameters import (
-    ParameterValidator,
-    Validator,
-    ValidationError,
     Parameter,
+    ParameterValidator,
+    ValidationError,
+    Validator,
     and_validator,
-    isinstance_validator,
-    range_inclusive_validator,
+    for_each_validator,
+    from_list_validator,
     greater_than_equal_to_validator,
     greater_than_validator,
-    from_list_validator,
-    reserved_string_list_validator,
-    non_empty_list_validator,
+    isinstance_validator,
     list_of_type_validator,
+    non_empty_list_validator,
     of_length_validator,
-    for_each_validator,
     or_validator,
-    and_validator,
+    range_inclusive_validator,
+    reserved_string_list_validator,
 )
-
 from mrimagetools.validators.schemas.index import SCHEMAS
-from mrimagetools.utils.general import generate_random_numbers, splitext
 
 INPUT_PARAMETER_SCHEMA = SCHEMAS["input_params"]
 
@@ -704,7 +703,10 @@ def generate_parameter_distribution(param: dict, length=1) -> list:
     """
     # check if the parameter value is a dictionary
     if isinstance(param, dict):
-        if param.get("distribution") not in ("gaussian", "uniform",):
+        if param.get("distribution") not in (
+            "gaussian",
+            "uniform",
+        ):
             raise ValidationError(
                 f"Parameter {param} must have key 'distribution' with value"
                 f"'gaussian' or 'uniform'. Value is {param.get('distribution')}"
@@ -716,7 +718,11 @@ def generate_parameter_distribution(param: dict, length=1) -> list:
             )
             # generate the values
             return (
-                generate_random_numbers(param, (length,), param["seed"],)
+                generate_random_numbers(
+                    param,
+                    (length,),
+                    param["seed"],
+                )
                 .round(decimals=4)
                 .tolist()
             )

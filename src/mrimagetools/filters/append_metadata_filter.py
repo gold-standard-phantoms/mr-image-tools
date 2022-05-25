@@ -45,7 +45,7 @@ class AppendMetadataFilter(BaseFilter):
         super().__init__(name="Append Meta Data")
 
     def _run(self):
-        """ appends the input image with the supplied metadata"""
+        """appends the input image with the supplied metadata"""
         # copy the reference to the input image to outputs
         self.outputs[self.KEY_IMAGE] = self.inputs[self.KEY_IMAGE]
         # merge the input metadata with the existing metadata

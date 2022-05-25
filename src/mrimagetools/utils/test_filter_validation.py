@@ -1,9 +1,10 @@
 """tests for filter_validation.py"""
 
-import pytest
 import numpy as np
-from mrimagetools.utils.filter_validation import validate_filter_inputs
+import pytest
+
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.utils.filter_validation import validate_filter_inputs
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
@@ -13,7 +14,7 @@ from mrimagetools.validators.parameters import (
 
 class ProductFilter(BaseFilter):
     """A filter that multiplies its inputs together
-    
+
     input1: float
     input2: float
     input3: float, optional

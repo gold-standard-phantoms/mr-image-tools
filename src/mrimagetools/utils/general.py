@@ -1,6 +1,7 @@
 """ General utilities """
 import os
-from typing import Any, Mapping, Dict
+from typing import Any, Dict, Mapping
+
 import numpy as np
 from numpy.random import default_rng
 
@@ -72,16 +73,13 @@ def generate_random_numbers(specification: dict, shape=None, rng=None) -> np.nda
     :rtype: list
     """
     rng = default_rng(rng)
+    out: np.ndarray
     if specification.get("distribution") is not None:
         distribution = specification["distribution"]
         if distribution == "gaussian":
-            out: np.ndarray = rng.normal(
-                specification["mean"], specification["sd"], shape
-            )
+            out = rng.normal(specification["mean"], specification["sd"], shape)
         elif distribution == "uniform":
-            out: np.ndarray = rng.uniform(
-                specification["min"], specification["max"], shape
-            )
+            out = rng.uniform(specification["min"], specification["max"], shape)
     else:
         out = np.zeros(shape)
 

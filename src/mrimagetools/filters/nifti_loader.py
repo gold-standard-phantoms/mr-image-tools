@@ -1,5 +1,6 @@
 """ NIFTI file loader filter """
 import os
+
 import nibabel as nib
 
 from mrimagetools.containers.image import NiftiImageContainer
@@ -7,7 +8,7 @@ from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationErr
 
 
 class NiftiLoaderFilter(BaseFilter):
-    """ A filter for loading a NIFTI image from a file.
+    """A filter for loading a NIFTI image from a file.
 
     Must have a single string input named 'filename'.
 
@@ -19,18 +20,18 @@ class NiftiLoaderFilter(BaseFilter):
         super().__init__("NiftiLoader")
 
     def _run(self):
-        """ Load the input `filename` using nibabel and create
+        """Load the input `filename` using nibabel and create
         a Image container from it. Put this in the output named
-        `image`. """
+        `image`."""
 
         self.outputs["image"] = NiftiImageContainer(
             nifti_img=nib.load(self.inputs["filename"])
         )
 
     def _validate_inputs(self):
-        """ There must be an input named `filename`.
+        """There must be an input named `filename`.
         It must end in .nii or .nii.gz. It must
-        point to a existing file. """
+        point to a existing file."""
 
         if self.inputs.get("filename", None) is None:
             raise FilterInputValidationError(

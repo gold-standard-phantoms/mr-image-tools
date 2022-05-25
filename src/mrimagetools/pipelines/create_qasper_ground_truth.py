@@ -1,27 +1,27 @@
 """Pipeline to create a ground truth for the QASPER phantom"""
 
+import json
 import logging
 import os
-import json
-import argparse
 from tempfile import TemporaryDirectory
-import nibabel as nib
-import numpy as np
-import nilearn as nil
+from typing import Final, List, Union
 
-from mrimagetools.pipelines.generate_ground_truth import generate_hrgt
-from mrimagetools.pipelines.combine_masks import combine_fuzzy_masks
+import nibabel as nib
+import nilearn as nil
+import numpy as np
+
 from mrimagetools.data.filepaths import QASPER_DATA
+from mrimagetools.pipelines.combine_masks import combine_fuzzy_masks
+from mrimagetools.pipelines.generate_ground_truth import generate_hrgt
 from mrimagetools.utils.generate_numeric_function import (
     generate_circular_function_array,
     generate_gaussian_function,
 )
-from mrimagetools.cli import DirType
 
 logger = logging.getLogger(__name__)
 
 
-def generate_qasper(output_dir: str = None) -> dict:
+def generate_qasper(output_dir: Union[None, str] = None) -> dict:
     """Generates a valid QASPER ground truth for mrimagetools. This function generates
     the QASPER ground truth that is included with mrimagetools. For more information see
     :ref:`qasper-3t-hrgt`
@@ -37,16 +37,21 @@ def generate_qasper(output_dir: str = None) -> dict:
     # and represent the fraction of the voxel occupied by that particular region.
     # These need to be combined to create a segmentation mask with integer values
     # for each region.
-    inlet_label_value = 1
-    porous_label_value = 2
-    outlet_label_value = 3
+    inlet_label_value: int = 1
+    porous_label_value: int = 2
+    outlet_label_value: int = 3
+    region_values: List[int] = [
+        inlet_label_value,
+        porous_label_value,
+        outlet_label_value,
+    ]
     combine_mask_params = {
         "mask_files": [
             QASPER_DATA["inlet_fuzzy_mask"],
             QASPER_DATA["porous_fuzzy_mask"],
             QASPER_DATA["outlet_fuzzy_mask"],
         ],
-        "region_values": [inlet_label_value, porous_label_value, outlet_label_value],
+        "region_values": [region_values, porous_label_value, outlet_label_value],
         "region_priority": [1, 2, 3],
         "threshold": 0.05,
     }
@@ -74,8 +79,8 @@ def generate_qasper(output_dir: str = None) -> dict:
         perfusate_lambda = 1.0
         porous_lambda = 0.32
 
-        hrgt_params = {
-            "label_values": [0] + combine_mask_params["region_values"],
+        hrgt_params: Final[dict] = {
+            "label_values": [0] + region_values,
             "label_names": ["background", "inlet", "porous", "outlet"],
             "quantities": {
                 "perfusion_rate": [
@@ -97,7 +102,10 @@ def generate_qasper(output_dir: str = None) -> dict:
                 ],
             },
             "units": ["ml/100g/min", "s", "s", "s", "s", "", "g/ml"],
-            "parameters": {"t1_arterial_blood": 1.80, "magnetic_field_strength": 3.0,},
+            "parameters": {
+                "t1_arterial_blood": 1.80,
+                "magnetic_field_strength": 3.0,
+            },
         }
 
         hrgt_json_filename = os.path.join(temp_dir, "hrgt_params.json")
@@ -178,20 +186,3 @@ def generate_qasper(output_dir: str = None) -> dict:
             json.dump(qasper_hrgt["image_info"], json_file, indent=4)
 
     return qasper_hrgt
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="""Generates a QASPER phantom hrgt for ASLDRO"""
-    )
-
-    parser.add_argument(
-        "output_dir",
-        type=DirType(should_exist=True),
-        help="The directory to output to, creating a qasper_hrgt.nii.gz"
-        "and qasper_hrgt.json files in this directory. "
-        "Must exist. Will overwrite any existing files.",
-    )
-    args = parser.parse_args()
-    generate_qasper(args.output_dir)
-

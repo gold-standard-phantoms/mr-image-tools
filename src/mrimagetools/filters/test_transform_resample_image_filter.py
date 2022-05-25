@@ -2,17 +2,19 @@
 # pylint: disable=duplicate-code
 
 import logging
-import pytest
-import numpy as np
-import numpy.testing
 
 import nibabel as nib
 import nilearn as nil
+import numpy as np
+import numpy.testing
+import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
-from mrimagetools.filters.transform_resample_image_filter import TransformResampleImageFilter
-from mrimagetools.utils.resampling import transform_resample_image
+from mrimagetools.filters.transform_resample_image_filter import (
+    TransformResampleImageFilter,
+)
 from mrimagetools.utils.filter_validation import validate_filter_inputs
+from mrimagetools.utils.resampling import transform_resample_image
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +65,7 @@ def test_transform_resample_image_filter_validate_inputs(validation_data: dict):
 
 
 def test_transform_resample_image_filter_mock_data():
-    """ Test the transform_resampe_image_filter with some mock data """
+    """Test the transform_resampe_image_filter with some mock data"""
 
     # Create some synthetic data
     grid = np.mgrid[0:128, 0:128]
@@ -168,4 +170,3 @@ def test_transform_resample_image_filter_mock_data():
     numpy.testing.assert_array_equal(
         np.unique(xr_obj_filter.outputs["image"].image), (0, 1, 2, 3)
     )
-

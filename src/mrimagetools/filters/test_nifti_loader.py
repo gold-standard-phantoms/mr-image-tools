@@ -3,17 +3,17 @@ import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
 import nibabel as nib
 import numpy as np
+import pytest
 
+from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.containers.image import NiftiImageContainer
 
 
 def test_nifti_loader_input_validation_no_input():
-    """ Test all of the NiftiLoader input validation -
+    """Test all of the NiftiLoader input validation -
     No input filename (but some input so the filter will run)"""
 
     nifti_loader_filter = NiftiLoaderFilter()
@@ -23,7 +23,7 @@ def test_nifti_loader_input_validation_no_input():
 
 
 def test_nifti_loader_input_validation_non_string_input():
-    """ Test all of the NiftiLoader input validation -
+    """Test all of the NiftiLoader input validation -
     Non-string filename"""
 
     nifti_loader_filter = NiftiLoaderFilter()
@@ -34,7 +34,7 @@ def test_nifti_loader_input_validation_non_string_input():
 
 
 def test_nifti_loader_input_validation_bad_nifti_filename():
-    """ Test all of the NiftiLoader input validation -
+    """Test all of the NiftiLoader input validation -
     Bad NIFTI filename"""
 
     nifti_loader_filter = NiftiLoaderFilter()
@@ -48,8 +48,8 @@ def test_nifti_loader_input_validation_bad_nifti_filename():
 
 
 def test_nifti_loader_input_validation_missing_nifti_file():
-    """ Test all of the NiftiLoader input validation -
-    Missing NIFTI file """
+    """Test all of the NiftiLoader input validation -
+    Missing NIFTI file"""
 
     nifti_loader_filter = NiftiLoaderFilter()
 
@@ -62,7 +62,7 @@ def test_nifti_loader_input_validation_missing_nifti_file():
 
 
 def test_nifti_loader():
-    """ Test the loading functionality """
+    """Test the loading functionality"""
 
     with TemporaryDirectory() as temp_dir:
         filename = os.path.join(temp_dir, "image.nii")

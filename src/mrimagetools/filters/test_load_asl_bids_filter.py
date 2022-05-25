@@ -4,18 +4,15 @@ import os
 from shutil import copy
 from tempfile import TemporaryDirectory
 
-import pytest
-
+import nibabel as nib
 import numpy as np
 import numpy.testing
-import nibabel as nib
+import pytest
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
-
-from mrimagetools.utils.filter_validation import validate_filter_inputs
 from mrimagetools.filters.load_asl_bids_filter import LoadAslBidsFilter
-
+from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 TEST_VOLUME_DIMENSIONS = (32, 32, 32)
 

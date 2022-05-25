@@ -1,7 +1,7 @@
 """ JSON file loader filter """
 
-import os
 import json
+import os
 
 import jsonschema
 

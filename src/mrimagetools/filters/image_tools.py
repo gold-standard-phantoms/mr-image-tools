@@ -12,11 +12,11 @@ from mrimagetools.validators.parameters import (
 
 
 class FloatToIntImageFilter(BaseFilter):
-    """ A filter which converts image data from float to integer.
+    """A filter which converts image data from float to integer.
 
     **Inputs**
 
-    Input Parameters are all keyword arguments for the 
+    Input Parameters are all keyword arguments for the
     :class:`FloatToIntImageFilter.add_input()`
     member function. They are also accessible via class constants,
     for example :class:`FloatToIntImageFilter.KEY_IMAGE`
@@ -31,8 +31,8 @@ class FloatToIntImageFilter(BaseFilter):
         * "ceil":  returns the smallest integer that is greater than the input value.
         * "truncate": Removes the decimal portion of the number. This will round
           down for positive numbers and up for negative.
-    
-    **Outputs** 
+
+    **Outputs**
 
     Once run, the filter will populate the dictionary
     :class:`FloatToIntImageFilter.outputs` with the following entries
@@ -54,7 +54,7 @@ class FloatToIntImageFilter(BaseFilter):
         super().__init__("FloatToIntImageFilter")
 
     def _run(self):
-        """ Convert the image's data from float to integer """
+        """Convert the image's data from float to integer"""
         image: BaseImageContainer = self.inputs[self.KEY_IMAGE]
         method = self.inputs[self.KEY_METHOD]
         self.outputs[self.KEY_IMAGE] = image.clone()
@@ -66,15 +66,15 @@ class FloatToIntImageFilter(BaseFilter):
             # determine the best type to use
             if np.any(image.image < 0):
                 data_type = np.int16
-                if np.amax(np.absolute(image.image)) > 2 ** 15 - 1:
+                if np.amax(np.absolute(image.image)) > 2**15 - 1:
                     data_type = np.int32
-                    if np.amax(np.absolute(image.image)) > 2 ** 31 - 1:
+                    if np.amax(np.absolute(image.image)) > 2**31 - 1:
                         data_type = np.int64
             else:
                 data_type = np.uint16
-                if np.amax(np.absolute(image.image)) > 2 ** 16 - 1:
+                if np.amax(np.absolute(image.image)) > 2**16 - 1:
                     data_type = np.uint32
-                    if np.amax(np.absolute(image.image)) > 2 ** 32 - 1:
+                    if np.amax(np.absolute(image.image)) > 2**32 - 1:
                         data_type = np.uint64
 
             if method == self.ROUND:
@@ -98,8 +98,8 @@ class FloatToIntImageFilter(BaseFilter):
         """Checks that the inputs meet their validation criteria
         'image' must be derived from BaseImageContainer and have image data
         that is a float
-        'method' must be 
-        
+        'method' must be
+
         """
 
         input_validator = ParameterValidator(

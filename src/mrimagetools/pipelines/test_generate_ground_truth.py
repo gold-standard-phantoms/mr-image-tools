@@ -1,22 +1,22 @@
-from copy import deepcopy
-import os
-
-import pytest
 import json
-import jsonschema
+import os
+from copy import deepcopy
 from tempfile import TemporaryDirectory
-import numpy as np
-from mrimagetools.pipelines.generate_ground_truth import generate_hrgt
-import numpy.testing
+
+import jsonschema
 import nibabel as nib
+import numpy as np
+import numpy.testing
+import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.pipelines.generate_ground_truth import generate_hrgt
 from mrimagetools.validators.schemas.index import SCHEMAS
 
 
 @pytest.fixture(name="validation_data")
 def input_data_fixture():
-    """ Fixture with test data"""
+    """Fixture with test data"""
 
     return {
         "seg_mask_container": NiftiImageContainer(
