@@ -2,12 +2,12 @@
 import os
 
 import nibabel as nib
-from asldro.filters.bids_output_filter import BidsOutputFilter
-from asldro.utils.general import splitext
 
-from neuroqa.filters.load_bids_filter import LoadBidsFilter
-from neuroqa.filters.mtr_quantification_filter import MtrQuantificationFilter
-from neuroqa.filters.split_image_filter import SplitImageFilter
+from mrimagetools.filters.bids_output_filter import BidsOutputFilter
+from mrimagetools.filters.load_bids_filter import LoadBidsFilter
+from mrimagetools.filters.mtr_quantification_filter import MtrQuantificationFilter
+from mrimagetools.filters.split_image_filter import SplitImageFilter
+from mrimagetools.utils.general import splitext
 
 
 def mtr_pipeline(

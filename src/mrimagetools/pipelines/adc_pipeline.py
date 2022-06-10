@@ -5,11 +5,11 @@ import os
 
 import nibabel as nib
 import numpy as np
-from asldro.filters.bids_output_filter import BidsOutputFilter
-from asldro.utils.general import splitext
 
-from neuroqa.filters.adc_quantification_filter import AdcQuantificationFilter
-from neuroqa.filters.load_bids_filter import LoadBidsFilter
+from mrimagetools.filters.adc_quantification_filter import AdcQuantificationFilter
+from mrimagetools.filters.bids_output_filter import BidsOutputFilter
+from mrimagetools.filters.load_bids_filter import LoadBidsFilter
+from mrimagetools.utils.general import splitext
 
 
 def adc_pipeline(dwi_nifti_filename: str, output_dir: str = None) -> dict:

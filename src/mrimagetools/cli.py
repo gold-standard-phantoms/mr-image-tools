@@ -2,17 +2,100 @@
 
 import argparse
 import logging
+import os
 import sys
+from typing import List
 
-from asldro.cli import DirType, FileType
-
-from neuroqa.pipelines.adc_pipeline import adc_pipeline
-from neuroqa.pipelines.mtr_pipeline import mtr_pipeline
+from mrimagetools.pipelines.adc_pipeline import adc_pipeline
+from mrimagetools.pipelines.mtr_pipeline import mtr_pipeline
 
 logging.basicConfig(
     stream=sys.stdout, format="%(asctime)s %(message)s", level=logging.INFO
 )  # Set the log level to INFO
 logger = logging.getLogger(__name__)
+
+
+class DirType:  # pylint: disable=too-few-public-methods
+    """
+    A directory checker. Will determine if the input is a directory and
+    optionally, whether it exists
+    """
+
+    def __init__(self, should_exist: bool = False):
+        """
+        :param should_exist: does the directory have to exist
+        """
+        self.should_exist: bool = should_exist
+
+    def __call__(self, path: str):
+        """
+        Do the checking
+        :param path: the path to the directory
+        """
+        # Always check the file is a directory
+
+        if self.should_exist:
+            # Check whether the file exists
+            if not os.path.exists(path):
+                raise argparse.ArgumentTypeError(f"{path} does not exist")
+            if not os.path.isdir(path):
+                raise argparse.ArgumentTypeError(f"{path} is not a directory")
+        return path
+
+
+class FileType:  # pylint: disable=too-few-public-methods
+    """
+    A file checker. Will determine if the input is a valid file name (or path)
+    and optionally, whether it has a particular extension and/or exists
+    """
+
+    def __init__(self, extensions: List[str] = None, should_exist: bool = False):
+        """
+        :param extensions: a list of allowed file extensions.
+        :param should_exist: does the file have to exist
+        """
+        if not isinstance(extensions, list) and extensions is not None:
+            raise TypeError("extensions should be a list of string extensions")
+
+        if extensions is not None:
+            for extension in extensions:
+                if not isinstance(extension, str):
+                    raise TypeError("All extensions must be strings")
+
+        self.extensions: List[str] = []
+        if extensions is not None:
+            # Strip any proceeding dots
+            self.extensions = [
+                extension if not extension.startswith(".") else extension[1:]
+                for extension in extensions
+            ]
+        self.should_exist: bool = should_exist
+
+    def __call__(self, path: str):
+        """
+        Do the checkstructing
+        :param path: the path to the file
+        """
+        # Always check the file is not a directory
+        if os.path.isdir(path):
+            raise argparse.ArgumentTypeError(f"{path} is a directory")
+
+        if self.should_exist:
+            # Check whether the file exists
+            if not os.path.exists(path):
+                raise argparse.ArgumentTypeError(f"{path} does not exist")
+
+        if self.extensions:
+            valid_extension = False
+            for extension in self.extensions:
+                if path.lower().endswith(extension.lower()):
+                    valid_extension = True
+            if not valid_extension:
+                raise argparse.ArgumentTypeError(
+                    f"{path} is does not have a valid extension "
+                    f"(from {', '.join(self.extensions)})"
+                )
+        return path
 
 
 def mtr_quantify(args):

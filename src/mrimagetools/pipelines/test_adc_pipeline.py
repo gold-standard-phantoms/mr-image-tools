@@ -9,13 +9,13 @@ import nibabel as nib
 import numpy as np
 import numpy.testing
 import pytest
-from asldro.filters.bids_output_filter import BidsOutputFilter
-from asldro.utils.general import splitext
 
-from neuroqa.cli import main as cli
-from neuroqa.filters.load_bids_filter import LoadBidsFilter
-from neuroqa.filters.test_adc_quantification_filter import test_data_fixture
-from neuroqa.pipelines.adc_pipeline import adc_pipeline
+from mrimagetools.cli import main as cli
+from mrimagetools.filters.bids_output_filter import BidsOutputFilter
+from mrimagetools.filters.load_bids_filter import LoadBidsFilter
+from mrimagetools.filters.test_adc_quantification_filter import test_data_fixture
+from mrimagetools.pipelines.adc_pipeline import adc_pipeline
+from mrimagetools.utils.general import splitext
 
 
 @pytest.fixture(name="pipeline_test_data")

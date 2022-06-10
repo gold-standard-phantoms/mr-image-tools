@@ -6,11 +6,11 @@ import nibabel as nib
 import numpy as np
 import numpy.testing
 import pytest
-from asldro.containers.image import NiftiImageContainer
-from asldro.utils.filter_validation import validate_filter_inputs
-from asldro.utils.general import splitext
 
-from neuroqa.filters.split_image_filter import SplitImageFilter
+from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.filters.split_image_filter import SplitImageFilter
+from mrimagetools.utils.filter_validation import validate_filter_inputs
+from mrimagetools.utils.general import splitext
 
 
 @pytest.fixture(name="test_data")

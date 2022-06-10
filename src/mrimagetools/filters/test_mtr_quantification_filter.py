@@ -5,10 +5,10 @@ import nibabel as nib
 import numpy as np
 import numpy.testing
 import pytest
-from asldro.containers.image import NiftiImageContainer
-from asldro.utils.filter_validation import validate_filter_inputs
 
-from neuroqa.filters.mtr_quantification_filter import MtrQuantificationFilter
+from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.filters.mtr_quantification_filter import MtrQuantificationFilter
+from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")

@@ -9,12 +9,12 @@ import nibabel as nib
 import numpy as np
 import numpy.testing
 import pytest
-from asldro.containers.image import NiftiImageContainer
-from asldro.filters.basefilter import FilterInputValidationError
-from asldro.filters.bids_output_filter import BidsOutputFilter
-from asldro.utils.filter_validation import validate_filter_inputs
 
-from neuroqa.filters.load_bids_filter import LoadBidsFilter
+from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.filters.basefilter import FilterInputValidationError
+from mrimagetools.filters.bids_output_filter import BidsOutputFilter
+from mrimagetools.filters.load_bids_filter import LoadBidsFilter
+from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
