@@ -12,12 +12,11 @@
 #
 import os
 import sys
-from pprint import pformat
 
 
 import sphinx.ext.apidoc
 
-sys.path.append(os.path.join(os.path.dirname(__name__), "../src"))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__name__), "../src")))
 
 
 # -- Project information -----------------------------------------------------

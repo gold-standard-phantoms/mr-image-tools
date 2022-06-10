@@ -33,4 +33,3 @@ repos:
           "--rcfile=.pylintrc", # Link to your config file
           "src",
         ]
-
