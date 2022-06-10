@@ -6,8 +6,8 @@ from asldro.filters.basefilter import BaseFilter, FilterInputValidationError
 from asldro.validators.parameters import (
     Parameter,
     ParameterValidator,
-    isinstance_validator,
     Validator,
+    isinstance_validator,
 )
 
 image_shape_validator_generator = lambda images: Validator(

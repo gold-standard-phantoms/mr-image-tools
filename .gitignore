@@ -120,3 +120,6 @@ output/
 
 #jupyter notebook working directory
 working/
+
+#mypy
+mypy.ini

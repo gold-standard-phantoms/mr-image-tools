@@ -1,14 +1,15 @@
 """Apparent Diffusion Coefficient Quantification filter"""
 
 from typing import List
+
 import numpy as np
 from asldro.containers.image import BaseImageContainer
 from asldro.filters.basefilter import BaseFilter, FilterInputValidationError
 from asldro.validators.parameters import (
     Parameter,
     ParameterValidator,
-    isinstance_validator,
     for_each_validator,
+    isinstance_validator,
 )
 
 
@@ -31,10 +32,10 @@ class AdcQuantificationFilter(BaseFilter):
 
     **Outputs**
 
-    Once run, the filter will populate the dictionary 
+    Once run, the filter will populate the dictionary
     :class:`AdcQuantificationFilter.outputs` with the following entries:
 
-    :param 'adc': An image of the calculated apparent diffusion coefficient in 
+    :param 'adc': An image of the calculated apparent diffusion coefficient in
       units of :math:`mm^2/s`, with a volume for each non-zero b-value supplied.
     :type 'adc': BaseImageContainer
 
@@ -88,17 +89,21 @@ class AdcQuantificationFilter(BaseFilter):
         index_b.pop(index_b0)  # remove the b = 0 index
         dwi_b0 = dwi.image[:, :, :, index_b0]
 
+        safelog = lambda x: np.log(x, np.zeros_like(x), where=x > 0)
+
         adc = np.stack(
             [
-                -np.log(
-                    np.divide(
-                        dwi.image[:, :, :, idx],
-                        dwi_b0,
-                        out=np.zeros_like(dwi_b0),
-                        where=dwi_b0 != 0,
-                    ),
+                -(
+                    safelog(
+                        np.divide(
+                            dwi.image[:, :, :, idx],
+                            dwi_b0,
+                            out=np.zeros_like(dwi_b0),
+                            where=dwi_b0 > 0,
+                        )
+                    )
+                    / b_values[idx]
                 )
-                / b_values[idx]
                 if b_values[idx] != 0
                 else 0
                 for idx in index_b
