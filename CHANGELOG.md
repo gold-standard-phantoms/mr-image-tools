@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Deverged from ASLDRO as new MRImageTools library
+- Merge neuroqa library
 
 ### Added
 
@@ -26,6 +27,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Filter for performing ASL quantification using both the single subtraction
   model as well as least squares fit to the full GKM.
 - "Whitepaper" mode for generating the perfusion signal.
+- Filter to calculate the magnetisation transfer ratio
+- Filter to load in BIDS files
+- Filter to split an image into multiple images
+- Pipeline to calculate a magnetisation transfer ratio image
+- Filter to calculate the apparent diffusion coefficient
+- Pipeline to calculate the apparent diffusion coefficient
 
 ### Fixed
 
