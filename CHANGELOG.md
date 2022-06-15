@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- General maths utility function and filter.
 - Filter that assigns values to regions specified in a segmentation mask.
 - Filter validation utility function.
 - Numeric utility functions for creating 3D gaussian maps.
