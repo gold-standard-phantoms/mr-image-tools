@@ -1,6 +1,7 @@
 """safe_divide.py tests"""
 import numpy as np
 import pytest
+from numpy.testing import assert_array_equal
 
 from mrimagetools.utils.safe_divide import safe_divide
 
@@ -39,6 +40,18 @@ def fixture_input_div_complex() -> np.ndarray:
 def fixture_input_0_div() -> np.ndarray:
     """A test 0 divisor"""
     return np.array([0, 0, 0, 0], dtype=np.float32)
+
+
+@pytest.fixture()
+def fixture_random_numerator() -> np.ndarray:
+    """A test random numerator"""
+    return np.random.rand(4)
+
+
+@pytest.fixture()
+def fixture_random_divisor() -> np.ndarray:
+    """A test random divisor"""
+    return np.random.rand(4)
 
 
 def test_simple_div(fixture_input_num: np.ndarray, fixture_input_div: np.ndarray):
@@ -129,3 +142,41 @@ def test_wrong_type():
     """test to see if the TypeError is raised if not an InputType is inputed"""
     with pytest.raises(TypeError):
         safe_divide("wrong_input", 1)
+
+
+def test_int_arrays_div_0():
+    """test for the issue MIT-10"""
+    assert safe_divide(np.array([1]), np.array([0])) == np.array([0])
+
+
+def test_float_arrays_div_0():
+    """test for division of float array by 0"""
+    assert safe_divide(np.array([1.1]), np.array([0])) == np.array([0])
+
+
+def test_float_arrays_div_0_0():
+    """test for division of float array by 0.0"""
+    assert safe_divide(np.array([1.1]), np.array([0.0])) == np.array([0.0])
+
+
+def test_int_arrays_div_0_0():
+    """test for division of int array by 0.0"""
+    assert safe_divide(np.array([1]), np.array([0.0])) == np.array([0.0])
+
+
+def test_non_all_zero_array():
+    """test safe_divide works with non all zeros values"""
+    assert_array_equal(
+        safe_divide(np.array([1, 2, 0, 0]), np.array([1, 0, 1, 0])),
+        np.array([1, 0, 0, 0]),
+    )
+
+
+def test_random_normal_div(
+    fixture_random_numerator: np.ndarray, fixture_random_divisor: np.ndarray
+):
+    """test that the normal divison on random array works"""
+    assert_array_equal(
+        safe_divide(fixture_random_numerator, fixture_random_divisor),
+        fixture_random_numerator / fixture_random_divisor,
+    )

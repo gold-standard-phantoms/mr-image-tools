@@ -54,24 +54,25 @@ def safe_divide(numerator: InputType, divisor: InputType) -> InputType:
             divisor,
             out=np.zeros_like(divisor),
             where=divisor > 0,
-            dtype=np.float32,
+            dtype=np.float64,
+            casting="unsafe",
         )
 
     if not isinstance(divisor, np.ndarray) and not isinstance(numerator, np.ndarray):
         if divisor == 0:
             return 0
-        return np.true_divide(numerator, divisor, dtype=np.float32)
+        return np.true_divide(numerator, divisor, dtype=np.float64)
     if not isinstance(divisor, np.ndarray):
         if divisor == 0:
-            return np.zeros_like(numerator, dtype=np.float32)
-        return np.true_divide(numerator, divisor, dtype=np.float32)
+            return np.zeros_like(numerator, dtype=np.float64)
+        return np.true_divide(numerator, divisor, dtype=np.float64)
     if not isinstance(numerator, np.ndarray):
         return np.true_divide(
             numerator,
             divisor,
             out=np.zeros_like(divisor),
             where=divisor > 0,
-            dtype=np.float32,
+            dtype=np.float64,
         )
     type_numerator = type(numerator)
     type_divisor = type(divisor)
