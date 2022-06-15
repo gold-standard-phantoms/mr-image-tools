@@ -393,22 +393,26 @@ def and_validator(validators: List[Validator]) -> Validator:
     )
 
 
-def shape_validator(keys: List[BaseImageContainer], maxdim: int = None) -> Validator:
+def shape_validator(
+    keys: Union[List[str], Tuple[str]], maxdim: Union[int, None] = None
+) -> Validator:
     """Checks that all of the keys have the same shape
     If all the supplied inputs have matching shapes, this validator
     evaluates as True.
+    If the supplied input key list is empty, this validator evaluates as True.
 
     Note this is intended to be used as a post validator as the argument
     for the validator is a dictionary.
 
-    :param images: A list (or tuple) of strings
-    :type images: Union[List[str], Tuple[str]]
+    :param keys: A list (or tuple) of strings
+    :type keys: Union[List[str], Tuple[str]]
     """
 
     if not isinstance(keys, (list, tuple)):
         raise TypeError(
             "The argument 'keys' to 'shape_validator' must be a list or tuple"
         )
+
     for key in keys:
         if not isinstance(key, str):
             raise TypeError("Each element of input must be of type str")
@@ -417,6 +421,9 @@ def shape_validator(keys: List[BaseImageContainer], maxdim: int = None) -> Valid
             raise TypeError("The argument 'maxdim' to 'shape_validator' must be a int")
 
     def validate(d: dict) -> bool:
+        if not keys:
+            # list is empty
+            return True
         # check the keys exist in d
         keys_exist = all([key in d for key in keys])
         # check all values have the attribute `shape`
