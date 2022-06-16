@@ -56,10 +56,10 @@ class CombineFuzzyMasksFilter(BaseFilter):
     KEY_THRESHOLD = "threshold"
     KEY_SEG_MASK = "seg_mask"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("CombineFuzzyMasksFilter")
 
-    def _run(self):
+    def _run(self) -> None:
         """runs the filter"""
 
         # determine number of fuzzy_masks
@@ -115,7 +115,7 @@ class CombineFuzzyMasksFilter(BaseFilter):
 
         self.outputs[self.KEY_SEG_MASK] = seg_mask
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
         'fuzzy_mask' must be a BaseImageContainer, or list of BaseImageContainers. For each
           image the voxel values should be between 0 and 1 inclusive.
@@ -201,7 +201,7 @@ class CombineFuzzyMasksFilter(BaseFilter):
                     ]
                 )
             image_affines = [fuzzy_mask[i].affine for i in range(number_masks)]
-            if not (image_affines == image_affines[0]).all():
+            if not (np.array(image_affines == image_affines[0])).all():
                 raise FilterInputValidationError(
                     [
                         "affines of the images in input 'fuzzy_masks' do not match",
@@ -214,23 +214,23 @@ class CombineFuzzyMasksFilter(BaseFilter):
             # 'region_values' must have length == number_masks
             if len(self.inputs[self.KEY_REGION_VALUES]) != number_masks:
                 raise FilterInputValidationError(
-                    f"'region_values' must be the same length as 'fuzzy_masks'"
+                    "'region_values' must be the same length as 'fuzzy_masks'"
                 )
 
             if len(self.inputs[self.KEY_REGION_PRIORITY]) != len(
                 np.unique(self.inputs[self.KEY_REGION_PRIORITY])
             ):
                 raise FilterInputValidationError(
-                    f"'region_priority' must not have any repeated values"
+                    "'region_priority' must not have any repeated values"
                 )
 
             # 'region_priority' must have length == number_masks
             if len(self.inputs[self.KEY_REGION_PRIORITY]) != number_masks:
                 raise FilterInputValidationError(
-                    f"'region_priority' must be the same length as 'fuzzy_masks'"
+                    "'region_priority' must be the same length as 'fuzzy_masks'"
                 )
         else:
-            fuzzy_mask: BaseImageContainer = self.inputs[self.KEY_FUZZY_MASK]
+            # fuzzy_mask: BaseImageContainer = self.inputs[self.KEY_FUZZY_MASK]
             fuzzy_mask_image_validator = ParameterValidator(
                 parameters={
                     self.KEY_FUZZY_MASK: Parameter(

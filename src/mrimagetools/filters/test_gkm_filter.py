@@ -2,6 +2,7 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
+from typing import TypeVar, Union
 
 import numpy as np
 import numpy.testing
@@ -236,7 +237,12 @@ def casl_input_fixture() -> dict:
     }
 
 
-def add_multiple_inputs_to_filter(input_filter: BaseFilter, input_data: dict):
+FilterType = TypeVar("FilterType", bound=BaseFilter)
+
+
+def add_multiple_inputs_to_filter(
+    input_filter: FilterType, input_data: dict
+) -> FilterType:
     """Adds the data held within the input_data dictionary to the filter's inputs"""
     for key in input_data:
         input_filter.add_input(key, input_data[key])
@@ -279,11 +285,11 @@ def gkm_pasl_function(input_data: dict) -> np.ndarray:
     k: np.ndarray = 1 / t1b - 1 / t1_prime
 
     q_pasl_arriving = (
-        np.exp(k * t) * (np.exp(-k * delta_t) - np.exp(-k * t)) / (k * (t - delta_t))
+        np.exp(k * t) * (np.exp(-k * delta_t) - np.exp(-k * t)) / (k * (t - delta_t))  # type: ignore
     )
     q_pasl_arrived = (
         np.exp(k * t)
-        * (np.exp(-k * delta_t) - np.exp(-k * (delta_t + tau)))
+        * (np.exp(-k * delta_t) - np.exp(-k * (delta_t + tau)))  # type: ignore
         / (k * tau)
     )
 
@@ -368,7 +374,7 @@ def gkm_casl_function(input_data: dict) -> np.ndarray:
         TEST_DATA_DICT_CASL_M0_IM,
     ],
 )
-def test_gkm_filter_validate_inputs(validation_data: dict):
+def test_gkm_filter_validate_inputs(validation_data: dict) -> None:
     """Check a FilterInputValidationError is raised when the
     inputs to the GkmFilter are incorrect or missing
     """
@@ -381,7 +387,7 @@ def test_gkm_filter_validate_inputs(validation_data: dict):
     validate_filter_inputs(GkmFilter, d)
 
 
-def test_gkm_filter_pasl(pasl_input):
+def test_gkm_filter_pasl(pasl_input) -> None:
     """Test the GkmFilter for Pulsed ASL"""
     gkm_filter = GkmFilter()
     gkm_filter = add_multiple_inputs_to_filter(gkm_filter, pasl_input)
@@ -408,7 +414,7 @@ def test_gkm_filter_pasl(pasl_input):
 
     # create input images with some zeros in to test that divide-by-zero is not encountered at
     # runtime
-    image_with_some_zeros = numpy.concatenate(
+    image_with_some_zeros = np.concatenate(
         (np.ones((32, 32, 16)), np.zeros((32, 32, 16))), axis=2
     )
     pasl_input["perfusion_rate"] = NumpyImageContainer(image=60 * image_with_some_zeros)
@@ -423,7 +429,7 @@ def test_gkm_filter_pasl(pasl_input):
     gkm_filter.run()
 
 
-def test_gkm_filter_casl(casl_input):
+def test_gkm_filter_casl(casl_input) -> None:
     """Test the GkmFilter for Continuous ASL"""
     gkm_filter = GkmFilter()
     gkm_filter = add_multiple_inputs_to_filter(gkm_filter, casl_input)
@@ -447,7 +453,7 @@ def test_gkm_filter_casl(casl_input):
 
     # create input images with some zeros in to test that divide-by-zero is not encountered at
     # runtime
-    image_with_some_zeros = numpy.concatenate(
+    image_with_some_zeros = np.concatenate(
         (np.ones((32, 32, 16)), np.zeros((32, 32, 16))), axis=2
     )
     casl_input["perfusion_rate"] = NumpyImageContainer(image=60 * image_with_some_zeros)
@@ -511,7 +517,7 @@ def test_gkm_timecourse(
     numpy.testing.assert_array_almost_equal(delta_m_timecourse, expected, 10)
 
 
-def test_gkm_filter_metadata_casl(casl_input):
+def test_gkm_filter_metadata_casl(casl_input) -> None:
     """Test the metadata output from GkmFilter"""
     gkm_filter = GkmFilter()
     casl_input["perfusion_rate"].metadata = {
@@ -534,7 +540,7 @@ def test_gkm_filter_metadata_casl(casl_input):
     }
 
 
-def test_gkm_filter_metadata_pasl(pasl_input):
+def test_gkm_filter_metadata_pasl(pasl_input) -> None:
     """Test the metadata output from GkmFilter"""
     gkm_filter = GkmFilter()
     pasl_input["perfusion_rate"].metadata = {
@@ -558,7 +564,7 @@ def test_gkm_filter_metadata_pasl(pasl_input):
     }
 
 
-def test_gkm_filter_m0_float(casl_input):
+def test_gkm_filter_m0_float(casl_input) -> None:
     """Test the GkmFilter when m0 is supplied as a number and not an image"""
     # set m0 to a float
     casl_input["m0"] = 100.0
@@ -582,11 +588,11 @@ def test_gkm_filter_m0_float(casl_input):
     }
 
 
-def test_check_and_make_image_from_value():
+def test_check_and_make_image_from_value() -> None:
     """Test the check_and_make_image_from_value static method"""
 
-    arg = 1.0
-    metadata = {}
+    arg: Union[float, BaseImageContainer] = 1.0
+    metadata: dict = {}
     key_name = "key_1"
     shape = (3, 3, 3)
 
@@ -653,7 +659,7 @@ def wp_pasl_function(input_data: dict) -> np.ndarray:
     return 2 * m0 * f * tau * alpha * np.exp(-t / t1b)
 
 
-def test_gkm_filter_wp_casl(casl_input):
+def test_gkm_filter_wp_casl(casl_input) -> None:
     gkm_filter = GkmFilter()
     gkm_filter.add_inputs(casl_input)
     gkm_filter.add_input("model", "whitepaper")
@@ -697,7 +703,7 @@ def test_gkm_filter_wp_casl(casl_input):
     )
 
 
-def test_gkm_filter_wp_pasl(pasl_input):
+def test_gkm_filter_wp_pasl(pasl_input) -> None:
     gkm_filter = GkmFilter()
     gkm_filter.add_inputs(pasl_input)
     gkm_filter.add_input("model", "whitepaper")

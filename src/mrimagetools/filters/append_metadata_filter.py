@@ -41,10 +41,10 @@ class AppendMetadataFilter(BaseFilter):
     KEY_IMAGE = "image"
     KEY_METADATA = "metadata"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Append Meta Data")
 
-    def _run(self):
+    def _run(self) -> None:
         """appends the input image with the supplied metadata"""
         # copy the reference to the input image to outputs
         self.outputs[self.KEY_IMAGE] = self.inputs[self.KEY_IMAGE]
@@ -54,7 +54,7 @@ class AppendMetadataFilter(BaseFilter):
             **self.inputs[self.KEY_METADATA],
         }
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
         'image' must be derived from BaseImageContainer
         'metadata' must be a dict

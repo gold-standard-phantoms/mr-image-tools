@@ -4,6 +4,7 @@
 import logging
 
 import nibabel as nib
+import nibabel.affines
 import nilearn as nil
 import numpy as np
 import numpy.testing
@@ -57,14 +58,14 @@ INPUT_VALIDATION_DICTIONARY = {
 
 
 @pytest.mark.parametrize("validation_data", [INPUT_VALIDATION_DICTIONARY])
-def test_transform_resample_image_filter_validate_inputs(validation_data: dict):
+def test_transform_resample_image_filter_validate_inputs(validation_data: dict) -> None:
     """Check a FilterInputValidationError is raised when the
     inputs to the TransformResampleImageFilter are incorrect or missing
     """
     validate_filter_inputs(TransformResampleImageFilter, validation_data)
 
 
-def test_transform_resample_image_filter_mock_data():
+def test_transform_resample_image_filter_mock_data() -> None:
     """Test the transform_resampe_image_filter with some mock data"""
 
     # Create some synthetic data
@@ -138,7 +139,7 @@ def test_transform_resample_image_filter_mock_data():
 
     ### function called here
     str_nifti, _ = transform_resample_image(
-        nifti_image, translation, rotation, rotation_origin, target_shape
+        nifti_image, translation, rotation, rotation_origin, target_shape  # type:ignore
     )
 
     # data should match

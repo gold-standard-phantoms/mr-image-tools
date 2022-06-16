@@ -9,7 +9,7 @@ from mrimagetools.filters.scale_offset_filter import ScaleOffsetFilter
 
 
 @pytest.fixture(name="test_image")
-def fixture_test_image():
+def fixture_test_image() -> NiftiImageContainer:
     """Create a test image of shape 3x3x3.
     Where each element (voxel) increases in value across
     each voxel as 0,1,2,3,...,26. The last axis changes the
@@ -21,7 +21,7 @@ def fixture_test_image():
     )
 
 
-def test_scale_offset_filter_scale_only(test_image: NiftiImageContainer):
+def test_scale_offset_filter_scale_only(test_image: NiftiImageContainer) -> None:
     """Test the scale offset filter scale only"""
     scale_offset_filter = ScaleOffsetFilter()
     scale_offset_filter.add_input("image", test_image)
@@ -33,7 +33,7 @@ def test_scale_offset_filter_scale_only(test_image: NiftiImageContainer):
     )
 
 
-def test_scale_offset_filter_offset_only(test_image: NiftiImageContainer):
+def test_scale_offset_filter_offset_only(test_image: NiftiImageContainer) -> None:
     """Test the scale offset filter offset only"""
     scale_offset_filter = ScaleOffsetFilter()
     scale_offset_filter.add_input("image", test_image)
@@ -45,7 +45,7 @@ def test_scale_offset_filter_offset_only(test_image: NiftiImageContainer):
     )
 
 
-def test_scale_offset_filter_scale_and_offset(test_image: NiftiImageContainer):
+def test_scale_offset_filter_scale_and_offset(test_image: NiftiImageContainer) -> None:
     """Test the scale offset filter scale and offset"""
     scale_offset_filter = ScaleOffsetFilter()
     scale_offset_filter.add_input("image", test_image)

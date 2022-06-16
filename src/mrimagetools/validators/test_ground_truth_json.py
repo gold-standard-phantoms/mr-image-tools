@@ -5,7 +5,7 @@ from jsonschema.exceptions import ValidationError
 from mrimagetools.validators.ground_truth_json import validate_input
 
 
-def test_valid_ground_truth_json():
+def test_valid_ground_truth_json() -> None:
     """Test valid grouth truth raises no error"""
     json = {
         "quantities": [
@@ -28,7 +28,7 @@ def test_valid_ground_truth_json():
     validate_input(input_dict=json)
 
 
-def test_ground_truth_typos_a():
+def test_ground_truth_typos_a() -> None:
     """Test ground with typos in required fields raises error"""
     json = {
         "quantties": [
@@ -52,7 +52,7 @@ def test_ground_truth_typos_a():
         validate_input(input_dict=json)
 
 
-def test_ground_truth_typos_b():
+def test_ground_truth_typos_b() -> None:
     """Test ground with typos in required fields raises error"""
     json = {
         "quantities": [
@@ -76,7 +76,7 @@ def test_ground_truth_typos_b():
         validate_input(input_dict=json)
 
 
-def test_ground_truth_typos_c():
+def test_ground_truth_typos_c() -> None:
     """Test ground with typos in required fields raises error"""
     json = {
         "quantities": [
@@ -100,7 +100,7 @@ def test_ground_truth_typos_c():
         validate_input(input_dict=json)
 
 
-def test_ground_truth_json_missing_quantities():
+def test_ground_truth_json_missing_quantities() -> None:
     """Test missing 'quantities' property raises error"""
     json = {
         "units": ["ml/100g/min", "s", "s", "s", "s", "", ""],
@@ -115,7 +115,7 @@ def test_ground_truth_json_missing_quantities():
         validate_input(input_dict=json)
 
 
-def test_ground_truth_json_missing_segmentation():
+def test_ground_truth_json_missing_segmentation() -> None:
     """Test missing 'segmentation' property raises error"""
     json = {
         "quantities": [
@@ -138,7 +138,7 @@ def test_ground_truth_json_missing_segmentation():
         validate_input(input_dict=json)
 
 
-def test_ground_truth_missing_parameters():
+def test_ground_truth_missing_parameters() -> None:
     """Test missing 'parameters' property raises error"""
     json = {
         "quantities": [
@@ -157,7 +157,7 @@ def test_ground_truth_missing_parameters():
         validate_input(input_dict=json)
 
 
-def test_ground_truth_missing_units():
+def test_ground_truth_missing_units() -> None:
     """Test missing 'parameters' property raises error"""
     json = {
         "quantities": [

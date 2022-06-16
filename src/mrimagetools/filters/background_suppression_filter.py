@@ -1,5 +1,5 @@
 """Background Suppression Filter"""
-from typing import List, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -7,6 +7,7 @@ from scipy.optimize import OptimizeResult, minimize
 
 from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.utils.typing import typed
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
@@ -130,20 +131,22 @@ class BackgroundSuppressionFilter(BaseFilter):
     EFF_IDEAL = "ideal"
     EFF_REALISTIC = "realistic"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Background Suppression Filter")
 
-    def _run(self):
+    def _run(self) -> None:
         """Runs the filter"""
         mag_z: BaseImageContainer = self.inputs[self.KEY_MAG_Z]
         t1: BaseImageContainer = self.inputs[self.KEY_T1]
         sat_pulse_time = self.inputs[self.KEY_SAT_PULSE_TIME]
 
+        mag_time: float
         if self.inputs.get(self.KEY_MAG_TIME) is None:
-            mag_time = sat_pulse_time
+            mag_time = typed(sat_pulse_time, float)
         else:
-            mag_time = self.inputs.get(self.KEY_MAG_TIME)
+            mag_time = typed(self.inputs.get(self.KEY_MAG_TIME), float)
 
+        inv_eff: Optional[Union[float, np.ndarray]] = None
         # determine the pulse efficiency mode
         if self.inputs[self.KEY_PULSE_EFFICIENCY] == self.EFF_IDEAL:
             inv_eff = -1.0
@@ -155,7 +158,11 @@ class BackgroundSuppressionFilter(BaseFilter):
 
         # determine whether the inversion pulse times have been provided
         # or if optimised times need to be calculated
+        inv_pulse_times: np.ndarray
         if self.inputs.get(self.KEY_INV_PULSE_TIMES) is None:
+            if inv_eff is None:
+                raise ValueError("inv_eff cannot be None")
+
             # calculation required: minimise the least squares problem
             # argmin(||Mz(t=sat_time)||^2 + sum(Mz(t=sat_time) < 0))
             # to find the inversion pulse
@@ -165,6 +172,7 @@ class BackgroundSuppressionFilter(BaseFilter):
             num_inv_pulses = self.inputs[self.KEY_NUM_INV_PULSES]
             # if `pulse_efficiency` is 'realistic' then calculate the pulse
             # efficiencies for the t1's to optimise over
+            pulse_eff_opt: Union[float, np.ndarray]
             if self.inputs[self.KEY_PULSE_EFFICIENCY] == self.EFF_REALISTIC:
                 pulse_eff_opt = self.calculate_pulse_efficiency(t1_opt)
             else:
@@ -174,11 +182,9 @@ class BackgroundSuppressionFilter(BaseFilter):
             result = self.optimise_inv_pulse_times(
                 sat_pulse_time, t1_opt, pulse_eff_opt, num_inv_pulses
             )
-            inv_pulse_times: np.ndarray = result.x
+            inv_pulse_times = result.x
         else:
-            inv_pulse_times: np.ndarray = np.asarray(
-                self.inputs[self.KEY_INV_PULSE_TIMES]
-            )
+            inv_pulse_times = np.asarray(self.inputs[self.KEY_INV_PULSE_TIMES])
 
         # if mag_time > sat_pulse_time add the difference to sat_pulse_time
         # and inv_pulse_times
@@ -190,6 +196,8 @@ class BackgroundSuppressionFilter(BaseFilter):
         # calculate the longitudinal magnetisation at mag_time based on
         # the inversion pulse times
         self.outputs[self.KEY_MAG_Z] = mag_z.clone()
+        if inv_eff is None:
+            raise ValueError("inv_eff cannot be None")
         self.outputs[self.KEY_MAG_Z].image = self.calculate_mz(
             self.outputs[self.KEY_MAG_Z].image,
             t1.image,
@@ -212,7 +220,7 @@ class BackgroundSuppressionFilter(BaseFilter):
 
         self.outputs[self.KEY_INV_PULSE_TIMES] = inv_pulse_times
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
         'mag_z': BaseImageContainer and image_type != COMPLEX_IMAGE_TYPE
         't1': BaseImageContainer, >0 and image_type != COMPLEX_IMAGE_TYPE, shape should
@@ -336,8 +344,8 @@ class BackgroundSuppressionFilter(BaseFilter):
 
     @staticmethod
     def calculate_mz(
-        initial_mz: np.ndarray,
-        t1: np.ndarray,
+        initial_mz: Union[float, np.ndarray],
+        t1: Union[float, np.ndarray],
         inv_pulse_times: Union[List[float], np.ndarray],
         sat_pulse_time: float,
         mag_time: float,
@@ -507,7 +515,7 @@ class BackgroundSuppressionFilter(BaseFilter):
 
             \begin{align}
                 &\min \left (\sum\limits_i^N M_z^2(t=Q, T_{1,i},\chi, \psi, \tau)
-                + \sum\limits_i^N 
+                + \sum\limits_i^N
                 \begin{cases}
                 1 & M_z(t=Q, T_{1,i},\chi, \psi, \tau) < 0\\
                 0 & M_z(t=Q, T_{1,i},\chi, \psi, \tau) \geq 0

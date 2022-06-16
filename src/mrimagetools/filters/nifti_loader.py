@@ -16,10 +16,10 @@ class NiftiLoaderFilter(BaseFilter):
     'image'
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("NiftiLoader")
 
-    def _run(self):
+    def _run(self) -> None:
         """Load the input `filename` using nibabel and create
         a Image container from it. Put this in the output named
         `image`."""
@@ -28,7 +28,7 @@ class NiftiLoaderFilter(BaseFilter):
             nifti_img=nib.load(self.inputs["filename"])
         )
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """There must be an input named `filename`.
         It must end in .nii or .nii.gz. It must
         point to a existing file."""

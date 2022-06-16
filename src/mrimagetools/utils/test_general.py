@@ -1,3 +1,5 @@
+# type:ignore
+# TODO: remove the above line and fix typing errors
 """ general.py tests """
 import numpy as np
 import numpy.testing
@@ -8,7 +10,7 @@ from mrimagetools.utils.general import generate_random_numbers, map_dict
 
 
 @pytest.fixture(name="input_dict")
-def fixture_input_dict():
+def fixture_input_dict() -> dict:
     """A test dictionary"""
     return {
         "one": "two",
@@ -19,14 +21,14 @@ def fixture_input_dict():
     }
 
 
-def test_map_dict(input_dict: dict):
+def test_map_dict(input_dict: dict) -> None:
     """Perform a simple dictionary mapping"""
     assert map_dict(
         input_dict=input_dict, io_map={"one": "one_hundred", "five": "five_hundred"}
     ) == {"one_hundred": "two", "five_hundred": "six"}
 
 
-def test_map_dict_raises_keyerror(input_dict: dict):
+def test_map_dict_raises_keyerror(input_dict: dict) -> None:
     """Perform a simple dictionary mapping with a missing input dictionary key.
     Check a KeyError is raised"""
     with pytest.raises(KeyError):
@@ -36,7 +38,7 @@ def test_map_dict_raises_keyerror(input_dict: dict):
         ) == {"one_hundred": "two", "five_hundred": "six"}
 
 
-def test_map_dict_with_optional(input_dict: dict):
+def test_map_dict_with_optional(input_dict: dict) -> None:
     """Perform a simple dictionary mapping with a missing input dictionary key,
     and optional flag set True. Check a KeyError is not raised and the correct
     output is created, excluding the io_map which does not exist."""
@@ -51,7 +53,7 @@ def test_map_dict_with_optional(input_dict: dict):
     ) == {"five_hundred": "six", "nine_hundred": "ten"}
 
 
-def test_generate_random_numbers():
+def test_generate_random_numbers() -> None:
     """Checks that generate_random_numbers returns correct values"""
     seed = 12345
     shape_1d = (10,)
@@ -63,7 +65,7 @@ def test_generate_random_numbers():
     for shape in [None, shape_1d, shape_2d, shape_3d]:
         rg = default_rng(seed=seed)
         x = rg.normal(1000, 10.0, size=shape)
-        y = generate_random_numbers(spec, shape=shape, rng=seed)
+        y = generate_random_numbers(spec, shape=shape, seed=seed)
         numpy.testing.assert_equal(x, y)
 
     # test uniform distributions
@@ -71,16 +73,16 @@ def test_generate_random_numbers():
     for shape in [None, shape_1d, shape_2d, shape_3d]:
         rg = default_rng(seed=seed)
         x = rg.uniform(50.0, 150.0, size=shape)
-        y = generate_random_numbers(spec, shape=shape, rng=seed)
+        y = generate_random_numbers(spec, shape=shape, seed=seed)
         numpy.testing.assert_equal(x, y)
 
     # check that if no specification is supplied then an array of zeros is
     # generated
     # test normal distributions
     spec = {}
-    for shape in [None, shape_1d, shape_2d, shape_3d]:
+    for shape in [shape_1d, shape_2d, shape_3d]:
         x = np.zeros(shape)
-        y = generate_random_numbers(spec, shape=shape, rng=seed)
+        y = generate_random_numbers(spec, shape=shape, seed=seed)
         numpy.testing.assert_equal(x, y)
 
     # check that errors occur if the specification keywords are missing

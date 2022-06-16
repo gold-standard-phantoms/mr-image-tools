@@ -37,7 +37,7 @@ INPUT_VALIDATION_DICTIONARY = {
 
 
 @pytest.mark.parametrize("validation_data", [INPUT_VALIDATION_DICTIONARY])
-def test_resample_filter_validate_inputs(validation_data: dict):
+def test_resample_filter_validate_inputs(validation_data: dict) -> None:
     """Check a FilterInputValidationError is raised when the
     inputs to the ResampleFilter are incorrect or missing
     """
@@ -45,7 +45,7 @@ def test_resample_filter_validate_inputs(validation_data: dict):
     validate_filter_inputs(ResampleFilter, validation_data)
 
 
-def test_resample_filter_mock_data():
+def test_resample_filter_mock_data() -> None:
     """Test the resample_filter with some mock data"""
 
     # Create some synthetic data
@@ -271,7 +271,7 @@ def test_resample_filter_single_point_transformations(
     numpy.testing.assert_array_equal(signal_detected, signal_should_be_present)
 
 
-def test_resample_filter_metadata():
+def test_resample_filter_metadata() -> None:
     """Tests the metadata output of the resample filter"""
     test_image = TEST_NIFTI_ONES.clone()
     # add some meta data
@@ -303,7 +303,7 @@ def test_resample_filter_metadata():
     )
 
 
-def test_resample_filter_interpolation():
+def test_resample_filter_interpolation() -> None:
     """Tests the resampling filter with different interpolation settings"""
 
     test_data = np.zeros((3, 3, 3))

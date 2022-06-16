@@ -139,7 +139,7 @@ This dataset comprises of the following image series:
 """
 
 
-def test_bids_output_filter_validate_inputs():
+def test_bids_output_filter_validate_inputs() -> None:
     """Check a FilterInputValidationError is raised when the inputs to the
     BidsOutputFilter are incorrect or missing"""
     with TemporaryDirectory() as temp_dir:
@@ -160,7 +160,7 @@ def test_bids_output_filter_validate_inputs():
         METDATA_VALIDATION_DICT_MULTIPHASE_CASL,
     ],
 )
-def test_bids_output_filter_validate_metadata(validation_metadata: dict):
+def test_bids_output_filter_validate_metadata(validation_metadata: dict) -> None:
     """Check a FilterInputValidationError is raised when the inputs 'image' metadata
     are incorrect or missing"""
 
@@ -264,7 +264,7 @@ def structural_input_fixture(asldro_version) -> Tuple[NiftiImageContainer, dict]
     return (image, d)
 
 
-def test_bids_output_filter_mock_data_structural(structural_input):
+def test_bids_output_filter_mock_data_structural(structural_input) -> None:
     """Tests the BidsOutputFilter with some mock data"""
     with TemporaryDirectory() as temp_dir:
         image = structural_input[0]
@@ -354,7 +354,7 @@ def asl_input_fixture(asldro_version) -> Tuple[NiftiImageContainer, dict]:
     return (image, d)
 
 
-def test_bids_output_filter_mock_data_asl(asl_input):
+def test_bids_output_filter_mock_data_asl(asl_input) -> None:
     """Tests the BidsOutputFilter with some mock data"""
     with TemporaryDirectory() as temp_dir:
         image = asl_input[0]
@@ -411,7 +411,7 @@ def test_bids_output_filter_mock_data_asl(asl_input):
         ]
 
 
-def test_bids_output_filter_mock_data_asl_multiphase(asl_input):
+def test_bids_output_filter_mock_data_asl_multiphase(asl_input) -> None:
     """Tests the BidsOutputFilter with some mock data"""
     # test with PLD's in ascending order
     image = deepcopy(asl_input[0])
@@ -564,7 +564,7 @@ def test_bids_output_filter_mock_data_asl_multiphase(asl_input):
         )
 
 
-def test_bids_output_filter_m0_float(asl_input):
+def test_bids_output_filter_m0_float(asl_input) -> None:
     """Tests the BidsOutputFilter with mock ASL data where m0 is a float"""
     with TemporaryDirectory() as temp_dir:
         image = asl_input[0]
@@ -588,7 +588,7 @@ def test_bids_output_filter_m0_float(asl_input):
         assert bids_output_filter.outputs["sidecar"] == d
 
 
-def test_bids_output_filter_m0scan(structural_input):
+def test_bids_output_filter_m0scan(structural_input) -> None:
     """Tests the BidsOutputFilter with mock ASL data where there is a separate m0 scan"""
     with TemporaryDirectory() as temp_dir:
         image = structural_input[0]
@@ -628,7 +628,7 @@ def test_bids_output_filter_m0scan(structural_input):
         assert loaded_json == bids_output_filter.outputs["sidecar"]
 
 
-def test_bids_output_filter_mock_data_ground_truth(asldro_version):
+def test_bids_output_filter_mock_data_ground_truth(asldro_version) -> None:
     """Tests the BidsOutputFilter with some mock data"""
     with TemporaryDirectory() as temp_dir:
         image = deepcopy(TEST_NIFTI_CON_ONES)
@@ -694,7 +694,7 @@ def test_bids_output_filter_mock_data_ground_truth(asldro_version):
         assert loaded_json == bids_output_filter.outputs["sidecar"]
 
 
-def test_bids_output_filter_mock_data_ground_truth_seg_label(asldro_version):
+def test_bids_output_filter_mock_data_ground_truth_seg_label(asldro_version) -> None:
     """Tests the BidsOutputFilter with some mock data"""
     with TemporaryDirectory() as temp_dir:
         image = deepcopy(TEST_NIFTI_CON_ONES)
@@ -776,7 +776,7 @@ def test_bids_output_filter_mock_data_ground_truth_seg_label(asldro_version):
         assert loaded_json == bids_output_filter.outputs["sidecar"]
 
 
-def test_bids_output_filter_acquisition_date_time():
+def test_bids_output_filter_acquisition_date_time() -> None:
     """Mocks a call to datetime.datetime.now to test that the AcquisitionDateTime field of the
     output sidecar from BidsOutputFilter"""
     datetime_mock = Mock(wraps=datetime.datetime)
@@ -797,7 +797,7 @@ def test_bids_output_filter_acquisition_date_time():
         )
 
 
-def test_bids_output_filter_determine_asl_modality_label():
+def test_bids_output_filter_determine_asl_modality_label() -> None:
     """tests the static method determine_asl_modality_label()"""
     assert BidsOutputFilter.determine_asl_modality_label("m0scan") == "m0scan"
     assert BidsOutputFilter.determine_asl_modality_label(["m0scan"]) == "m0scan"
@@ -811,7 +811,7 @@ def test_bids_output_filter_determine_asl_modality_label():
     assert BidsOutputFilter.determine_asl_modality_label("str") == "asl"
 
 
-def test_bids_output_filter_complex_image_component():
+def test_bids_output_filter_complex_image_component() -> None:
     """tests that the field ComplexImageComponent is correctly set"""
     with TemporaryDirectory() as temp_dir:
         image = deepcopy(TEST_NIFTI_CON_ONES)
@@ -884,7 +884,7 @@ def test_bids_output_filter_complex_image_component():
         )
 
 
-def test_bids_output_filter_directory_tests():
+def test_bids_output_filter_directory_tests() -> None:
     """Checks that the BidsOutputFilter can correctly handle situations where
     the output directories either exist or don't exist"""
 
@@ -899,7 +899,7 @@ def test_bids_output_filter_directory_tests():
         bids_output_filter.run()
 
 
-def test_bids_output_filter_background_suppression(asl_input):
+def test_bids_output_filter_background_suppression(asl_input) -> None:
     """Check that the expected behaviour occurs for handling background
     suppression parameters"""
     image = asl_input[0]
@@ -969,7 +969,7 @@ def test_bids_output_filter_background_suppression(asl_input):
         )
 
 
-def test_bids_output_filter_dataset_description(asldro_version):
+def test_bids_output_filter_dataset_description(asldro_version) -> None:
     """Checks that the dataset_description.json file
     is correctly output"""
     with TemporaryDirectory() as temp_dir:
@@ -998,7 +998,7 @@ def test_bids_output_filter_dataset_description(asldro_version):
         }
 
 
-def test_bids_output_filter_readme():
+def test_bids_output_filter_readme() -> None:
     """Checks that the README file
     is correctly output"""
     with TemporaryDirectory() as temp_dir:
@@ -1048,7 +1048,7 @@ def test_bids_output_filter_readme():
         expected = expected + "2. T2w: description 2\n"
 
 
-def test_bids_output_filter_bidsignore():
+def test_bids_output_filter_bidsignore() -> None:
     """Checks that the .bidsignore file
     is correctly output"""
     with TemporaryDirectory() as temp_dir:
@@ -1064,7 +1064,7 @@ def test_bids_output_filter_bidsignore():
     assert actual == "ground_truth/\n**/*Perfmap*\n**/*ATTmap*\n**/*Lambdamap*"
 
 
-def test_bids_output_filter_save_json_static_method():
+def test_bids_output_filter_save_json_static_method() -> None:
     """Tests the save_json static method"""
     data = {
         "key1": 1,
@@ -1088,7 +1088,7 @@ def test_bids_output_filter_save_json_static_method():
         assert loaded_data == data
 
 
-def test_bids_output_filter_determine_source_version_static_method():
+def test_bids_output_filter_determine_source_version_static_method() -> None:
     """Tests the determine_asldro_version static method"""
 
     with TemporaryDirectory() as temp_dir:

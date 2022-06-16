@@ -39,10 +39,10 @@ class LoadBidsFilter(FilterBlock):
     KEY_NIFTI_FILENAME = "nifti_filename"
     KEY_IMAGE = AppendMetadataFilter.KEY_IMAGE
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Load BIDS Filter")
 
-    def _create_filter_block(self):
+    def _create_filter_block(self) -> AppendMetadataFilter:
         """Runs:
         1. NiftLoaderFilter
         2. JsonLoaderFilter
@@ -70,7 +70,7 @@ class LoadBidsFilter(FilterBlock):
 
         return append_metadata_filter
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that inputs meet their validation criteria
         "nifti_filename" must be a str, ending with .nii or .nii.gz and exist
         on the file system.

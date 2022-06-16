@@ -4,7 +4,7 @@ import argparse
 import logging
 import os
 import sys
-from typing import List
+from typing import List, Optional
 
 from mrimagetools.pipelines.adc_pipeline import adc_pipeline
 from mrimagetools.pipelines.mtr_pipeline import mtr_pipeline
@@ -21,13 +21,13 @@ class DirType:  # pylint: disable=too-few-public-methods
     optionally, whether it exists
     """
 
-    def __init__(self, should_exist: bool = False):
+    def __init__(self, should_exist: bool = False) -> None:
         """
         :param should_exist: does the directory have to exist
         """
         self.should_exist: bool = should_exist
 
-    def __call__(self, path: str):
+    def __call__(self, path: str) -> str:
         """
         Do the checking
         :param path: the path to the directory
@@ -49,7 +49,9 @@ class FileType:  # pylint: disable=too-few-public-methods
     and optionally, whether it has a particular extension and/or exists
     """
 
-    def __init__(self, extensions: List[str] = None, should_exist: bool = False):
+    def __init__(
+        self, extensions: Optional[List[str]] = None, should_exist: bool = False
+    ) -> None:
         """
         :param extensions: a list of allowed file extensions.
         :param should_exist: does the file have to exist
@@ -71,7 +73,7 @@ class FileType:  # pylint: disable=too-few-public-methods
             ]
         self.should_exist: bool = should_exist
 
-    def __call__(self, path: str):
+    def __call__(self, path: str) -> str:
         """
         Do the checkstructing
         :param path: the path to the file
@@ -98,7 +100,7 @@ class FileType:  # pylint: disable=too-few-public-methods
         return path
 
 
-def mtr_quantify(args):
+def mtr_quantify(args: argparse.Namespace) -> None:
     """Parses the 'mtr-quantify' subcommand. Must have a:
     * 'nosat_nifti_path', which is the path to the image without
       bound pool saturation.
@@ -111,7 +113,7 @@ def mtr_quantify(args):
     mtr_pipeline(args.sat, args.nosat, args.outputdir)
 
 
-def adc_quantify(args):
+def adc_quantify(args: argparse.Namespace) -> None:
     """Parses the 'adc-quantify' subcommand. Must have a:
     * 'dwi_image_path', which is the path to the dwi image.
     * 'output_dir', which is the path to a directory to save the output
@@ -120,7 +122,7 @@ def adc_quantify(args):
     adc_pipeline(args.dwi, args.outputdir)
 
 
-def main():
+def main() -> None:
     """Main function for the Command Line Interface"""
 
     parser = argparse.ArgumentParser(

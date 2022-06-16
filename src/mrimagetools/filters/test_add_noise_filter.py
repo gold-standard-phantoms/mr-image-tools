@@ -1,6 +1,8 @@
 """ Add noise filter tests """
 # pylint: disable=duplicate-code
 
+from typing import Optional
+
 import nibabel as nib
 import numpy as np
 import numpy.testing
@@ -17,7 +19,7 @@ RANDOM_SEED = 1234
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_data_fixture():
+def input_validation_data_fixture() -> dict:
     """Returns a dictionary containing test data for the filter input validation"""
     test_image = NiftiImageContainer(nib.Nifti1Image(np.ones((4, 4, 4)), np.eye(4)))
     test_image2 = NiftiImageContainer(nib.Nifti1Image(np.ones((3, 4, 4)), np.eye(4)))
@@ -40,7 +42,7 @@ def input_validation_data_fixture():
     }
 
 
-def test_add_noise_filter_validate_inputs(validation_data):
+def test_add_noise_filter_validate_inputs(validation_data) -> None:
     """Check a FilterInputValidationError is raised when the inputs
     to the add commplex noise filter are incorrect or missing"""
 
@@ -55,7 +57,7 @@ def test_add_noise_filter_validate_inputs(validation_data):
 def add_noise_function(
     image: np.ndarray,
     snr: float,
-    reference_image: np.ndarray = None,
+    reference_image: Optional[np.ndarray] = None,
     noise_scaling: float = 1.0,
 ):
     """
@@ -176,7 +178,7 @@ def ft_complex_image_container_fixture() -> NumpyImageContainer:
 
 
 # 1. add noise to non-complex image, only image supplied
-def test_add_noise_filter_with_mock_data_mag_image_only(image_container):
+def test_add_noise_filter_with_mock_data_mag_image_only(image_container) -> None:
     """Test the add noise filter with magnitude (non-complex) image only"""
     np.random.seed(RANDOM_SEED)
     # calculate manually
@@ -300,7 +302,7 @@ def test_add_noise_filter_with_mock_data_mag_image_spatial_reference_inverse(
 
 
 # 4. add noise to complex image, no reference supplied
-def test_add_noise_filter_with_mock_data_complex_image(complex_image_container):
+def test_add_noise_filter_with_mock_data_complex_image(complex_image_container) -> None:
     """Test the add noise filter with a complex image"""
     np.random.seed(RANDOM_SEED)
     # calculate manually
@@ -494,7 +496,7 @@ def test_add_noise_filter_with_mock_data_complex_image_inverse_reference_spatial
         numpy.testing.assert_array_almost_equal(measured_snr, SNR_VALUE, 0)
 
 
-def test_add_noise_filter_snr_zero(image_container):
+def test_add_noise_filter_snr_zero(image_container) -> None:
     """Checks that the output image is equal to the input image when snr=0"""
     # calculate using the filter
     add_noise_filter = AddNoiseFilter()

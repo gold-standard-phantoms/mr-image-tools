@@ -11,7 +11,7 @@ from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 
 
-def test_json_loader_input_validation_no_input():
+def test_json_loader_input_validation_no_input() -> None:
     """Test all of the JsonLoader input validation -
     No input filename (but some input so the filter will run)"""
 
@@ -21,7 +21,7 @@ def test_json_loader_input_validation_no_input():
         json_loader_filter.run()
 
 
-def test_json_loader_input_validation_non_string_input():
+def test_json_loader_input_validation_non_string_input() -> None:
     """Test all of the JsonLoader input validation -
     Non-string filename"""
 
@@ -32,7 +32,7 @@ def test_json_loader_input_validation_non_string_input():
         json_loader_filter.run()
 
 
-def test_json_loader_input_validation_bad_json_filename():
+def test_json_loader_input_validation_bad_json_filename() -> None:
     """Test all of the JsonLoader input validation -
     Bad JSON filename"""
 
@@ -46,7 +46,7 @@ def test_json_loader_input_validation_bad_json_filename():
             json_loader_filter.run()
 
 
-def test_json_loader_input_validation_missing_json_file():
+def test_json_loader_input_validation_missing_json_file() -> None:
     """Test all of the JsonLoader input validation -
     Missing JSON file"""
 
@@ -60,7 +60,7 @@ def test_json_loader_input_validation_missing_json_file():
             json_loader_filter.run()
 
 
-def test_json_loader_input_validation_schema_mismatch():
+def test_json_loader_input_validation_schema_mismatch() -> None:
     """Test the JsonLoader input validation -
     JSON doesn't match schema"""
 
@@ -92,7 +92,7 @@ def test_json_loader_input_validation_schema_mismatch():
             json_loader_filter.run()  # JSON not valid against schema
 
 
-def test_json_loader_input_validation_correct_functionality():
+def test_json_loader_input_validation_correct_functionality() -> None:
     """Test the JsonLoader input validation -
     Correct functionality"""
 
@@ -129,7 +129,7 @@ def test_json_loader_input_validation_correct_functionality():
         assert json_loader_filter.outputs["string"] == "foobar"
 
 
-def test_json_loader_filter_root_object():
+def test_json_loader_filter_root_object() -> None:
     """ "Tests the json loader filter where the outputs are placed into
     a root object"""
 

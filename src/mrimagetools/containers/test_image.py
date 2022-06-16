@@ -30,7 +30,7 @@ from mrimagetools.containers.image import (
 
 
 @pytest.fixture
-def icbm_v1_nifti():
+def icbm_v1_nifti() -> NiftiImageContainer:
     """Returns the ICBM v1 test nifti data"""
     return NiftiImageContainer(
         nifti_img=nib.load(
@@ -77,7 +77,7 @@ NIFTI_HEADER: Final[Dict] = {
 }
 
 NIFTI2_HEADER_EXCLUDES = ["glmax", "glmin"]
-NIFTI_AFFINE = np.array(
+NIFTI_AFFINE: np.ndarray = np.array(
     [
         NIFTI_HEADER["srow_x"],
         NIFTI_HEADER["srow_y"],
@@ -283,17 +283,17 @@ def numpy_image_container() -> NumpyImageContainer:
     )
 
 
-def test_numpy_image_container_image(numpy_image_container):
+def test_numpy_image_container_image(numpy_image_container) -> None:
     """Test that the image is returned from a NumpyImageContainer"""
     np.testing.assert_array_equal(numpy_image_container.image, np.ones((2, 3, 4, 5, 6)))
 
 
-def test_numpy_image_container_shape(numpy_image_container):
+def test_numpy_image_container_shape(numpy_image_container) -> None:
     """Test that the shape is returned from a NumpyImageContainer"""
     assert numpy_image_container.shape == (2, 3, 4, 5, 6)
 
 
-def test_numpy_image_container_affine(numpy_image_container):
+def test_numpy_image_container_affine(numpy_image_container) -> None:
     """Test that the affine is returned from a NumpyImageContainer"""
     assert (
         numpy_image_container.affine
@@ -308,12 +308,12 @@ def test_numpy_image_container_affine(numpy_image_container):
     ).all()
 
 
-def test_numpy_image_container_time_units(numpy_image_container):
+def test_numpy_image_container_time_units(numpy_image_container) -> None:
     """Test that the correct time units are returned from a NumpyImageContainer"""
     assert numpy_image_container.time_units == UNITS_SECONDS
 
 
-def test_numpy_image_container_space_units(numpy_image_container):
+def test_numpy_image_container_space_units(numpy_image_container) -> None:
     """Test that the correct space units are returned from a NumpyImageContainer"""
     assert numpy_image_container.space_units == UNITS_MILLIMETERS
 
@@ -375,19 +375,23 @@ def test_numpy_image_container_time_step_seconds_setter(
     np.testing.assert_almost_equal(numpy_image_container.time_step_seconds, 10000.0)
 
 
-def test_numpy_image_container_has_header(numpy_image_container: NumpyImageContainer):
+def test_numpy_image_container_has_header(
+    numpy_image_container: NumpyImageContainer,
+) -> None:
     """Test that a header is not returned from a NumpyImageContainer"""
 
     assert numpy_image_container.header is None
 
 
-def test_numpy_image_container_has_nifti(numpy_image_container: NumpyImageContainer):
+def test_numpy_image_container_has_nifti(
+    numpy_image_container: NumpyImageContainer,
+) -> None:
     """Test that a nifty is not returned from a NumpyImageContainer"""
 
     assert not numpy_image_container.has_nifti
 
 
-def test_image_container_unexpected_arguments():
+def test_image_container_unexpected_arguments() -> None:
     """Check that passing unexpected arguments raises an error"""
     with pytest.raises(TypeError):
         NumpyImageContainer(image=np.zeros((3, 3, 3)), unexpected="test")
@@ -398,7 +402,7 @@ def test_image_container_unexpected_arguments():
 
 
 # SPATIAL_DOMAIN tests
-def test_image_container_spatial_domain_initialisation():
+def test_image_container_spatial_domain_initialisation() -> None:
     """Check that passing a string not in SPATIAL_DOMAIN or INVERSE_DOMAIN to
     data_domain raises an exception ( and vice versa )"""
     with pytest.raises(ValueError):
@@ -416,13 +420,13 @@ def test_image_container_spatial_domain_initialisation():
 
 
 # IMAGE_TYPE tests
-def test_image_container_image_type_bad_initialisation():
+def test_image_container_image_type_bad_initialisation() -> None:
     """Check initialising image containers with bad image types creates an exception"""
     with pytest.raises(ValueError):
         NumpyImageContainer(image=np.zeros((3, 3, 3)), image_type="foobar")
 
 
-def test_image_container_image_type_good_bad_initialisation():
+def test_image_container_image_type_good_bad_initialisation() -> None:
     """Check initialising image containers with image types creates the correct defaults
     and if an image_type is supplied, it is correctly validated"""
     for dtype in [
@@ -523,7 +527,7 @@ def general_image_container_clone_tests(
     assert image_container.metadata == cloned_image_container.metadata
 
 
-def test_numpy_image_container_clone():
+def test_numpy_image_container_clone() -> None:
     """Check that the numpy image container is cloned correctly"""
     # Use none of the default parameters
     image_container = NumpyImageContainer(
@@ -630,7 +634,7 @@ def test_nifti_image_container_image_set_different_dtype(
         assert image_container.header["datatype"] == 64
 
 
-def test_image_container_metadata_init():
+def test_image_container_metadata_init() -> None:
     """Test the metadata initialisation on the Image Container classes"""
     numpy = NumpyImageContainer(image=np.ones((1, 1, 1)), affine=np.eye(4))
     assert numpy.metadata == {}
@@ -660,7 +664,7 @@ def test_image_container_metadata_init():
         )
 
 
-def test_image_container_metadata_get_set():
+def test_image_container_metadata_get_set() -> None:
     """Test the Image Container metadata getting and setting"""
     numpy = NumpyImageContainer(image=np.ones((1, 1, 1)), affine=np.eye(4))
     assert numpy.metadata == {}
@@ -669,10 +673,10 @@ def test_image_container_metadata_get_set():
     numpy.metadata["three"] = 3
     assert numpy.metadata == {"one": 1, "two": 2, "three": 3}
     with pytest.raises(TypeError):
-        numpy.metadata = "not a dict"
+        numpy.metadata = "not a dict"  # type: ignore
 
 
-def test_nifti_to_numpy(nifti_image_containers_a: List[NiftiImageContainer]):
+def test_nifti_to_numpy(nifti_image_containers_a: List[NiftiImageContainer]) -> None:
     """Check the as_numpy()/as_nifti() functionality works correctly on a nifti container"""
     for image_container in nifti_image_containers_a:
         new_image_container: BaseImageContainer = image_container.as_numpy()
@@ -700,7 +704,7 @@ def test_nifti_to_numpy(nifti_image_containers_a: List[NiftiImageContainer]):
             )
 
 
-def test_numpy_to_nifti(numpy_image_container: NumpyImageContainer):
+def test_numpy_to_nifti(numpy_image_container: NumpyImageContainer) -> None:
     """Check the as_nifti functionality works correctly on a nifti container"""
     for new_image_container in [
         numpy_image_container.as_numpy(),

@@ -1,7 +1,7 @@
 """ General Kinetic Model Filter """
 
 import logging
-from typing import Union
+from typing import Any, Optional, Union
 
 import numpy as np
 
@@ -78,7 +78,7 @@ class GkmFilter(BaseFilter):
 
     **Metadata**
 
-    The following parameters are added to 
+    The following parameters are added to
     :class:`GkmFilter.outputs["delta_m"].metadata`:
 
     * ``label_type``
@@ -101,7 +101,7 @@ class GkmFilter(BaseFilter):
 
     **Equations**
 
-    The general kinetic model :cite:p:`Buxton1998` is the standard signal model 
+    The general kinetic model :cite:p:`Buxton1998` is the standard signal model
     for ASL perfusion measurements. It considers the difference between the
     control and label conditions to be a deliverable tracer, referred to
     as :math:`\Delta M(t)`.
@@ -150,12 +150,12 @@ class GkmFilter(BaseFilter):
         &\lambda = \text{blood brain partition coefficient}\\
         &T_{1,b} = \text{longitudinal relaxation time of arterial blood}\\
         &T_{1} = \text{longitudinal relaxation time of tissue}\\
-        
+
     Note that all units are in SI, with :math:`f` having units :math:`s^{-1}`.
     Multiplying by 6000 gives units of :math:`ml/100g/min`.
 
     *Full Model*
-    
+
     The full solutions to the GKM :cite:p:`Buxton1998` are used to calculate
     :math:`\Delta M(t)` when ``model=="full"``:
 
@@ -210,7 +210,7 @@ class GkmFilter(BaseFilter):
 
             &\Delta M(t) = \begin{cases}
             0 & 0<t\leq\Delta t + \tau\\
-            {2  M_{0,b}  f  T_{1,b} \alpha 
+            {2  M_{0,b}  f  T_{1,b} \alpha
             (1-e^{-\frac{\tau}{T_{1,b}}}) e^{-\frac{t-\tau}{T_{1,b}}}}
             & t > \Delta t + \tau\\
             \end{cases}\\
@@ -221,7 +221,7 @@ class GkmFilter(BaseFilter):
 
             &\Delta M(t) = \begin{cases}
             0 & 0<t\leq\Delta t + \tau\\
-            {2  M_{0,b}  f  \tau  \alpha  
+            {2  M_{0,b}  f  \tau  \alpha
             e^{-\frac{t}{T_{1,b}}}} & t > \Delta t + \tau\\
             \end{cases}
 
@@ -253,10 +253,10 @@ class GkmFilter(BaseFilter):
     MODEL_FULL = "full"
     MODEL_WP = "whitepaper"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="General Kinetic Model")
 
-    def _run(self):
+    def _run(self) -> None:
         """Generates the delta_m signal based on the inputs"""
 
         perfusion_rate: np.ndarray = self.inputs[self.KEY_PERFUSION_RATE].image
@@ -271,7 +271,7 @@ class GkmFilter(BaseFilter):
         label_type = self.inputs[self.KEY_LABEL_TYPE].lower()
 
         # blank dictionary for metadata to add
-        metadata = {}
+        metadata: dict[str, Any] = {}
         m0_tissue = GkmFilter.check_and_make_image_from_value(
             self.inputs[self.KEY_M0], perfusion_rate.shape, metadata, self.KEY_M0
         )
@@ -353,7 +353,7 @@ class GkmFilter(BaseFilter):
             **metadata,
         }
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
         'perfusion_rate' must be derived from BaseImageContainer and be >= 0
         'transit_time' must be derived from BaseImageContainer and be >= 0
@@ -470,7 +470,7 @@ class GkmFilter(BaseFilter):
         arg: Union[float, BaseImageContainer],
         shape: tuple,
         metadata: dict,
-        metadata_key: str,
+        metadata_key: Optional[str],
     ) -> np.ndarray:
         """Checks the type of the input parameter to see if it is a float or a BaseImageContainer.
         If it is an image:
@@ -494,6 +494,7 @@ class GkmFilter(BaseFilter):
         :param metadata: metadata dict, which is updated by this function
         :type metadata: dict
         :param metadata_key: key to assign the value of arg (if a float or single value image) to
+        if None - do not assign anything
         :type metadata_key: str
 
         :return: image of the parameter
@@ -508,11 +509,14 @@ class GkmFilter(BaseFilter):
             flatten_arr = np.ravel(out_array)
             # Check if all value in array are equal and update metadata if so
             if np.all(out_array == flatten_arr[0]):
-                metadata[metadata_key] = flatten_arr[0]
+                if metadata_key is not None:
+                    metadata[metadata_key] = flatten_arr[0]
 
         else:
             out_array = arg * np.ones(shape)
-            metadata[metadata_key] = arg
+            if metadata_key is not None:
+                metadata[metadata_key] = arg
+
         return out_array
 
     @staticmethod

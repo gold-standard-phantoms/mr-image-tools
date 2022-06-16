@@ -1,9 +1,12 @@
 """ MRI Signal Filter """
 
+from typing import Any, Type, TypeVar
+
 import numpy as np
 
 from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.utils.typing import T
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
@@ -146,20 +149,31 @@ class MriSignalFilter(BaseFilter):
     CONTRAST_SE = "se"
     CONTRAST_IR = "ir"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="MRI Signal Model")
 
-    def _run(self):
+    def get_typed_input(self, key: str, input_type: Type[T]) -> T:
+        """Get a variable from the inputs, checking that the type is correct.
+        (helps with mypy type checking"""
+        value: Any = self.inputs.get(key)
+        if isinstance(value, input_type):
+            return value
+        raise TypeError(
+            f"Value with key {key} is of type {type(value)} and should be {input_type}"
+        )
+
+    def _run(self) -> None:
         t1: np.ndarray = self.inputs[self.KEY_T1].image
         t2: np.ndarray = self.inputs[self.KEY_T2].image
         m0: np.ndarray = self.inputs[self.KEY_M0].image
 
-        metadata = {}
+        metadata: dict[str, Any] = {}
+        mag_enc: np.ndarray
         if self.inputs.get(self.KEY_MAG_ENC) is not None:
-            mag_enc: np.ndarray = self.inputs[self.KEY_MAG_ENC].image
+            mag_enc = self.inputs[self.KEY_MAG_ENC].image
             metadata = {**metadata, **self.inputs[self.KEY_MAG_ENC].metadata}
         else:
-            mag_enc: np.ndarray = np.zeros(t1.shape)
+            mag_enc = np.zeros(t1.shape)
 
         # mag_enc might not have "image_flavour" set
         if metadata.get("image_flavour") is None:
@@ -197,7 +211,9 @@ class MriSignalFilter(BaseFilter):
         # second edition, 2006, McRobbie et. al.
         if acq_contrast.lower() == self.CONTRAST_GE:
             t2_star: np.ndarray = self.inputs[self.KEY_T2_STAR].image
-            flip_angle = np.radians(self.inputs.get(self.KEY_EXCITATION_FLIP_ANGLE))
+            flip_angle = np.radians(
+                self.get_typed_input(self.KEY_EXCITATION_FLIP_ANGLE, float)
+            )
             # pre-calculate the exponent exp(-echo_time/t2_star)
             exp_t2_star = np.exp(
                 -np.divide(
@@ -258,10 +274,12 @@ class MriSignalFilter(BaseFilter):
         # Inversion Recovery contrast.  Equation is from equation 7 in
         # http://www.paul-tofts-phd.org.uk/talks/ismrm2009_rt.pdf
         elif acq_contrast.lower() == self.CONTRAST_IR:
-            flip_angle = np.radians(self.inputs.get(self.KEY_EXCITATION_FLIP_ANGLE))
-            inversion_time = self.inputs.get(self.KEY_INVERSION_TIME)
+            flip_angle = np.radians(
+                self.get_typed_input(self.KEY_EXCITATION_FLIP_ANGLE, float)
+            )
+            inversion_time = self.get_typed_input(self.KEY_INVERSION_TIME, float)
             inversion_flip_angle = np.radians(
-                self.inputs.get(self.KEY_INVERSION_FLIP_ANGLE)
+                self.get_typed_input(self.KEY_INVERSION_FLIP_ANGLE, float)
             )
             # pre-calculate the exponent exp(-inversion_time/t1)
             exp_ti_t1 = np.exp(
@@ -310,7 +328,7 @@ class MriSignalFilter(BaseFilter):
         self.outputs[self.KEY_IMAGE].metadata.pop("quantity", None)
         # pdb.set_trace()
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation critera
         't1' must be derived from BaseImageContainer, >=0, and non-complex
         't2' must be derived from BaseImageContainer, >=0, and non-complex
@@ -439,17 +457,17 @@ class MriSignalFilter(BaseFilter):
                     f"Acquisition contrast is {self.inputs[self.KEY_ACQ_CONTRAST]},"
                     " 'inversion_time' required"
                 )
-            if self.inputs.get(self.KEY_REPETITION_TIME) < (
-                self.inputs.get(self.KEY_ECHO_TIME)
-                + self.inputs.get(self.KEY_INVERSION_TIME)
+            if self.get_typed_input(self.KEY_REPETITION_TIME, float) < (
+                self.get_typed_input(self.KEY_ECHO_TIME, float)
+                + self.get_typed_input(self.KEY_INVERSION_TIME, float)
             ):
                 raise FilterInputValidationError(
                     "repetition_time must be greater than echo_time + inversion_time"
                 )
 
         # Check repetition_time is not < echo_time for ge and se
-        if self.inputs.get(self.KEY_REPETITION_TIME) < self.inputs.get(
-            self.KEY_ECHO_TIME
+        if self.get_typed_input(self.KEY_REPETITION_TIME, float) < self.get_typed_input(
+            self.KEY_ECHO_TIME, float
         ):
             raise FilterInputValidationError(
                 "repetition_time must be greater than echo_time"

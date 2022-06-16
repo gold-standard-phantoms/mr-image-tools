@@ -11,7 +11,7 @@ from mrimagetools.filters.basefilter import FilterInputValidationError
 from .maths_filter import MathsFilter
 
 
-def test_simple_expression():
+def test_simple_expression() -> None:
     """Test a simple expression"""
     image: BaseImageContainer = generate_arange_numpy_image_container(shape=(2, 2, 2))
     maths_filter = MathsFilter()
@@ -22,7 +22,7 @@ def test_simple_expression():
     nptesting.assert_array_almost_equal(result.image, image.image + 1)
 
 
-def test_complex_expression():
+def test_complex_expression() -> None:
     """Test a complex expression"""
     image_a: BaseImageContainer = generate_arange_numpy_image_container(shape=(2, 2, 2))
     image_b: BaseImageContainer = generate_arange_numpy_image_container(
@@ -44,7 +44,7 @@ def test_complex_expression():
     nptesting.assert_array_equal(result.affine, image_a.affine)
 
 
-def test_safe_divide():
+def test_safe_divide() -> None:
     """Test an expression using safe_divide"""
     image_a: BaseImageContainer = generate_arange_numpy_image_container(shape=(2, 2, 2))
     image_b: BaseImageContainer = generate_arange_numpy_image_container(
@@ -69,7 +69,7 @@ def test_safe_divide():
     )
 
 
-def test_expression_is_string():
+def test_expression_is_string() -> None:
     """Test that when expression is a valid string, filter runs without error"""
     maths_filter = MathsFilter()
     maths_filter.add_input("expression", "A+1")
@@ -78,7 +78,7 @@ def test_expression_is_string():
     assert maths_filter.outputs["result"] == 2
 
 
-def test_expression_is_not_string():
+def test_expression_is_not_string() -> None:
     """Test that when expression is not a valid string, filter validation error"""
     maths_filter = MathsFilter()
     maths_filter.add_input("expression", 1)
@@ -87,7 +87,7 @@ def test_expression_is_not_string():
         maths_filter.run()
 
 
-def test_bad_expression_syntax_validation():
+def test_bad_expression_syntax_validation() -> None:
     """Test that bad expression syntax raises a filter validation error"""
     maths_filter = MathsFilter()
     maths_filter.add_input("expression", "/A")
@@ -96,7 +96,7 @@ def test_bad_expression_syntax_validation():
         maths_filter.run()
 
 
-def test_bad_expression_validation():
+def test_bad_expression_validation() -> None:
     """Test that bad expressions raise a filter validation error"""
     maths_filter = MathsFilter()
     maths_filter.add_input("expression", "Fun(A)")  # functions not supported (yet!)
@@ -105,7 +105,7 @@ def test_bad_expression_validation():
         maths_filter.run()
 
 
-def test_missing_parameters_validation():
+def test_missing_parameters_validation() -> None:
     """Test that missing parameters raise a filter validation error"""
     maths_filter = MathsFilter()
     maths_filter.add_input("expression", "A+B")
@@ -129,7 +129,7 @@ def generate_arange_numpy_image_container(
     )
 
 
-def test_generate_numpy_image_container():
+def test_generate_numpy_image_container() -> None:
     """Test the numpy image generation"""
     image = generate_arange_numpy_image_container(shape=(2, 3, 4), affine=np.eye(4) * 3)
     assert image.shape == (2, 3, 4)
@@ -139,7 +139,7 @@ def test_generate_numpy_image_container():
     nptesting.assert_array_equal(image.affine, np.eye(4) * 3)
 
 
-def test_images_match_shape():
+def test_images_match_shape() -> None:
     """Test that mismatching image shapes throws a validation error"""
     maths_filter = MathsFilter()
     maths_filter.add_input("expression", "A+B")
@@ -150,7 +150,7 @@ def test_images_match_shape():
         maths_filter.run()
 
 
-def test_images_match_affine():
+def test_images_match_affine() -> None:
     """Test that mismatching affine matrices in the inputs throws a validation error"""
 
     maths_filter = MathsFilter()

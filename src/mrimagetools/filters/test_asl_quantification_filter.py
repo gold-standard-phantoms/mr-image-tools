@@ -188,7 +188,7 @@ def test_data_full_fixture(multiphase_data) -> dict:
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_dict_fixture(test_data_wp, test_data_full):
+def input_validation_dict_fixture(test_data_wp, test_data_full) -> dict:
     """Returns a dictionary for validating the filter inputs"""
 
     # input validation dictionary, for each key the list provides:
@@ -293,7 +293,7 @@ PASL_VALIDATION_DATA = (
 )
 
 
-def test_asl_quantification_filter_validate_inputs(validation_data):
+def test_asl_quantification_filter_validate_inputs(validation_data) -> None:
     """Check a FilterInputValidationError is raised when the inputs to the
     AslQuantificationFilter are incorrect or missing"""
     validate_filter_inputs(AslQuantificationFilter, validation_data["whitepaper"])
@@ -352,7 +352,7 @@ def test_asl_quantification_filter_verify_pasl_numeric(
     )
 
 
-def test_asl_quantification_filter_asl_quant_wp_casl():
+def test_asl_quantification_filter_asl_quant_wp_casl() -> None:
     """Test that the static function asl_quant_wp_casl produces correct results"""
 
     control = np.ones(TEST_DIM_3D)
@@ -391,7 +391,7 @@ def test_asl_quantification_filter_asl_quant_wp_casl():
     )
 
 
-def test_asl_quantification_filter_with_mock_data_casl(test_data_wp):
+def test_asl_quantification_filter_with_mock_data_casl(test_data_wp) -> None:
     """Tests the AslQuantificationFilter with some mock data for CASL"""
 
     input_params = {
@@ -453,7 +453,7 @@ in Medicine, 73(1):102–116, apr 2014. doi:10.1002/mrm.25197
     }
 
 
-def test_asl_quantification_filter_with_mock_timeseries(test_data_wp):
+def test_asl_quantification_filter_with_mock_timeseries(test_data_wp) -> None:
     """Tests the AslQuantificationFilter with some mock timeseries data"""
 
     input_params = {
@@ -488,7 +488,7 @@ def test_asl_quantification_filter_with_mock_timeseries(test_data_wp):
     )
 
 
-def test_asl_quantification_filter_asl_quant_wp_pasl():
+def test_asl_quantification_filter_asl_quant_wp_pasl() -> None:
     """Test that the static function asl_quant_wp_pasl produces correct results"""
 
     control = np.ones(TEST_DIM_3D)
@@ -523,7 +523,7 @@ def test_asl_quantification_filter_asl_quant_wp_pasl():
     )
 
 
-def test_asl_quantification_filter_with_mock_data_pasl(test_data_wp):
+def test_asl_quantification_filter_with_mock_data_pasl(test_data_wp) -> None:
     """Tests the AslQuantificationFilter with some mock data for PASL"""
 
     input_params = {
@@ -588,7 +588,7 @@ in Medicine, 73(1):102–116, apr 2014. doi:10.1002/mrm.25197
 ## Tests for when the AslQuantificationFilter uses the 'full' model.
 
 
-def test_asl_quantification_filter_asl_quant_lsq_gkm(multiphase_data):
+def test_asl_quantification_filter_asl_quant_lsq_gkm(multiphase_data) -> None:
     """Numerically tests the least squares fitting to the general kinetic model
     for both the casl and pasl signal models."""
     for label_type in ["pasl", "casl"]:
@@ -613,7 +613,9 @@ def test_asl_quantification_filter_asl_quant_lsq_gkm(multiphase_data):
         )
 
 
-def test_asl_quantification_filter_full_mock_data(test_data_full, multiphase_data):
+def test_asl_quantification_filter_full_mock_data(
+    test_data_full, multiphase_data
+) -> None:
     """Tests the AslQuantificationFilter when using the full GKM for
     quantification with some mock data"""
     for label_type in ["casl"]:

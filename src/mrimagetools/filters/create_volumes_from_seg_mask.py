@@ -68,10 +68,10 @@ class CreateVolumesFromSegMask(BaseFilter):
     KEY_UNITS = "units"
     KEY_IMAGE_INFO = "image_info"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("CreateVolumesFromSegMask")
 
-    def _run(self):
+    def _run(self) -> None:
         """runs the filter"""
         seg_mask: BaseImageContainer = self.inputs[self.KEY_SEG_MASK].clone()
         label_values: list[int] = self.inputs[self.KEY_LABEL_VALUES]
@@ -117,7 +117,7 @@ class CreateVolumesFromSegMask(BaseFilter):
         self.outputs[self.KEY_IMAGE_INFO] = image_info
         self.outputs[self.KEY_IMAGE] = image
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
         'seg_mask' BaseImageContainer, dtype dtype==np.uint16, ndim <= 4
         'label_names', list[str], must be same length as 'label_values'

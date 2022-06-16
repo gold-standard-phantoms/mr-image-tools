@@ -92,10 +92,10 @@ class AffineMatrixFilter(BaseFilter):
     KEY_AFFINE_LAST = "affine_last"
     KEY_AFFINE_INVERSE = "affine_inverse"
 
-    def __init(self):
+    def __init(self) -> None:
         super().__init__(name="Compute Affine Matrix")
 
-    def _run(self):
+    def _run(self) -> None:
         # construct individual transformation matrices
         input_affine: np.ndarray = self.inputs[self.KEY_AFFINE]
         affine_last: np.ndarray = self.inputs[self.KEY_AFFINE_LAST]
@@ -180,7 +180,7 @@ class AffineMatrixFilter(BaseFilter):
         self.outputs[self.KEY_AFFINE] = output_affine
         self.outputs[self.KEY_AFFINE_INVERSE] = np.linalg.inv(output_affine)
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
 
         `'rotation'` (optional) must be a Tuple of floats of length 3, each value -180 to 180

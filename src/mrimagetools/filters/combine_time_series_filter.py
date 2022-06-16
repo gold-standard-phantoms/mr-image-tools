@@ -60,10 +60,10 @@ class CombineTimeSeriesFilter(BaseFilter):
     KEY_IMAGE = "image"
     INPUT_IMAGE_REGEX_OBJ = re.compile(r"^image_(?P<index>[0-9]+)$")
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Combine Time-Series")
 
-    def _run(self):
+    def _run(self) -> None:
         indexed_containers = self._get_input_images()
         containers = [c[0] for c in indexed_containers]
 
@@ -72,9 +72,9 @@ class CombineTimeSeriesFilter(BaseFilter):
         output_container = NiftiImageContainer(
             nifti_img=nib.Nifti1Image(dataobj=dataobj, affine=containers[0].affine)
         )
-        output_container.nifti_image.header["xyzt_units"] = containers[
-            0
-        ].nifti_image.header["xyzt_units"]
+        output_container.nifti_image.header["xyzt_units"] = (  # type: ignore
+            containers[0].as_nifti().header["xyzt_units"]
+        )
         output_container.data_domain = containers[0].data_domain
         # TODO: We could set output_container.time_step_seconds here, at the moment assumed
         # to be the same as the first input
@@ -135,7 +135,7 @@ class CombineTimeSeriesFilter(BaseFilter):
 
         return sorted(zip(containers, indices), key=lambda x: x[1])
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation critera:
         There must be one or more input image.
         Once parsed, it must be the case that there are no duplicate indices

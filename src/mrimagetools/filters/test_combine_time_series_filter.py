@@ -9,13 +9,13 @@ import numpy.testing
 import pytest
 from nibabel.nifti1 import Nifti1Image
 
-from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, NiftiImageContainer
+from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.combine_time_series_filter import CombineTimeSeriesFilter
 
 
 @pytest.fixture(name="image_containers")
-def fixture_image_containers():
+def fixture_image_containers() -> dict:
     """Return a dict of (nifti) image containers, where the keys are
     valid "image_nnnnn" string where nnnnnn==0 to 9. The number of
     prepending zeros is equal to the index.
@@ -142,7 +142,7 @@ def test_combine_time_series_filter_non_image(
         a_filter.run()
 
 
-def test_combine_time_series_filter_with_complex_images():
+def test_combine_time_series_filter_with_complex_images() -> None:
     num_image_containers = 10
     image_containers = {
         f"image_{''.join(['0' for _ in range(i)]) + str(i)}": NiftiImageContainer(

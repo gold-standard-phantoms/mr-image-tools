@@ -6,7 +6,6 @@ import sys
 from unittest.mock import patch
 
 import nibabel as nib
-import numpy as np
 import numpy.testing
 import pytest
 
@@ -15,12 +14,11 @@ from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.load_bids_filter import LoadBidsFilter
 from mrimagetools.filters.test_adc_quantification_filter import test_data_fixture
 from mrimagetools.pipelines.adc_pipeline import adc_pipeline
-from mrimagetools.utils.general import splitext
 
 
 @pytest.fixture(name="pipeline_test_data")
 @pytest.mark.usefixtures("test_data")
-def pipeline_test_data_fixture(test_data, tmp_path):
+def pipeline_test_data_fixture(test_data, tmp_path) -> dict:
     """Returns a dictionary with data for testing"""
     #  BIDS files to tmp_path
     base_filename = os.path.join(tmp_path, "dwi")
@@ -65,7 +63,7 @@ def pipeline_test_data_fixture(test_data, tmp_path):
 
 
 @pytest.mark.usefixtures("test_data")
-def test_adc_pipeline_mock_data(pipeline_test_data, tmp_path, test_data):
+def test_adc_pipeline_mock_data(pipeline_test_data, tmp_path, test_data) -> None:
     """Test the ADC pipeline with some mock data"""
 
     out = adc_pipeline(pipeline_test_data["dwi"]["filename"])
@@ -95,7 +93,7 @@ def test_adc_pipeline_mock_data(pipeline_test_data, tmp_path, test_data):
         )
 
 
-def test_adc_pipeline_cli(pipeline_test_data, tmp_path):
+def test_adc_pipeline_cli(pipeline_test_data, tmp_path) -> None:
     """Tests the command line interface for the adc_pipeline"""
     testargs = [
         "neuroqa",

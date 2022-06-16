@@ -1,6 +1,6 @@
 """ PhaseMagnitudeFilter tests """
 
-from typing import Tuple
+from typing import Any, Tuple
 
 import nibabel as nib
 import numpy as np
@@ -23,7 +23,11 @@ from mrimagetools.filters.phase_magnitude_filter import PhaseMagnitudeFilter
 
 
 @pytest.fixture(name="test_data")
-def fixture_test_image():
+def fixture_test_image() -> tuple[
+    np.ndarray[Any, np.dtype[np.float64]],
+    np.ndarray[Any, np.dtype[np.float64]],
+    NiftiImageContainer,
+]:
     """Create a random test NiftiImageContainer.
     The data are in COMPLEX space, created from images that have
     - Magnitude values drawn from a standard Normal distribution (mean=0, stdev=1)
@@ -90,7 +94,7 @@ def test_phase_magnitude_filter(
     )
 
 
-def test_phase_magnitude_filter_validator_non_image_input():
+def test_phase_magnitude_filter_validator_non_image_input() -> None:
     """Run the phase_magnitude_filter with a non-image input.
     Check we get a FilterInputValidationError"""
     # non image input

@@ -1,10 +1,5 @@
 """Split image filter"""
 
-from typing import List
-
-import nibabel as nib
-import numpy as np
-
 from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
@@ -76,14 +71,13 @@ class SplitImageFilter(BaseFilter):
     KEY_AXIS = "axis"
     KEY_INDICES = "indices"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Split Image Filter")
 
-    def _run(self):
+    def _run(self) -> None:
         """Splits the input image based on the supplied indices and dimension"""
         image: BaseImageContainer = self.inputs[self.KEY_IMAGE]
         axis: int = self.inputs[self.KEY_AXIS]
-        num_indices = len(self.inputs[self.KEY_INDICES])
 
         image_shape = image.shape
 
@@ -103,7 +97,7 @@ class SplitImageFilter(BaseFilter):
             new_image.image = new_image.image[tuple(slc)]
             self.outputs[f"image_{n}"] = new_image
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria
         'image' must be derived from BaseImageContainer
         'axis' must be an integer and <= the number of dimensions in the image

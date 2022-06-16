@@ -1,7 +1,5 @@
 """Tests for split image filter"""
 
-import pdb
-
 import nibabel as nib
 import numpy as np
 import numpy.testing
@@ -10,11 +8,10 @@ import pytest
 from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.split_image_filter import SplitImageFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
-from mrimagetools.utils.general import splitext
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture():
+def test_data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     data = {
         f"image_{n+1}d": NiftiImageContainer(
@@ -34,7 +31,7 @@ def test_data_fixture():
 
 
 @pytest.fixture(name="validation_data")
-def validation_data_fixture(test_data):
+def validation_data_fixture(test_data) -> dict:
     """Returns a dictionary for input validation testing"""
 
     return {
@@ -61,17 +58,15 @@ def validation_data_fixture(test_data):
     }
 
 
-def test_split_image_filter_validate_inputs(validation_data):
+def test_split_image_filter_validate_inputs(validation_data) -> None:
     """Checkes that a FilterInputValidationError is raised when the inputs
     to the SplitImageFilter are incorrect or missing."""
 
-    [
+    for key in validation_data.keys():
         validate_filter_inputs(SplitImageFilter, validation_data[key])
-        for key in validation_data.keys()
-    ]
 
 
-def test_split_image_filter_mock_data_1d(test_data):
+def test_split_image_filter_mock_data_1d(test_data) -> None:
     """Tests the SplitImageFilter with some 1d mock data"""
 
     split_image_filter = SplitImageFilter()
@@ -101,7 +96,7 @@ def test_split_image_filter_mock_data_1d(test_data):
     }
 
 
-def test_split_image_filter_mock_data_2d(test_data):
+def test_split_image_filter_mock_data_2d(test_data) -> None:
     """Tests the SplitImageFilter with some 2d mock data"""
 
     split_image_filter = SplitImageFilter()
@@ -131,7 +126,7 @@ def test_split_image_filter_mock_data_2d(test_data):
     }
 
 
-def test_split_image_filter_mock_data_3d(test_data):
+def test_split_image_filter_mock_data_3d(test_data) -> None:
     """Tests the SplitImageFilter with some 4d mock data"""
 
     split_image_filter = SplitImageFilter()
@@ -172,7 +167,7 @@ def test_split_image_filter_mock_data_3d(test_data):
     }
 
 
-def test_split_image_filter_mock_data_4d(test_data):
+def test_split_image_filter_mock_data_4d(test_data) -> None:
     """Tests the SplitImageFilter with some 4d mock data"""
 
     split_image_filter = SplitImageFilter()
@@ -213,7 +208,7 @@ def test_split_image_filter_mock_data_4d(test_data):
     }
 
 
-def test_split_image_filter_mock_data_4d_unsorted_indices(test_data):
+def test_split_image_filter_mock_data_4d_unsorted_indices(test_data) -> None:
     """Tests the SplitImageFilter with some 4d mock data where
     the indices are not sorted"""
 

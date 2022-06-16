@@ -13,7 +13,7 @@ from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.utils.test_resampling import create_test_image
 
 
-def check_resampling():
+def check_resampling() -> None:
     """Function to visualise the resampling of a test image using pylot
     requires matplotlib.pyplot"""
 

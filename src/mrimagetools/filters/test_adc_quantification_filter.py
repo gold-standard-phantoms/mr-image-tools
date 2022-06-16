@@ -11,7 +11,7 @@ from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture():
+def test_data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     test_dims = (4, 4, 1)
     test_seg_mask = np.arange(16).reshape(test_dims)
@@ -38,7 +38,7 @@ def test_data_fixture():
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_dict_fixture(test_data):
+def input_validation_dict_fixture(test_data) -> dict:
     """Returs a dictionary with data for input validation"""
     im_wrong_size = NiftiImageContainer(
         nib.Nifti1Image(np.ones((3, 3, 3, 1)), np.eye(4))
@@ -68,14 +68,14 @@ def input_validation_dict_fixture(test_data):
     }
 
 
-def test_adc_quantification_filter_validate_inputs(validation_data):
+def test_adc_quantification_filter_validate_inputs(validation_data) -> None:
     """Check a FilterInputValidationError is raised when the inputs to the
     AdcQuantificationFilter are incorrect or missing"""
 
     validate_filter_inputs(AdcQuantificationFilter, validation_data)
 
 
-def test_adc_quantification_filter_mock_data(test_data):
+def test_adc_quantification_filter_mock_data(test_data) -> None:
     """Test the AdcQuantificationFilter with some mock data"""
     adc_quantification_filter = AdcQuantificationFilter()
     adc_quantification_filter.add_inputs(test_data)

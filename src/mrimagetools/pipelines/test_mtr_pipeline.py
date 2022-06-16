@@ -18,7 +18,7 @@ from mrimagetools.utils.general import splitext
 
 @pytest.fixture(name="pipeline_test_data")
 @pytest.mark.usefixtures("test_data")
-def pipeline_test_data_fixture(test_data, tmp_path):
+def pipeline_test_data_fixture(test_data, tmp_path) -> dict:
     """Returns a dictionary with data for testing"""
     filenames = {}
     # use the bids output filter to save BIDS files to tmp_path
@@ -42,7 +42,9 @@ def pipeline_test_data_fixture(test_data, tmp_path):
 
 
 @pytest.mark.usefixtures("test_data")
-def test_mtr_pipeline_mock_data_separate(pipeline_test_data, tmp_path, test_data):
+def test_mtr_pipeline_mock_data_separate(
+    pipeline_test_data, tmp_path, test_data
+) -> None:
     """Test the MTR pipeline with some mock data"""
 
     out = mtr_pipeline(
@@ -91,7 +93,9 @@ def test_mtr_pipeline_mock_data_separate(pipeline_test_data, tmp_path, test_data
 
 
 @pytest.mark.usefixtures("test_data")
-def test_mtr_pipeline_mock_data_combined(pipeline_test_data, tmp_path, test_data):
+def test_mtr_pipeline_mock_data_combined(
+    pipeline_test_data, tmp_path, test_data
+) -> None:
     """Test the MTR pipeline with some mock data"""
 
     out = mtr_pipeline(
@@ -109,7 +113,7 @@ def test_mtr_pipeline_mock_data_combined(pipeline_test_data, tmp_path, test_data
     )
 
 
-def test_mtr_pipeline_cli_separate_files(pipeline_test_data, tmp_path):
+def test_mtr_pipeline_cli_separate_files(pipeline_test_data, tmp_path) -> None:
     """Tests the command line interface for the mtr_pipeline"""
 
     testargs = [
@@ -126,7 +130,7 @@ def test_mtr_pipeline_cli_separate_files(pipeline_test_data, tmp_path):
         cli()
 
 
-def test_mtr_pipeline_cli_combined_file(pipeline_test_data, tmp_path):
+def test_mtr_pipeline_cli_combined_file(pipeline_test_data, tmp_path) -> None:
     """Tests the command line interface for the mtr_pipeline"""
 
     testargs = [

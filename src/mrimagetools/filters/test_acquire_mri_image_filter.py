@@ -57,14 +57,14 @@ INPUT_DICT = {
 }
 
 
-def test_acquire_mri_image_filter_validate_inputs_required():
+def test_acquire_mri_image_filter_validate_inputs_required() -> None:
     """Check a FilterInputValidationError is raised when the inputs
     to the AcquireMriImageFilter are incorrect or missing"""
 
     validate_filter_inputs(AcquireMriImageFilter, INPUT_DICT)
 
 
-def test_acquire_mri_image_filter_mocked_filter_run():
+def test_acquire_mri_image_filter_mocked_filter_run() -> None:
     """Test the AcquireMriImageFilter with some mock data"""
     params = {
         "t1": TEST_NIFTI_ONES,

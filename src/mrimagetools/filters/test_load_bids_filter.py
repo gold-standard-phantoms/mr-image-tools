@@ -1,9 +1,7 @@
 """Tests for load bids filter"""
 
 import os
-from json import load
 from shutil import copyfile
-from tempfile import TemporaryDirectory
 
 import nibabel as nib
 import numpy as np
@@ -18,7 +16,7 @@ from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture(tmp_path):
+def test_data_fixture(tmp_path) -> dict:
     """Returns a dictionary with data for testing"""
     test_dims = (4, 4, 4)
     test_data = np.ones(test_dims)
@@ -45,7 +43,7 @@ def test_data_fixture(tmp_path):
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_dict_fixture(tmp_path, test_data):
+def input_validation_dict_fixture(tmp_path, test_data) -> dict:
     """Returns a dictionary with data for input validation testing"""
 
     return {
@@ -59,13 +57,13 @@ def input_validation_dict_fixture(tmp_path, test_data):
     }
 
 
-def test_load_bids_filter_validate_inputs(validation_data):
+def test_load_bids_filter_validate_inputs(validation_data) -> None:
     """Checks a FilterInputValidationError is raised when the inputs to the
     LoadBidsFilter are incorrect or missing"""
     validate_filter_inputs(LoadBidsFilter, validation_data)
 
 
-def test_load_bids_filter_mock_data(test_data):
+def test_load_bids_filter_mock_data(test_data) -> None:
     """Tests the LoadBidsFilter with some mock data"""
     load_bids_filter = LoadBidsFilter()
     load_bids_filter.add_input("nifti_filename", test_data["nifti_filename"])
@@ -79,7 +77,7 @@ def test_load_bids_filter_mock_data(test_data):
     assert load_bids_filter.inputs["json_filename"] == test_data["sidecar_filename"]
 
 
-def test_load_bids_filter_empty():
+def test_load_bids_filter_empty() -> None:
     load_bids_filter = LoadBidsFilter()
     with pytest.raises(FilterInputValidationError):
         load_bids_filter.run()

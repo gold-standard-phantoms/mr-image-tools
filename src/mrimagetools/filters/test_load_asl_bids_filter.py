@@ -57,7 +57,7 @@ def test_data_fixture() -> BaseImageContainer:
     return image
 
 
-def test_load_asl_bids_filter_validate_inputs(test_data):
+def test_load_asl_bids_filter_validate_inputs(test_data) -> None:
     """Checks that a FilterInputValidationError is raised when the inputs to
     the LoadAslBidsFilter are incorrect or missing"""
     with TemporaryDirectory() as temp_dir:
@@ -130,7 +130,7 @@ def test_load_asl_bids_filter_validate_inputs(test_data):
         validate_filter_inputs(LoadAslBidsFilter, input_validation_dictionary)
 
 
-def test_load_asl_bids_filter_mock_data(test_data):
+def test_load_asl_bids_filter_mock_data(test_data) -> None:
     """Tests the LoadAslBidsFilter with some mock data"""
     with TemporaryDirectory() as temp_dir:
         image = test_data

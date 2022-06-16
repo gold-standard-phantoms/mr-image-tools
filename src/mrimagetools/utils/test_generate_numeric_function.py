@@ -1,7 +1,6 @@
+# type:ignore
+# TODO: remove the above line and fix typing errors
 """Tests for generate_numeric_function.py"""
-
-
-from typing import Union
 
 import numpy as np
 import numpy.testing
@@ -16,7 +15,7 @@ from mrimagetools.utils.generate_numeric_function import (
 from mrimagetools.utils.resampling import rot_z_mat
 
 
-def test_generate_point_function():
+def test_generate_point_function() -> None:
     x = np.arange(-10.0, 10.0, 0.1)
     y = np.arange(-10.0, 10.0, 0.1)
     z = np.arange(-10.0, 10.0, 0.1)
@@ -42,7 +41,7 @@ def test_generate_point_function():
     assert np.all(out == 0)
 
 
-def test_generate_gaussian_function():
+def test_generate_gaussian_function() -> None:
     """Tests for generate_gaussian_function"""
 
     # input validation
@@ -110,7 +109,7 @@ def test_generate_gaussian_function():
     )
 
 
-def test_generate_circular_function_array_with_gaussian():
+def test_generate_circular_function_array_with_gaussian() -> None:
     x = np.arange(-10.0, 10.0, 0.1)
     y = np.arange(-10.0, 10.0, 0.1)
     z = np.arange(-10.0, 10.0, 0.1)
@@ -130,7 +129,7 @@ def test_generate_circular_function_array_with_gaussian():
     assert np.amax(out) == 1.0
 
 
-def test_generate_circular_function_array_with_point():
+def test_generate_circular_function_array_with_point() -> None:
     x = np.arange(-10.0, 10.0, 0.1)
     y = np.arange(-10.0, 10.0, 0.1)
     z = np.arange(-10.0, 10.0, 0.1)

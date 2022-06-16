@@ -7,7 +7,9 @@ import pytest
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 
 
-def validate_filter_inputs(filter_to_test: Type[BaseFilter], validation_data: dict):
+def validate_filter_inputs(
+    filter_to_test: Type[BaseFilter], validation_data: dict
+) -> None:
     """Tests a filter with a validation data dictionary.  Checks that FilterInputValidationErrors
     are raised when data is missing or incorrect.
 

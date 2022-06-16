@@ -17,23 +17,23 @@ class BaseFilterTester(BaseFilter):
     We shouldn't instantiate an abstact class
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="BaseFilterTester")
 
-    def _run(self):
+    def _run(self) -> None:
         """Dummy run"""
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Dummy run"""
 
 
-def test_filter_name():
+def test_filter_name() -> None:
     """Test the name of the filter is set"""
     base_filter = BaseFilterTester()
     assert base_filter.name == "BaseFilterTester"
 
 
-def test_add_same_input():
+def test_add_same_input() -> None:
     """
     Check that adding two inputs with the same key raises and error
     """
@@ -49,14 +49,14 @@ class SumFilter(BaseFilter):
     `sum` and adds all of the inputs
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="SumFilter")
 
-    def _run(self):
+    def _run(self) -> None:
         """Adds all inputs and creates an `output` with the result"""
         self.outputs["sum"] = sum(self.inputs.values())
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """All inputs must be integers or floats"""
         for input_key, input_value in self.inputs.items():
             if not isinstance(input_value, (int, float)):
@@ -65,7 +65,7 @@ class SumFilter(BaseFilter):
                 )
 
 
-def test_validate_inputs():
+def test_validate_inputs() -> None:
     """Filter should only allow int or float inputs"""
     sum_filter = SumFilter()
     sum_filter.add_input("input1", 5)
@@ -77,7 +77,7 @@ def test_validate_inputs():
         sum_filter.run()
 
 
-def test_simple_sum_filter():
+def test_simple_sum_filter() -> None:
     """Filter should add all inputs"""
     filter_a = SumFilter()
     filter_a.add_input("input_a", 5)
@@ -87,7 +87,7 @@ def test_simple_sum_filter():
     assert filter_a.outputs == {"sum": 18}
 
 
-def test_input_input_filter_key_clash_error():
+def test_input_input_filter_key_clash_error() -> None:
     """A FilterInputKeyError should be raised when an output is mapped to an input
     using the same name as an existing input"""
     filter_a = SumFilter()
@@ -99,7 +99,7 @@ def test_input_input_filter_key_clash_error():
         filter_b.run()
 
 
-def test_input_filter_input_filter_key_clash_error():
+def test_input_filter_input_filter_key_clash_error() -> None:
     """A FilterInputKeyError should be raised when an output is mapped to an input
     filter using the same name as an input filter"""
     filter_a = SumFilter()
@@ -113,7 +113,7 @@ def test_input_filter_input_filter_key_clash_error():
         filter_c.run()
 
 
-def test_chained_sum_filter():
+def test_chained_sum_filter() -> None:
     """
     Test a more complex chain of sum filters
     A---+----+
@@ -157,7 +157,7 @@ def test_chained_sum_filter():
     assert filter_d.outputs == {"sum": 42}
 
 
-def test_loop_handling():
+def test_loop_handling() -> None:
     """If the filters are chained in a loop, check this is managed gracefully"""
     filter_a = SumFilter()
     filter_a.add_input("a", 1)
@@ -171,17 +171,17 @@ def test_loop_handling():
         filter_b.run()
 
 
-def test_basefilter_add_inputs(mocker):
+def test_basefilter_add_inputs(mocker) -> None:
     """Test the add_inputs function"""
     mocker.patch.object(SumFilter, "add_input")
     filter_a = SumFilter()
     filter_a.add_inputs({"one": "two", "three": "four"})
     calls = [call("one", "two"), call("three", "four")]
-    filter_a.add_input.assert_has_calls(calls=calls, any_order=False)
-    assert filter_a.add_input.call_count == 2
+    filter_a.add_input.assert_has_calls(calls=calls, any_order=False)  # type:ignore
+    assert filter_a.add_input.call_count == 2  # type:ignore
 
 
-def test_basefilter_add_inputs_with_non_optional_iomap(mocker):
+def test_basefilter_add_inputs_with_non_optional_iomap(mocker) -> None:
     """Test the add_inputs function with an non-optional io_map.
     A KeyError should be raised if the key doesn't exist."""
     mocker.patch.object(SumFilter, "add_input")
@@ -193,7 +193,7 @@ def test_basefilter_add_inputs_with_non_optional_iomap(mocker):
         )
 
 
-def test_basefilter_add_inputs_with_iomap(mocker):
+def test_basefilter_add_inputs_with_iomap(mocker) -> None:
     """Test the add_inputs function with an optional io_map"""
     mocker.patch.object(SumFilter, "add_input")
     filter_a = SumFilter()
@@ -203,5 +203,5 @@ def test_basefilter_add_inputs_with_iomap(mocker):
         io_map_optional=True,
     )
     calls = [call("eno", "two")]
-    filter_a.add_input.assert_has_calls(calls=calls, any_order=False)
-    assert filter_a.add_input.call_count == 1
+    filter_a.add_input.assert_has_calls(calls=calls, any_order=False)  # type:ignore
+    assert filter_a.add_input.call_count == 1  # type:ignore

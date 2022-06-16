@@ -1,7 +1,6 @@
 """tests for filter_validation.py"""
 
 import numpy as np
-import pytest
 
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.utils.filter_validation import validate_filter_inputs
@@ -22,14 +21,14 @@ class ProductFilter(BaseFilter):
     the output is called `product`
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="ProductFilter")
 
-    def _run(self):
+    def _run(self) -> None:
         """Multiplies all inputs and creates an `output` with the result"""
-        self.outputs["product"] = np.prod(self.inputs.values())
+        self.outputs["product"] = np.prod(self.inputs.values())  # type:ignore
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         input_validator = ParameterValidator(
             parameters={
                 "input1": Parameter(validators=isinstance_validator(float)),
@@ -42,7 +41,7 @@ class ProductFilter(BaseFilter):
         input_validator.validate(self.inputs, error_type=FilterInputValidationError)
 
 
-def test_validate_filter_inputs_function():
+def test_validate_filter_inputs_function() -> None:
     validation_data = {
         "input1": [False, 10.0, 20, "str"],
         "input2": [False, 20.0, 20, "str"],

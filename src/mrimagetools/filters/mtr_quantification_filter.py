@@ -86,10 +86,10 @@ class MtrQuantificationFilter(BaseFilter):
     M_UNITS = "Units"
     M_IMAGE_TYPE = "ImageType"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="MTR Quantification")
 
-    def _run(self):
+    def _run(self) -> None:
         """Calculates the magnetisationt transfer ratio based on the inputs"""
         image_nosat: BaseImageContainer = self.inputs[self.KEY_IMAGE_NOSAT]
         image_sat: BaseImageContainer = self.inputs[self.KEY_IMAGE_SAT]
@@ -111,7 +111,7 @@ class MtrQuantificationFilter(BaseFilter):
             "None",
         ]
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria
         'image_nosat' must be derived from BaseImageContainer
         'image_sat' must be derived from BaseImageContainer

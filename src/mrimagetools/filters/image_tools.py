@@ -1,4 +1,6 @@
 """Filters for basic image container manipulation and maths"""
+from typing import Any, Type
+
 import numpy as np
 
 from mrimagetools.containers.image import BaseImageContainer
@@ -50,10 +52,10 @@ class FloatToIntImageFilter(BaseFilter):
     TRUNCATE = "truncate"
     METHODS = [ROUND, FLOOR, CEIL, TRUNCATE]
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("FloatToIntImageFilter")
 
-    def _run(self):
+    def _run(self) -> None:
         """Convert the image's data from float to integer"""
         image: BaseImageContainer = self.inputs[self.KEY_IMAGE]
         method = self.inputs[self.KEY_METHOD]
@@ -62,7 +64,7 @@ class FloatToIntImageFilter(BaseFilter):
         # only convert if the input image is a float
         if self.inputs[self.KEY_IMAGE].image.dtype.kind == "f":
 
-            data_type = ""
+            data_type: Type[Any] = np.int16
             # determine the best type to use
             if np.any(image.image < 0):
                 data_type = np.int16
@@ -94,7 +96,7 @@ class FloatToIntImageFilter(BaseFilter):
                     self.KEY_IMAGE
                 ].image.astype(data_type)
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
         'image' must be derived from BaseImageContainer and have image data
         that is a float

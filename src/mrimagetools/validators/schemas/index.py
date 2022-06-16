@@ -7,7 +7,7 @@ from jsonschema import Draft7Validator
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
-def load_schemas():
+def load_schemas() -> dict:
     """Return all of the schemas in this directory in a dictionary where
     the keys are the filename (without the .json extension) and the values
     are the JSON schemas (in dictionary format)
@@ -21,7 +21,7 @@ def load_schemas():
             and os.path.splitext(filename)[1].lower() == ".json"
         ):
             key = os.path.splitext(filename)[0]
-            with open(os.path.join(THIS_DIR, filename)) as file_obj:
+            with open(os.path.join(THIS_DIR, filename), encoding="utf-8") as file_obj:
                 value = json.load(file_obj)
                 Draft7Validator.check_schema(value)
             schemas[key] = value

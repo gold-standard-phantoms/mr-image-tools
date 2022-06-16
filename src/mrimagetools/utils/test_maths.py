@@ -15,7 +15,7 @@ from mrimagetools.utils.maths import (
 )
 
 
-def test_nested_expression():
+def test_nested_expression() -> None:
     """Test a more complex, nested expression to determine if it can
     be properly evaluated"""
     nptesting.assert_almost_equal(
@@ -26,7 +26,7 @@ def test_nested_expression():
     )
 
 
-def test_unary_subtract():
+def test_unary_subtract() -> None:
     """Test the unary subtract expression"""
     # Integers
     assert expression_evaluator()(expression="-A", A=4) == -4
@@ -53,7 +53,7 @@ def test_unary_subtract():
     )
 
 
-def test_addition():
+def test_addition() -> None:
     """Test the addition expression"""
     # Integers
     assert expression_evaluator()(expression="A+B", A=4, B=5) == 9
@@ -86,7 +86,7 @@ def test_addition():
     )
 
 
-def test_subtraction():
+def test_subtraction() -> None:
     """Test the subtraction expression"""
     # Integers
     assert expression_evaluator()(expression="A-B", A=4, B=5) == -1
@@ -119,7 +119,7 @@ def test_subtraction():
     )
 
 
-def test_multiplication():
+def test_multiplication() -> None:
     """Test the multiplication expression"""
     # Integers
     assert expression_evaluator()(expression="A*B", A=4, B=5) == 20
@@ -152,7 +152,7 @@ def test_multiplication():
     )
 
 
-def test_division():
+def test_division() -> None:
     """Test the division expression"""
     # Integers
     nptesting.assert_almost_equal(
@@ -228,7 +228,7 @@ def test_division():
     )
 
 
-def test_power():
+def test_power() -> None:
     """Test the power expression"""
     # Integers
     assert expression_evaluator()(expression="A**B", A=4, B=5) == 4**5
@@ -263,7 +263,7 @@ def test_power():
     )
 
 
-def test_validation_operator_not_supported_error():
+def test_validation_operator_not_supported_error() -> None:
     """Test that the correct errors are raised when operators are not supported"""
     with pytest.raises(OperatorNotSupportedError):
         expression_evaluator()(expression="A%B", A=1, B=2)
@@ -272,7 +272,7 @@ def test_validation_operator_not_supported_error():
     assert expression_evaluator().is_valid(expression="A%B", A=1, B=2) is False
 
 
-def test_validation_variable_missing_error():
+def test_validation_variable_missing_error() -> None:
     """Test that the correct errors are raised when necessary variables are missing"""
     with pytest.raises(VariableMissingError):
         expression_evaluator()(expression="A+B", A=1)
@@ -281,7 +281,7 @@ def test_validation_variable_missing_error():
     assert expression_evaluator().is_valid(expression="A+B", A=1) is False
 
 
-def test_validation_bad_variable_type_error():
+def test_validation_bad_variable_type_error() -> None:
     """Test that the correct errors are raised a variable is unsupported unsupported type"""
     with pytest.raises(BadVariableTypeError):
         expression_evaluator()(expression="A+B", A=1, B="foo")  # type:ignore
@@ -295,7 +295,7 @@ def test_validation_bad_variable_type_error():
     )
 
 
-def test_validation_unsupported_node_error():
+def test_validation_unsupported_node_error() -> None:
     """Test that the correct errors are raised when a node is not recognised
     (functions are not yet implemented)"""
     with pytest.raises(UnsupportedNodeError):
@@ -303,7 +303,7 @@ def test_validation_unsupported_node_error():
     assert expression_evaluator().is_valid(expression="func(A+B)", A=1, B=2) is False
 
 
-def test_validation_bad_syntax_error():
+def test_validation_bad_syntax_error() -> None:
     """Test that the correct errors are raised when an expression syntax is bad"""
     with pytest.raises(ExpressionSyntaxError):
         expression_evaluator()(expression="//+2A", A=1)

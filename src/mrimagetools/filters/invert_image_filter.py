@@ -13,16 +13,16 @@ class InvertImageFilter(BaseFilter):
     Creates a single output named 'image'.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("InvertImageFilter")
 
-    def _run(self):
+    def _run(self) -> None:
         """Invert the input image"""
         cloned_image_container = self.inputs["image"].clone()
         cloned_image_container.image = -cloned_image_container.image
         self.outputs["image"] = cloned_image_container
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """There must be a input called 'image' with a BaseImageContainer."""
 
         if self.inputs.get("image", None) is None or not isinstance(

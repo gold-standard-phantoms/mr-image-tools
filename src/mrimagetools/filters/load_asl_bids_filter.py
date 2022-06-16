@@ -76,10 +76,10 @@ class LoadAslBidsFilter(BaseFilter):
         "AcquisitionVoxelSize",
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Load ASL BIDS")
 
-    def _run(self):
+    def _run(self) -> None:
         """
         Loads in the NIFTI image, json sidecar and tsv aslcontext, then creates image containers
         according to the content of the aslcontext.
@@ -135,7 +135,7 @@ class LoadAslBidsFilter(BaseFilter):
                                     for i in volume_indices
                                 ]
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that inputs meet their validation criteria
         'image_filename' must be a str, .nii or .nii.gz and exist on the file system
         'sidecar_filename' must be a str, end with .json and exist on the file system

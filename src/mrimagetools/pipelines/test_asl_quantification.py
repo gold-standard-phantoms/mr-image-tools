@@ -2,8 +2,7 @@
 
 import json
 import os
-import sys
-from unittest.mock import patch
+from typing import Any
 
 import jsonschema
 import nibabel as nib
@@ -21,7 +20,7 @@ TEST_VOLUME_DIMS = [4, 4, 4]
 
 
 @pytest.fixture(name="image_data")
-def image_data_fixture():
+def image_data_fixture() -> np.ndarray:
     control_image = np.ones(TEST_VOLUME_DIMS)
     label_image = np.ones(TEST_VOLUME_DIMS) * (1 - 0.001)
     m0_image = np.ones(TEST_VOLUME_DIMS)
@@ -30,7 +29,7 @@ def image_data_fixture():
 
 
 @pytest.fixture(name="test_pcasl_data")
-def pcasl_data_fixture(tmp_path, image_data):
+def pcasl_data_fixture(tmp_path, image_data) -> dict[str, Any]:
     """
     Creates PCASL test data with non-default parameters
     Returns the outputs of the BidsOutputFilter, and also saves
@@ -68,7 +67,7 @@ def pcasl_data_fixture(tmp_path, image_data):
 
 
 @pytest.fixture(name="test_pasl_data")
-def pasl_data_fixture(tmp_path, image_data):
+def pasl_data_fixture(tmp_path, image_data) -> dict[str, Any]:
     """
     Creates PCASL test data with non-default parameters
     Returns the outputs of the BidsOutputFilter, and also saves
@@ -107,7 +106,7 @@ def pasl_data_fixture(tmp_path, image_data):
 
 
 @pytest.fixture(name="test_pcasl_data_missing_params")
-def pcasl_data_missing_params_fixture(tmp_path, image_data):
+def pcasl_data_missing_params_fixture(tmp_path, image_data) -> dict[str, Any]:
     """
     Creates PCASL test data missing parameters
     returns the outputs of the BidsOutputFilter, and also saves
@@ -165,7 +164,7 @@ def pcasl_data_missing_params_fixture(tmp_path, image_data):
     return bids_output_filter.outputs
 
 
-def test_quantification_parameters_schema():
+def test_quantification_parameters_schema() -> None:
     schema = SCHEMAS["asl_quantification"]
 
     # try a valid schema
@@ -191,7 +190,7 @@ def test_quantification_parameters_schema():
     jsonschema.validate(valid_params, schema)
 
 
-def test_asl_quantification_pcasl(test_pcasl_data):
+def test_asl_quantification_pcasl(test_pcasl_data) -> None:
     """Tests the asl_quantification pipeline with some pcasl mock data"""
     nifi_filename = test_pcasl_data["filename"][0]
     # try with no quantification parameter, and test_asl_data has
@@ -225,7 +224,7 @@ def test_asl_quantification_pcasl(test_pcasl_data):
     }
 
 
-def test_asl_quantification_pcasl_output_files(test_pcasl_data, tmp_path):
+def test_asl_quantification_pcasl_output_files(test_pcasl_data, tmp_path) -> None:
     """Tests the asl_quantification pipeline with some pcasl mock data"""
     nifi_filename = test_pcasl_data["filename"][0]
     # try with no quantification parameters, and test_asl_data has
@@ -245,7 +244,9 @@ def test_asl_quantification_pcasl_output_files(test_pcasl_data, tmp_path):
     assert loaded_json == out["image"].metadata
 
 
-def test_asl_quantification_pcasl_missing_params(test_pcasl_data_missing_params):
+def test_asl_quantification_pcasl_missing_params(
+    test_pcasl_data_missing_params,
+) -> None:
     """Tests the asl_quantification pipeline with some pcasl mock data"""
     nifi_filename = test_pcasl_data_missing_params["filename"][0]
     # try with no quantification parameter, and test_asl_data has
@@ -279,7 +280,7 @@ def test_asl_quantification_pcasl_missing_params(test_pcasl_data_missing_params)
     }
 
 
-def test_asl_quantification_pcasl_param_file(test_pcasl_data, tmp_path):
+def test_asl_quantification_pcasl_param_file(test_pcasl_data, tmp_path) -> None:
     """Tests the asl_quantification pipeline with some pcasl mock data"""
     nifi_filename = test_pcasl_data["filename"][0]
     # use a separate quantification file
@@ -324,7 +325,7 @@ def test_asl_quantification_pcasl_param_file(test_pcasl_data, tmp_path):
     }
 
 
-def test_asl_quantification_pasl(test_pasl_data):
+def test_asl_quantification_pasl(test_pasl_data) -> None:
     """Tests the asl_quantification pipeline with some pcasl mock data"""
     nifi_filename = test_pasl_data["filename"][0]
     # try with no quantification parameter, and test_asl_data has

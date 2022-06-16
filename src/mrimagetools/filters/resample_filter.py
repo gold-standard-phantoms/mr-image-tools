@@ -1,9 +1,10 @@
 """ Resample Filter """
 import nibabel as nib
+import nibabel.affines
 import numpy as np
 from nilearn.image import resample_img
 
-from mrimagetools.containers.image import BaseImageContainer
+from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
     Parameter,
@@ -59,12 +60,12 @@ class ResampleFilter(BaseFilter):
     NEAREST = "nearest"
     INTERPOLATION_LIST = [CONTINUOUS, LINEAR, NEAREST]
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Resample image")
 
-    def _run(self):
+    def _run(self) -> None:
         # Clone the image and perform the resampling
-        resampled_image: BaseImageContainer = (
+        resampled_image: NiftiImageContainer = (
             self.inputs[self.KEY_IMAGE].as_nifti().clone()
         )
         resampled_image.nifti_image = resample_img(
@@ -81,10 +82,10 @@ class ResampleFilter(BaseFilter):
 
         self.outputs[self.KEY_IMAGE] = resampled_image
         self.outputs[self.KEY_IMAGE].metadata["voxel_size"] = list(
-            nib.affines.voxel_sizes(resampled_image.nifti_image.affine)
+            nibabel.affines.voxel_sizes(resampled_image.nifti_image.affine)
         )
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
 
         `'image'` must be derived from a BaseImageContainer

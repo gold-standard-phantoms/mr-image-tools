@@ -21,10 +21,10 @@ class FilterBlock(BaseFilter):
         THIS SHOULD BE OVERWRITTEN IN THE SUBCLASS
         """
 
-    def _run(self):
+    def _run(self) -> None:
         pass  # do nothing
 
-    def run(self, history=None):
+    def run(self, history=None) -> None:
         """
         Calls the BaseFilter's run method to make sure all of the
         inputs of this FilterBlock are up-to-date and valid. Then runs

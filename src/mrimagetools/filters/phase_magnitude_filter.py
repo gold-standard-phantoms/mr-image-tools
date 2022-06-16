@@ -14,7 +14,6 @@ from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationErr
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
-    has_attribute_value_validator,
     isinstance_validator,
 )
 
@@ -56,10 +55,10 @@ class PhaseMagnitudeFilter(BaseFilter):
     KEY_PHASE = "phase"
     KEY_MAGNITUDE = "magnitude"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Phase-Magnitude Image Filter")
 
-    def _run(self):
+    def _run(self) -> None:
         """Calculate the phase and magnitude components from the
         input image data and return them as separate image containers
         """
@@ -71,23 +70,25 @@ class PhaseMagnitudeFilter(BaseFilter):
 
         # do the same for both complex and real `image_type`
         if image.image_type in [COMPLEX_IMAGE_TYPE, REAL_IMAGE_TYPE]:
-            phase.image = np.angle(image.image)
+            phase.image = np.angle(image.image)  # type: ignore
             magnitude.image = np.absolute(image.image)
 
         # apply a phase shift of 90° when calculating the phase
         elif image.image_type == IMAGINARY_IMAGE_TYPE:
-            phase.image = np.angle(image.image * np.exp(1j * np.pi / 2))
+            phase.image = np.angle(image.image * np.exp(1j * np.pi / 2))  # type: ignore
             magnitude.image = np.absolute(image.image)
 
         # phase is undefined if only magnitude is supplied
         elif image.image_type == MAGNITUDE_IMAGE_TYPE:
             magnitude.image = np.absolute(image.image)
-            phase = None
+            self.outputs[self.KEY_MAGNITUDE] = magnitude
+            self.outputs[self.KEY_PHASE] = None
+            return
 
         self.outputs[self.KEY_PHASE] = phase
         self.outputs[self.KEY_MAGNITUDE] = magnitude
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Validate the inputs.
         'image' must be derived from BaseImageContainer and have
         an  ``image_type`` attribute that is not equal to 'PHASE_IMAGE_TYPE'.

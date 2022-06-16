@@ -46,11 +46,11 @@ class TransformResampleImageFilter(BaseFilter):
     :param target_shape: :math:`[L_t,M_t,N_t]` target shape for the resampled image
     :type target_shape: Tuple[int, int, int]
     :param 'interpolation': Defines the interpolation method for the resampling:
-      
+
         :'continuous': order 3 spline interpolation (default method for ResampleFilter)
         :'linear': order 1 linear interpolation
         :'nearest': nearest neighbour interpolation
-    
+
     :type 'interpolation': str, optional
 
     **Outputs**
@@ -117,10 +117,10 @@ class TransformResampleImageFilter(BaseFilter):
     VOXEL_SIZE = "voxel_size"
     INTERPOLATION_LIST = ResampleFilter.INTERPOLATION_LIST
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Transform and Resample Image")
 
-    def _run(self):
+    def _run(self) -> None:
         r"""Transforms the image in world-space, then creates a resampled image
         with the specified acquisition shape.
         """
@@ -161,7 +161,7 @@ class TransformResampleImageFilter(BaseFilter):
             nib.affines.voxel_sizes(self.outputs[self.KEY_IMAGE].affine)
         )
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
         `'object'` must be derived from BaseImageContainer
         `'target_shape'` (optional)must be a Tuple of ints of length 3, values > 0

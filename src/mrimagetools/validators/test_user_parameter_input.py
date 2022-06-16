@@ -1,6 +1,7 @@
+# type:ignore
+# TODO: remove the above line and fix typing errors
 """ Tests some user inputs to the model to make sure the validation is performed correctly """
 # pylint: disable=redefined-outer-name
-import decimal
 from copy import deepcopy
 
 import numpy
@@ -12,9 +13,7 @@ from mrimagetools.validators.parameters import ValidationError
 from mrimagetools.validators.user_parameter_input import (
     ASL,
     ASL_POST_VALIDATOR,
-    DEFAULT_BS_PARAMS,
     DEFAULT_GROUND_TRUTH,
-    DISTRIBUTION_VALIDATOR,
     GROUND_TRUTH,
     IMAGE_TYPE_VALIDATOR,
     STRUCTURAL,
@@ -24,7 +23,7 @@ from mrimagetools.validators.user_parameter_input import (
 )
 
 
-def test_user_input_valid():
+def test_user_input_valid() -> None:
     """Tests a valid set of inputs"""
     d = {
         "label_type": "PASL",
@@ -60,7 +59,7 @@ def test_user_input_valid():
     )  # the same dictionary should be returned
 
 
-def test_asl_user_input_defaults_created():
+def test_asl_user_input_defaults_created() -> None:
     """Test default values for the asl image type"""
     correct_defaults = {
         "label_type": "pcasl",
@@ -109,7 +108,7 @@ def test_asl_user_input_defaults_created():
     assert IMAGE_TYPE_VALIDATOR[ASL].get_defaults() == correct_defaults
 
 
-def test_structural_user_input_defaults_created():
+def test_structural_user_input_defaults_created() -> None:
     """Test default values for the structural image type"""
     correct_defaults = {
         "echo_time": 0.005,
@@ -138,7 +137,7 @@ def test_structural_user_input_defaults_created():
     assert IMAGE_TYPE_VALIDATOR[STRUCTURAL].get_defaults() == correct_defaults
 
 
-def test_ground_truth_user_input_defaults_created():
+def test_ground_truth_user_input_defaults_created() -> None:
     """Test default values for the ground_truth image type"""
     correct_defaults = {
         "rot_z": 0.0,
@@ -157,7 +156,7 @@ def test_ground_truth_user_input_defaults_created():
     assert IMAGE_TYPE_VALIDATOR[GROUND_TRUTH].get_defaults() == correct_defaults
 
 
-def test_mismatch_asl_context_array_sizes():
+def test_mismatch_asl_context_array_sizes() -> None:
     """Check that if the length of any of:
     - echo_time
     - repetition_time
@@ -204,12 +203,12 @@ def test_mismatch_asl_context_array_sizes():
             ASL_POST_VALIDATOR.validate(d)
 
 
-def test_generate_parameter_distribution_list_input():
+def test_generate_parameter_distribution_list_input() -> None:
     """Check that if param is not a dict then it is returned"""
     assert generate_parameter_distribution([0, 1, 2, 3, 4, 5]) == [0, 1, 2, 3, 4, 5]
 
 
-def test_generate_parameter_distribution_gaussian():
+def test_generate_parameter_distribution_gaussian() -> None:
     """Check that a ValidationError is raised if the parameters for the
     distribution validator are incorrect"""
     # good input
@@ -247,7 +246,7 @@ def test_generate_parameter_distribution_gaussian():
     generate_parameter_distribution(d, 8)
 
 
-def test_generate_parameter_distribution_uniform():
+def test_generate_parameter_distribution_uniform() -> None:
     """Check that a ValidationError is raised if the parameters for the
     distribution validator are incorrect"""
     # good input
@@ -285,7 +284,7 @@ def test_generate_parameter_distribution_uniform():
     generate_parameter_distribution(d, 8)
 
 
-def test_autogenerate_array_params():
+def test_autogenerate_array_params() -> None:
     """Check that if the array parameters are correctly generated"""
     good_input = get_example_input_params()
     good_input["image_series"][0]["series_parameters"][
@@ -434,7 +433,7 @@ def test_autogenerate_array_params():
 
 
 @pytest.fixture
-def input_params():
+def input_params() -> None:
     """A valid input parameter config"""
     return {
         "global_configuration": {
@@ -477,7 +476,7 @@ def input_params():
 
 
 @pytest.fixture(name="expected_parsed_input")
-def fixture_expected_parsed_input():
+def fixture_expected_parsed_input() -> None:
     return {
         "global_configuration": {
             "ground_truth": {
@@ -572,7 +571,7 @@ def fixture_expected_parsed_input():
     }
 
 
-def test_valid_input_params(input_params: dict, expected_parsed_input: dict):
+def test_valid_input_params(input_params: dict, expected_parsed_input: dict) -> None:
     """Test that a valid input parameter file is parsed without
     raising an exception and that the appropriate defaults are inserted"""
     # Should not raise an exception
@@ -602,7 +601,7 @@ def test_valid_input_params(input_params: dict, expected_parsed_input: dict):
     assert parsed_input == expected_parsed_input
 
 
-def test_invalid_data_input_params(input_params: dict):
+def test_invalid_data_input_params(input_params: dict) -> None:
     """Tests that bad ground_truth data set in the input parameters
     raises appropriate Expections (should always be
     mrimagetools.validators.parameters.ValidationError)"""
@@ -626,7 +625,7 @@ def test_invalid_data_input_params(input_params: dict):
         validate_input_params(input_params)
 
 
-def test_bad_series_type_input_params(input_params: dict):
+def test_bad_series_type_input_params(input_params: dict) -> None:
     """Tests that bad series_type data set in the input parameters
     raises appropriate Expections (should always be
     mrimagetools.validators.parameters.ValidationError)"""
@@ -636,7 +635,7 @@ def test_bad_series_type_input_params(input_params: dict):
         validate_input_params(input_params)
 
 
-def test_missing_series_parameters_inserts_defaults(input_params: dict):
+def test_missing_series_parameters_inserts_defaults(input_params: dict) -> None:
     """Tests that if series_parameters are completely missing for
     an image series, the defaults are inserted"""
 
@@ -681,7 +680,7 @@ def test_missing_series_parameters_inserts_defaults(input_params: dict):
     }
 
 
-def test_example_input_params_valid():
+def test_example_input_params_valid() -> None:
     """Test that the generated example input parameters pass
     the validation (validated internally)"""
     p = get_example_input_params()
@@ -689,7 +688,7 @@ def test_example_input_params_valid():
     assert p["global_configuration"]["ground_truth"] == DEFAULT_GROUND_TRUTH
 
 
-def test_user_parameter_input_background_suppression():
+def test_user_parameter_input_background_suppression() -> None:
     """Tests the background suppression parameters"""
     p = get_example_input_params()
     # check empty "background_suppression"  dict inserts defaults according to the
@@ -742,7 +741,7 @@ def test_user_parameter_input_background_suppression():
     }
 
 
-def test_user_parameter_input_signal_time_list():
+def test_user_parameter_input_signal_time_list() -> None:
     """Tests the background suppression parameters"""
     p = get_example_input_params()
     # set "signal_time" to a valid list of times

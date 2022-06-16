@@ -12,7 +12,7 @@ from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture():
+def test_data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     test_dims = (4, 4, 1)
     test_seg_mask = np.arange(16).reshape(test_dims)
@@ -49,7 +49,7 @@ def test_data_fixture():
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_dict_fixture(test_data):
+def input_validation_dict_fixture(test_data) -> dict:
 
     im_wrong_size = NiftiImageContainer(nib.Nifti1Image(np.ones((3, 3, 3)), np.eye(4)))
     im_wrong_affine = NiftiImageContainer(
@@ -78,7 +78,7 @@ def input_validation_dict_fixture(test_data):
     }
 
 
-def test_mtr_quantification_filter_validate_inputs(validation_data):
+def test_mtr_quantification_filter_validate_inputs(validation_data) -> None:
     """Check a FilterInputValidationError is raised when the
     inputs to the MtrQuantificationFilter are incorrect or missing.
     """
@@ -89,7 +89,7 @@ def test_mtr_quantification_filter_validate_inputs(validation_data):
     )
 
 
-def test_mtr_quantification_filter_mock_data(test_data):
+def test_mtr_quantification_filter_mock_data(test_data) -> None:
     """Test the MtrQuantificationFilter with some mock data"""
 
     mtr_quantification_filter = MtrQuantificationFilter()

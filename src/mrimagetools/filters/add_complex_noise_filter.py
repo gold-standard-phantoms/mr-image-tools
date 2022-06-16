@@ -1,7 +1,7 @@
 """ Add complex noise filter block """
 from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.add_noise_filter import AddNoiseFilter
-from mrimagetools.filters.basefilter import FilterInputValidationError
+from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.filters.filter_block import FilterBlock
 from mrimagetools.filters.fourier_filter import FftFilter, IfftFilter
 from mrimagetools.validators.parameters import (
@@ -49,10 +49,10 @@ class AddComplexNoiseFilter(FilterBlock):
     KEY_REF_IMAGE = AddNoiseFilter.KEY_REF_IMAGE
     KEY_SNR = AddNoiseFilter.KEY_SNR
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Add Complex Noise")
 
-    def _create_filter_block(self):
+    def _create_filter_block(self) -> BaseFilter:
         """Fourier transforms the input and reference images, calculates
         the noise amplitude, adds this to the FT of the input image, then
         inverse fourier transforms to obtain the output image"""
@@ -92,7 +92,7 @@ class AddComplexNoiseFilter(FilterBlock):
         ifft_filter.add_parent_filter(add_noise_filter)
         return ifft_filter
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """
         'image' must be derived from BaseImageContainer.
         'snr' must be a float and >= 0

@@ -16,7 +16,7 @@ from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
 
 
 @pytest.fixture(name="input_validation_dict")
-def input_validation_dict_fixture():
+def input_validation_dict_fixture() -> dict:
     """Returns an object of tuples containing test data for
     input validation of the GroundTruthLoaderFilter"""
     test_volume_dimensions = (3, 3, 3, 1, 7)
@@ -72,7 +72,7 @@ def input_validation_dict_fixture():
     }
 
 
-def test_ground_truth_loader_validate_inputs(input_validation_dict: dict):
+def test_ground_truth_loader_validate_inputs(input_validation_dict: dict) -> None:
     """Check a GroundTruthLoaderFilter is raised when the inputs to the
     AppendMetadataFilter are incorrect or missing"""
     filter_to_test = GroundTruthLoaderFilter
@@ -144,7 +144,7 @@ def mock_data_fixture() -> dict:
     }
 
 
-def test_ground_truth_filter_apply_scale_offset(mock_data: dict):
+def test_ground_truth_filter_apply_scale_offset(mock_data: dict) -> None:
     """Test the ground truth loader when applying a scale and offset to the
     ground truth data"""
     ground_truth_filter = GroundTruthLoaderFilter()
@@ -177,7 +177,7 @@ def test_ground_truth_filter_apply_scale_offset(mock_data: dict):
     )
 
 
-def test_ground_truth_loader_filter_with_mock_data(mock_data: dict):
+def test_ground_truth_loader_filter_with_mock_data(mock_data: dict) -> None:
     """Test the ground truth loader filter with some mock data"""
     ground_truth_filter = GroundTruthLoaderFilter()
     ground_truth_filter.add_inputs(mock_data)
@@ -273,7 +273,7 @@ def test_ground_truth_loader_filter_with_mock_data(mock_data: dict):
     }
 
 
-def test_ground_truth_loader_filter_with_test_data():
+def test_ground_truth_loader_filter_with_test_data() -> None:
     """Test the ground truth loader filter with the included
     test data"""
 
@@ -295,7 +295,7 @@ def test_ground_truth_loader_filter_with_test_data():
     ground_truth_filter.run()
 
 
-def test_ground_truth_loader_filter_with_image_overrides(mock_data: dict):
+def test_ground_truth_loader_filter_with_image_overrides(mock_data: dict) -> None:
     """Test the image_override input functionality"""
     mock_data[GroundTruthLoaderFilter.KEY_IMAGE_OVERRIDE] = {
         "m0": 5,
@@ -314,7 +314,7 @@ def test_ground_truth_loader_filter_with_image_overrides(mock_data: dict):
     )
 
 
-def test_ground_truth_loader_filter_with_parameter_overrides(mock_data: dict):
+def test_ground_truth_loader_filter_with_parameter_overrides(mock_data: dict) -> None:
     """Test the parameter_override input functionality"""
     mock_data[GroundTruthLoaderFilter.KEY_PARAMETER_OVERRIDE] = {
         "lambda_blood_brain": 3.1,
@@ -332,7 +332,9 @@ def test_ground_truth_loader_filter_with_parameter_overrides(mock_data: dict):
         assert item in gt_filter.outputs.items()
 
 
-def test_ground_truth_loader_filter_lambda_blood_brain_in_image(mock_data: dict):
+def test_ground_truth_loader_filter_lambda_blood_brain_in_image(
+    mock_data: dict,
+) -> None:
     """Test the special case where lambda_blood_brain is supplied as an image volume"""
     mock_data[GroundTruthLoaderFilter.KEY_QUANTITIES].append("lambda_blood_brain")
     mock_data[GroundTruthLoaderFilter.KEY_UNITS].append("g/ml")

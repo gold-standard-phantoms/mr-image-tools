@@ -1,6 +1,6 @@
 """ General utilities """
 import os
-from typing import Any, Dict, Mapping
+from typing import Any, Dict, Mapping, Optional, Union
 
 import numpy as np
 from numpy.random import default_rng
@@ -41,7 +41,7 @@ def map_dict(
     }
 
 
-def splitext(path):
+def splitext(path: str) -> tuple[str, str]:
     """The normal os.path.splitext treats path/example.tar.gz
     as having a filepath of path/example.tar with a .gz
     extension - this fixes it"""
@@ -51,7 +51,9 @@ def splitext(path):
     return os.path.splitext(path)
 
 
-def generate_random_numbers(specification: dict, shape=None, rng=None) -> np.ndarray:
+def generate_random_numbers(
+    specification: dict, shape: Union[tuple, None] = None, seed: Optional[int] = None
+) -> np.ndarray:
     """Generates a set of numbers according to the prescribed distributions,
     returning them as a list
 
@@ -67,12 +69,12 @@ def generate_random_numbers(specification: dict, shape=None, rng=None) -> np.nda
     :type specification: dict
     :param shape: length of the list to return
     :type shape: int or tuple of ints
-    :param rng: The random number generator to use, defaults to None
-    :type rng: [type], optional
+    :param seed: The random number generator to use, defaults to None
+    :type seed: int, optional
     :return: List of the generated numbers
     :rtype: list
     """
-    rng = default_rng(rng)
+    rng = default_rng(seed)
     out: np.ndarray
     if specification.get("distribution") is not None:
         distribution = specification["distribution"]
@@ -80,7 +82,11 @@ def generate_random_numbers(specification: dict, shape=None, rng=None) -> np.nda
             out = rng.normal(specification["mean"], specification["sd"], shape)
         elif distribution == "uniform":
             out = rng.uniform(specification["min"], specification["max"], shape)
+        else:
+            raise ValueError(f"Distribution {distribution} is not supported")
     else:
-        out = np.zeros(shape)
+        if shape is None:
+            raise ValueError(f"Distribution AND shape have not been specified")
+        return np.zeros(shape)
 
     return out

@@ -3,7 +3,7 @@
 import copy
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Mapping, Union
+from typing import Any, Dict, List, Mapping, Optional
 
 from mrimagetools.utils.general import map_dict
 
@@ -13,12 +13,12 @@ logger = logging.getLogger(__name__)
 class BaseFilterException(Exception):
     """Exceptions for this modules"""
 
-    def __init__(self, msg: str):
+    def __init__(self, msg: str) -> None:
         """:param msg: The message to display"""
         super().__init__()
         self.msg = msg
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.msg
 
 
@@ -35,7 +35,7 @@ class FilterInputValidationError(Exception):
 class FilterLoopError(Exception):
     """Used when a loop is detected in the filter chain"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("A loop has been detected in the filters")
 
 
@@ -50,7 +50,7 @@ class BaseFilter(ABC):
     An abstract base class for filters. All filters should inherit this class
     """
 
-    def __init__(self, name: str = "Unknown"):
+    def __init__(self, name: str = "Unknown") -> None:
         self.name = name
         self.inputs: FilterDictType = {}
         self.outputs: FilterDictType = {}
@@ -64,10 +64,10 @@ class BaseFilter(ABC):
         # Needs to be run (inputs have changed)
         self.needs_run = False
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def add_input(self, key: str, value):
+    def add_input(self, key: str, value) -> None:
         """
         Adds an input with a given key and value.
         If the key is already in the inputs, an RuntimeError is raised
@@ -84,7 +84,7 @@ class BaseFilter(ABC):
     def add_inputs(
         self,
         input_dict: Mapping[str, Any],
-        io_map: Mapping[str, str] = None,
+        io_map: Optional[Mapping[str, str]] = None,
         io_map_optional: bool = False,
     ):
         """
@@ -114,11 +114,15 @@ class BaseFilter(ABC):
         for key, value in mapped_inputs.items():
             self.add_input(key, value)
 
-    def add_child_filter(self, child: "BaseFilter", io_map: Mapping[str, str] = None):
+    def add_child_filter(
+        self, child: "BaseFilter", io_map: Optional[Mapping[str, str]] = None
+    ) -> None:
         """See documentation for `add_parent_filter`"""
         child.add_parent_filter(parent=self, io_map=io_map)
 
-    def add_parent_filter(self, parent: "BaseFilter", io_map: Mapping[str, str] = None):
+    def add_parent_filter(
+        self, parent: "BaseFilter", io_map: Optional[Mapping[str, str]] = None
+    ) -> None:
         """
         Add a parent filter (the inputs of this filter will be connected
         to the output of the parents).
@@ -148,7 +152,7 @@ class BaseFilter(ABC):
         # Otherwise, add parent as a new parent
         self.parent_dict_list.append(new_parent_dict)
 
-    def run(self, history=None):
+    def run(self, history=None) -> None:
         """
         Calls the _run class on all parents (recursively) to make sure they are up-to-date.
         Then maps the parents' outputs to inputs for this filter.
@@ -215,14 +219,14 @@ class BaseFilter(ABC):
         self.needs_run = False
 
     @abstractmethod
-    def _run(self):
+    def _run(self) -> None:
         """
         Takes all of the inputs and creates the outputs.
         THIS SHOULD BE OVERWRITTEN IN THE SUBCLASS
         """
 
     @abstractmethod
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """
         Validates all of the inputs. Should raise a FilterInputValidationError
         if the validation is not passed.

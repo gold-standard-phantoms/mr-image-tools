@@ -72,10 +72,10 @@ class AddNoiseFilter(BaseFilter):
     KEY_SNR = "snr"
     KEY_REF_IMAGE = "reference_image"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Add Noise")
 
-    def _run(self):
+    def _run(self) -> None:
         """Calculate the noise amplitude, adds input image, and
         return the result"""
 
@@ -89,10 +89,11 @@ class AddNoiseFilter(BaseFilter):
 
             # If present load the reference image, if not
             # copy the input_image
+            reference_image: BaseImageContainer
             if self.KEY_REF_IMAGE in self.inputs:
-                reference_image: BaseImageContainer = self.inputs[self.KEY_REF_IMAGE]
+                reference_image = self.inputs[self.KEY_REF_IMAGE]
             else:
-                reference_image: BaseImageContainer = input_image
+                reference_image = input_image
 
             noise_amplitude_scaling: float = 1.0  # default if domains match
             # Otherwise correct for differences in scaling due to fourier transform
@@ -144,7 +145,7 @@ class AddNoiseFilter(BaseFilter):
 
             self.outputs[self.KEY_IMAGE] = image_with_noise
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """
         'image' must be derived from BaseImageContainer
         'snr' must be a positive float

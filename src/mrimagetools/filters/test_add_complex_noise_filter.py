@@ -20,7 +20,7 @@ TEST_VOLUME_DIMENSIONS = (32, 32, 32)
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_data_fixture():
+def input_validation_data_fixture() -> dict:
     """Returns a dictionary containing test data for the filter input validation"""
     test_image = NiftiImageContainer(nib.Nifti1Image(np.ones((4, 4, 4)), np.eye(4)))
     test_image2 = NiftiImageContainer(nib.Nifti1Image(np.ones((3, 4, 4)), np.eye(4)))
@@ -43,7 +43,7 @@ def input_validation_data_fixture():
     }
 
 
-def test_add_complex_noise_filter_validate_inputs(validation_data):
+def test_add_complex_noise_filter_validate_inputs(validation_data) -> None:
     """Check a FilterInputValidationError is raised when the inputs
     to the add commplex noise filter are incorrect or missing"""
     validate_filter_inputs(
@@ -110,7 +110,7 @@ def simulate_dual_image_snr_measurement_function(
     )
 
 
-def test_add_complex_noise_filter_with_mock_data():
+def test_add_complex_noise_filter_with_mock_data() -> None:
     """Test the add complex noise filter with some data"""
     signal_level = 100.0
     snr = 100.0
@@ -170,7 +170,7 @@ def test_add_complex_noise_filter_with_mock_data():
     numpy.testing.assert_array_almost_equal(calculated_snr, snr, 0)
 
 
-def test_add_complex_noise_filter_snr_zero():
+def test_add_complex_noise_filter_snr_zero() -> None:
     """Checks that the output image is equal to the input image when snr=0"""
     signal_level = 100.0
     np.random.seed(0)

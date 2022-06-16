@@ -1,3 +1,5 @@
+# type:ignore
+# TODO: remove the above line and fix typing errors
 """Tests for background_suppression_filter.py"""
 from copy import deepcopy
 
@@ -14,7 +16,7 @@ from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture():
+def test_data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     test_dims = (4, 4, 1)
     test_seg_mask = np.arange(16).reshape(test_dims)
@@ -37,7 +39,7 @@ def test_data_fixture():
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_dict_fixture(test_data):
+def input_validation_dict_fixture(test_data) -> dict:
     """Returns data for the input validation testing"""
 
     im_wrong_size = NiftiImageContainer(nib.Nifti1Image(np.ones((3, 3, 3)), np.eye(4)))
@@ -118,7 +120,9 @@ def calc_mz_function(
     return mz * initial_mz
 
 
-def test_background_suppression_filter_validate_inputs(validation_data, test_data):
+def test_background_suppression_filter_validate_inputs(
+    validation_data, test_data
+) -> None:
     """Check a FilterInputValidationError is raised when the
     inputs to the BackgroundSuppressionFilter are incorrect or mising
     """
@@ -145,7 +149,7 @@ def test_background_suppression_filter_validate_inputs(validation_data, test_dat
         bsup_filter.run()
 
 
-def test_background_suppression_filter_calculate_mz(test_data):
+def test_background_suppression_filter_calculate_mz(test_data) -> None:
     """Tests BackgroundSuppressionFilter.calculate_mz static method"""
 
     # Test single values
@@ -227,7 +231,7 @@ def test_background_suppression_filter_calculate_mz(test_data):
     )
 
 
-def test_background_suppression_filter_calculate_pulse_efficiency(test_data):
+def test_background_suppression_filter_calculate_pulse_efficiency(test_data) -> None:
     """Tests BackgroundSuppressionFilter.calculate_pulse_efficiency static method"""
     t1 = np.array((0.24, 0.25, 0.449, 0.450, 2.0, 2.001, 4.2, 4.3))
     pulse_eff = BackgroundSuppressionFilter.calculate_pulse_efficiency(t1)
@@ -246,7 +250,7 @@ def test_background_suppression_filter_calculate_pulse_efficiency(test_data):
     BackgroundSuppressionFilter.calculate_pulse_efficiency(test_data["t1"].image)
 
 
-def test_background_suppression_filter_optimise_inv_pulse_times():
+def test_background_suppression_filter_optimise_inv_pulse_times() -> None:
     """Tests BackgroundSuppressionFilter.optimise_inv_pulse_times static method"""
     sat_time = 3.6
     t1 = [1.33, 0.83, 3.0]
@@ -279,7 +283,7 @@ def test_background_suppression_filter_optimise_inv_pulse_times():
     assert np.all(mz < 0.1) and np.all(mz >= 0.0)
 
 
-def test_background_suppression_filter_mock_data(test_data: dict):
+def test_background_suppression_filter_mock_data(test_data: dict) -> None:
     """Test the BackgroundSuppressionFilter with some mock data"""
     # run with defaults for the case where the pulse times are provided
     bsup_filter = BackgroundSuppressionFilter()

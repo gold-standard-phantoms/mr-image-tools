@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import List, Union
+from typing import Any, List, Optional, Union
 
 import git
 import nibabel as nib
@@ -277,17 +277,19 @@ class BidsOutputFilter(BaseFilter):
         "seg_label": "dseg",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="BIDS Output")
 
-    def _run(self):
+    def _run(self) -> None:
         """Writes the input image to disk in BIDS format"""
         image: BaseImageContainer = self.inputs[self.KEY_IMAGE]
         output_directory = self.inputs[self.KEY_OUTPUT_DIRECTORY]
         subject_string = "sub-" + self.inputs[self.KEY_SUBJECT_LABEL]
         output_directory = os.path.join(output_directory, subject_string)
         # map the image metadata to the json sidecar
-        json_sidecar = map_dict(image.metadata, self.BIDS_MAPPING, io_map_optional=True)
+        json_sidecar: dict[str, Any] = map_dict(
+            image.metadata, self.BIDS_MAPPING, io_map_optional=True
+        )
         series_number_string = f"acq-{image.metadata[self.SERIES_NUMBER]:03d}"
         # if the `filename_prefix` is not empty add an underscore after it
         if self.inputs[self.KEY_FILENAME_PREFIX] == "":
@@ -325,6 +327,9 @@ class BidsOutputFilter(BaseFilter):
         modality_label = ""
         # series_type specific things
         ## Series type 'asl'
+        sub_directory: Optional[str] = None
+        asl_context_filename: Optional[str] = None
+        asl_context_tsv: Optional[str] = None
         if image.metadata[self.SERIES_TYPE] == ASL:
             # ASL series, create aslcontext.tsv string
             sub_directory = self.ASL_SUBDIR
@@ -436,7 +441,7 @@ class BidsOutputFilter(BaseFilter):
 
                 # validate the sidecar against the ASL BIDS schema
                 # load in the ASL BIDS schema
-                with open(ASL_BIDS_SCHEMA) as file:
+                with open(ASL_BIDS_SCHEMA, encoding="utf-8") as file:
                     asl_bids_schema = json.load(file)
 
                 validate(instance=json_sidecar, schema=asl_bids_schema)
@@ -452,7 +457,7 @@ class BidsOutputFilter(BaseFilter):
 
                 # validate the sidecar against the ASL BIDS schema
                 # load in the ASL BIDS schema
-                with open(M0SCAN_BIDS_SCHEMA) as file:
+                with open(M0SCAN_BIDS_SCHEMA, encoding="utf-8") as file:
                     m0scan_bids_schema = json.load(file)
 
                 validate(instance=json_sidecar, schema=m0scan_bids_schema)
@@ -492,6 +497,8 @@ class BidsOutputFilter(BaseFilter):
                 "NONE",
             ]
 
+        if sub_directory is None:
+            raise ValueError("Subdirectory has not been assigned")
         # if it doesn't exist make the sub-directory
         if not os.path.exists(os.path.join(output_directory, sub_directory)):
             os.makedirs(os.path.join(output_directory, sub_directory))
@@ -512,7 +519,7 @@ class BidsOutputFilter(BaseFilter):
         nifti_filename = os.path.join(output_directory, sub_directory, nifti_filename)
         # write the nifti file
         logger.info("saving %s", nifti_filename)
-        nib.save(image.nifti_image, nifti_filename)
+        nib.save(image.as_nifti().nifti_image, nifti_filename)
 
         json_filename = os.path.join(output_directory, sub_directory, json_filename)
         # write the json sidecar
@@ -521,9 +528,11 @@ class BidsOutputFilter(BaseFilter):
 
         # add filenames to outputs
         self.outputs[self.KEY_FILENAME] = [nifti_filename, json_filename]
-        if "asl_context_filename" in locals():
+        if asl_context_filename is not None:
             self.outputs[self.KEY_FILENAME].append(asl_context_filename)
             logger.info("saving %s", asl_context_filename)
+            if asl_context_tsv is None:
+                raise ValueError("asl_context_tsv has not been assigned")
             with open(asl_context_filename, "w") as tsv_file:
                 tsv_file.write(asl_context_tsv)
                 tsv_file.close()
@@ -591,7 +600,7 @@ class BidsOutputFilter(BaseFilter):
                 )
                 bidsignore_file.close()
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation critera
         'image' must be a derived from BaseImageContainer
         'output_directory' must be a string and a path
@@ -751,6 +760,10 @@ class BidsOutputFilter(BaseFilter):
                             ),
                         ),
                     }
+                )
+            else:
+                raise TypeError(
+                    f"asl_context is an unhandled type: {type(asl_context)}"
                 )
             asl_context_validator.validate(
                 {"asl_context": asl_context}, error_type=FilterInputValidationError
@@ -936,7 +949,7 @@ This dataset comprises of the following image series:
         return readme
 
     @staticmethod
-    def save_json(data: dict, filename):
+    def save_json(data: dict, filename: str) -> None:
         """
         Saves a dictionary as a json file
         data will be pretty-printed with indent level 4

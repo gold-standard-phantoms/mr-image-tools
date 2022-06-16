@@ -1,6 +1,7 @@
 """  MriSignalFilter tests """
 
 from copy import deepcopy
+from typing import TypeVar
 
 import numpy as np
 import numpy.testing
@@ -167,7 +168,7 @@ def mock_data_fixture() -> dict:
 @pytest.mark.parametrize(
     "validation_data", [TEST_DATA_DICT_GE, TEST_DATA_DICT_SE, TEST_DATA_DICT_IR]
 )
-def test_mri_signal_filter_validate_inputs(validation_data: dict):
+def test_mri_signal_filter_validate_inputs(validation_data: dict) -> None:
     """Check a FilterInputValidationError is raised when the
     inputs to the MriSignalFilter are incorrect or missing
     """
@@ -261,7 +262,7 @@ def test_mri_signal_filter_validate_inputs(validation_data: dict):
     mri_signal_filter.run()
 
 
-def test_mri_signal_filter_validate_inputs_ge_no_t2_star():
+def test_mri_signal_filter_validate_inputs_ge_no_t2_star() -> None:
     """Checks a FilterInputValidationError is raised when
     'acq_contrast' == 'ge' and 't2_star' is not supplied"""
     test_data = deepcopy(TEST_DATA_DICT_GE)
@@ -275,7 +276,10 @@ def test_mri_signal_filter_validate_inputs_ge_no_t2_star():
         mri_signal_filter.run()
 
 
-def add_multiple_inputs_to_filter(input_filter: BaseFilter, input_data: dict):
+T = TypeVar("T", bound=BaseFilter)
+
+
+def add_multiple_inputs_to_filter(input_filter: T, input_data: dict) -> T:
     """Adds the data held within the input_data dictionary to the filter's inputs"""
     for key in input_data:
         input_filter.add_input(key, input_data[key])
@@ -359,7 +363,7 @@ def mri_signal_inversion_recovery_function(input_data: dict) -> np.ndarray:
     )
 
 
-def test_mri_signal_filter_gradient_echo(mock_data):
+def test_mri_signal_filter_gradient_echo(mock_data) -> None:
     """Tests the MriSignalFilter for 'acq_contrast' == 'ge':
     Gradient Echo"""
     mock_data["acq_contrast"] = "ge"
@@ -396,7 +400,7 @@ def test_mri_signal_filter_gradient_echo(mock_data):
     }
 
 
-def test_mri_signal_filter_spin_echo(mock_data):
+def test_mri_signal_filter_spin_echo(mock_data) -> None:
     """Tests the MriSignalFilter for 'acq_contrast' == 'se':
     Spin Echo"""
     mock_data["acq_contrast"] = "se"
@@ -433,7 +437,7 @@ def test_mri_signal_filter_spin_echo(mock_data):
     }
 
 
-def test_mri_signal_filter_inversion_recovery(mock_data):
+def test_mri_signal_filter_inversion_recovery(mock_data) -> None:
     """Tests the MriSignalFilter for 'acq_contrast' == 'ir':
     Inversion Recovery"""
     mock_data["acq_contrast"] = "ir"
@@ -597,7 +601,7 @@ def test_mri_signal_timecourse_inversion_recovery(
     numpy.testing.assert_array_almost_equal(mri_signal_timecourse, expected, 9)
 
 
-def test_mri_signal_filter_image_flavour(mock_data):
+def test_mri_signal_filter_image_flavour(mock_data) -> None:
     """Tests the MriSignalFilter when the input "image_flavour" is changed"""
     # check overrides no supplied mag_enc
 
@@ -634,7 +638,7 @@ def test_mri_signal_filter_image_flavour(mock_data):
     }
 
 
-def test_mri_signal_filter_metadata_inheritence(mock_data):
+def test_mri_signal_filter_metadata_inheritence(mock_data) -> None:
     """Checks that metdata is correctly inherited from either m0 or mag_enc"""
     test_data = deepcopy(mock_data)
     # m0 has metadata, mag_enc none, also check units and magnetisation are removed

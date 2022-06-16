@@ -9,7 +9,7 @@ from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.invert_image_filter import InvertImageFilter
 
 
-def test_invert_image_filter_outputs():
+def test_invert_image_filter_outputs() -> None:
     """Test the invert image filter validator throws appropriate errors"""
     invert_image_filter = InvertImageFilter()
 
@@ -18,7 +18,7 @@ def test_invert_image_filter_outputs():
         invert_image_filter.run()
 
 
-def test_invert_image_filter_with_nifti():
+def test_invert_image_filter_with_nifti() -> None:
     """Test the invert image filter works correctly with NiftiImageContainer"""
     invert_image_filter = InvertImageFilter()
     array = np.ones(shape=(3, 3, 3, 1), dtype=np.float32)
@@ -32,7 +32,7 @@ def test_invert_image_filter_with_nifti():
     assert_array_equal(invert_image_filter.outputs["image"].image, -array)
 
 
-def test_invert_image_filter_with_numpy():
+def test_invert_image_filter_with_numpy() -> None:
     """Test the invert image filter works correctly with NumpyImageContainer"""
     invert_image_filter = InvertImageFilter()
     array = np.ones(shape=(3, 3, 3, 1), dtype=np.float32)

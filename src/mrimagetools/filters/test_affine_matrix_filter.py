@@ -1,7 +1,10 @@
+# type:ignore
+# TODO: remove the above line and fix typing errors
 """ Affine Matrix Filter tests """
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
+from typing import TypeVar
 
 import numpy as np
 import numpy.testing
@@ -99,7 +102,12 @@ MOCK_DATA = (
 )
 
 
-def add_multiple_inputs_to_filter(input_filter: BaseFilter, input_data: dict):
+FilterType = TypeVar("FilterType", bound=BaseFilter)
+
+
+def add_multiple_inputs_to_filter(
+    input_filter: FilterType, input_data: dict
+) -> FilterType:
     """Adds the data held within the input_data dictionary to the filter's inputs"""
     for key in input_data:
         input_filter.add_input(key, input_data[key])
@@ -108,7 +116,7 @@ def add_multiple_inputs_to_filter(input_filter: BaseFilter, input_data: dict):
 
 
 @pytest.mark.parametrize("validation_data", [INPUT_VALIDATION_DICTIONARY])
-def test_affine_matrix_filter_validate_inputs(validation_data: dict):
+def test_affine_matrix_filter_validate_inputs(validation_data: dict) -> None:
     """Check a FilterInputValidationError is raised when the
     inputs to the AffineMatrixFilter are incorrect or missing
     """
@@ -143,7 +151,7 @@ def test_affine_matrix_filter_validate_inputs(validation_data: dict):
                 affine_filter.run()
 
 
-def test_affine_matrix_filter_default_data():
+def test_affine_matrix_filter_default_data() -> None:
     """Test the AffineMatrixFilter with default data and check the output"""
     # filter with no inputs, should produce a 4x4 identity matrix
     affine_filter = AffineMatrixFilter()

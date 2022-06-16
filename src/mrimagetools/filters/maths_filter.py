@@ -75,7 +75,7 @@ class MathsFilter(BaseFilter):
     KEY_EXPRESSION = "expression"
     KEY_RESULT = "result"
 
-    def __init__(self, config: ExpressionEvaluatorConfig = "default"):
+    def __init__(self, config: ExpressionEvaluatorConfig = "default") -> None:
         """Initialise the object. By default, numpy-like operations are used.
         You might want to change the `config` variable to "safe_divide".
         This will mean that all division by zero gives the result of zero
@@ -85,7 +85,7 @@ class MathsFilter(BaseFilter):
         self.evalutator: Final[ExpressionEvaluator] = expression_evaluator(config)
 
     @property
-    def variables(self):
+    def variables(self) -> dict:
         """Return the input variables (every parameter except the expression)"""
         return {
             key: value
@@ -94,7 +94,7 @@ class MathsFilter(BaseFilter):
         }
 
     @property
-    def parsed_variables(self):
+    def parsed_variables(self) -> dict:
         """Return the input variables, substiting the images for nuumpy arrays.
         This can then be used directly in the ExpressionEvaluator"""
         return {
@@ -102,7 +102,7 @@ class MathsFilter(BaseFilter):
             for key, value in self.variables.items()
         }
 
-    def _run(self):
+    def _run(self) -> None:
         """Evaluate the expression using the supplied variables"""
 
         input_copy = copy(self.inputs)
@@ -139,7 +139,7 @@ class MathsFilter(BaseFilter):
 
         self.outputs[self.KEY_RESULT] = result
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Validate the inputs.
         - 'expression' must be a string
         - 'expression' must be a valid expressions

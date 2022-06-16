@@ -23,10 +23,10 @@ class FftFilter(BaseFilter):
     # Key constants
     KEY_IMAGE = "image"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="FFT")
 
-    def _run(self):
+    def _run(self) -> None:
         """performs a n-dimensional fast fourier transform on the input Image Container
         and creates an 'output' with the result in an Image Container of the equivalent type
         to the input.  The input image must have data_domain == SPATIAL_DOMAIN, and
@@ -38,7 +38,7 @@ class FftFilter(BaseFilter):
         image_container.image_type = COMPLEX_IMAGE_TYPE
         self.outputs[self.KEY_IMAGE] = image_container
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Input must be derived from BaseImageContainer
         and data_domain should be SPATIAL_DOMAIN"""
 
@@ -66,10 +66,10 @@ class IfftFilter(BaseFilter):
     # Key constants
     KEY_IMAGE = "image"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="IFFT")
 
-    def _run(self):
+    def _run(self) -> None:
         """performs a n-dimensional inverse fast fourier transform on the input Image Container
         and creates an 'output' with the result in an Image Container of the equivalent type
         to the input.  The input image (k-space data) must have data_domain == INVERSE_DOMAIN, and
@@ -81,7 +81,7 @@ class IfftFilter(BaseFilter):
         image_container.image_type = COMPLEX_IMAGE_TYPE
         self.outputs[self.KEY_IMAGE] = image_container
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Input must be derived from BaseImageContainer
         and data_domain should be INVERSE_DOMAIN"""
         input_validator = ParameterValidator(

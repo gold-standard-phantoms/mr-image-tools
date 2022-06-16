@@ -8,13 +8,12 @@ import pytest
 from numpy.random import default_rng
 
 from mrimagetools.containers.image import NiftiImageContainer
-from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.combine_fuzzy_masks_filter import CombineFuzzyMasksFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_dict_fixture():
+def input_validation_dict_fixture() -> dict:
     """Returns a dictionary containing test data for input validation, and valid data
     for the CombineFuzzyMasksFilter"""
 
@@ -101,7 +100,7 @@ def input_validation_dict_fixture():
     }
 
 
-def test_combine_fuzzy_masks_filter_validate_inputs(validation_data: dict):
+def test_combine_fuzzy_masks_filter_validate_inputs(validation_data: dict) -> None:
     """Check a FilterInputValidationError is raised when the inputs to the
     CombineFuzzyMasksFilter are incorrect or missing"""
 
@@ -118,7 +117,7 @@ def test_combine_fuzzy_masks_filter_validate_inputs(validation_data: dict):
     )
 
 
-def test_combine_fuzzy_masks_filter_mock_data_list(validation_data: dict):
+def test_combine_fuzzy_masks_filter_mock_data_list(validation_data: dict) -> None:
     """Test the CombineFuzzyMasksFilter with mock data for the case where
     there are more than one masks to combine"""
 
@@ -157,7 +156,7 @@ def test_combine_fuzzy_masks_filter_mock_data_list(validation_data: dict):
     )
 
 
-def test_combine_fuzzy_masks_filter_priority_conflict():
+def test_combine_fuzzy_masks_filter_priority_conflict() -> None:
 
     test_data = np.array((1.0))
 
@@ -188,7 +187,7 @@ def test_combine_fuzzy_masks_filter_priority_conflict():
         )
 
 
-def test_combine_fuzzy_masks_filter_mock_data_image(validation_data: dict):
+def test_combine_fuzzy_masks_filter_mock_data_image(validation_data: dict) -> None:
     """Test the CombineFuzzyMasksFilter with mock data for the case where
     there is only one mask"""
     # use default threshold

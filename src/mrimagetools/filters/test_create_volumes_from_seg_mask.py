@@ -10,7 +10,7 @@ import numpy as np
 import numpy.testing
 import pytest
 
-from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
+from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.create_volumes_from_seg_mask import CreateVolumesFromSegMask
 from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
@@ -18,7 +18,7 @@ from mrimagetools.validators.schemas.index import SCHEMAS
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_dict_fixture():
+def input_validation_dict_fixture() -> dict:
     """Returns an object of tuples containing test data for input validation of the
     GroundTruthLoaderFilter"""
 
@@ -70,7 +70,7 @@ def input_validation_dict_fixture():
     }
 
 
-def test_create_volumes_from_seg_mask_validate_inputs(validation_data: dict):
+def test_create_volumes_from_seg_mask_validate_inputs(validation_data: dict) -> None:
     """Check a FilterInputValidationError is raised when the inputs to the
     CreateVolumesFromSegMask filter are incorrect or missing"""
 
@@ -79,7 +79,7 @@ def test_create_volumes_from_seg_mask_validate_inputs(validation_data: dict):
     )
 
 
-def test_create_volumes_from_seg_mask_with_mock_data(validation_data: dict):
+def test_create_volumes_from_seg_mask_with_mock_data(validation_data: dict) -> None:
     """Test the CreateVolumesFromSegMask filter with some mock data"""
 
     input_data = deepcopy(validation_data)

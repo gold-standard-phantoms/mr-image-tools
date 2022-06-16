@@ -4,6 +4,7 @@ from copy import deepcopy
 from tempfile import TemporaryDirectory
 
 import jsonschema
+import jsonschema.exceptions
 import nibabel as nib
 import numpy as np
 import numpy.testing
@@ -15,7 +16,7 @@ from mrimagetools.validators.schemas.index import SCHEMAS
 
 
 @pytest.fixture(name="validation_data")
-def input_data_fixture():
+def input_data_fixture() -> dict:
     """Fixture with test data"""
 
     return {
@@ -50,7 +51,7 @@ def input_data_fixture():
     }
 
 
-def test_hrgt_params_schema(validation_data: dict):
+def test_hrgt_params_schema(validation_data: dict) -> None:
     """Check that the example hrgt_params passes the json schema"""
     jsonschema.validate(validation_data["hrgt_params"], SCHEMAS["generate_hrgt_params"])
 
@@ -65,7 +66,7 @@ def test_hrgt_params_schema(validation_data: dict):
         jsonschema.validate(d, SCHEMAS["generate_hrgt_params"])
 
 
-def test_generate_hrgt(validation_data: dict):
+def test_generate_hrgt(validation_data: dict) -> None:
     """Test generate_hrgt function"""
     with TemporaryDirectory() as temp_dir:
         json_filename = os.path.join(temp_dir, "hrgt_params.json")
@@ -88,7 +89,7 @@ def test_generate_hrgt(validation_data: dict):
         numpy.testing.assert_array_equal(saved_nifti.dataobj, results["image"].image)
 
 
-def test_generate_hrgt_float_seg_mask(validation_data: dict):
+def test_generate_hrgt_float_seg_mask(validation_data: dict) -> None:
     """Test generate_hrgt function with float seg_mask data"""
     with TemporaryDirectory() as temp_dir:
         json_filename = os.path.join(temp_dir, "hrgt_params.json")

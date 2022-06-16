@@ -41,7 +41,7 @@ INPUT_VALIDATION_DICT = {
 }
 
 
-def test_append_metadata_filter_validate_inputs():
+def test_append_metadata_filter_validate_inputs() -> None:
     """Check a FilterInputValidationError is raised when the inputs to the
     AppendMetadataFilter are incorrect or missing"""
 
@@ -80,7 +80,7 @@ def test_append_metadata_filter_validate_inputs():
                 test_filter.run()
 
 
-def test_append_metadata_filter_new_metadata():
+def test_append_metadata_filter_new_metadata() -> None:
     """Tests the AppendMetadataFilter with an image that has no metadata to begin with"""
 
     append_metadata_filter = AppendMetadataFilter()
@@ -92,7 +92,7 @@ def test_append_metadata_filter_new_metadata():
     assert append_metadata_filter.outputs["image"].metadata == TEST_METADATA
 
 
-def test_append_metadata_filter_merge_metadata():
+def test_append_metadata_filter_merge_metadata() -> None:
     """Tests the AppendMetadataFilter with an image that existing metadata"""
     test_image = TEST_NIFTI_CON_ONES.clone()
     test_image.metadata = {
@@ -110,7 +110,7 @@ def test_append_metadata_filter_merge_metadata():
     assert append_metadata_filter.outputs["image"].metadata == new_metadata
 
 
-def test_append_metadata_filter_output_image_is_input_image():
+def test_append_metadata_filter_output_image_is_input_image() -> None:
     """Tests that the output image of the AppendMetaDataFilter is a reference of the input
     image"""
     append_metadata_filter = AppendMetadataFilter()

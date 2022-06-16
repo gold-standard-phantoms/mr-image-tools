@@ -5,7 +5,7 @@ be found on the class 'ParameterValidator'
 import os
 import re
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Tuple, Type, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
 from mrimagetools.containers.image import BaseImageContainer
 
@@ -21,7 +21,7 @@ class Validator:
     criteria message.
     """
 
-    def __init__(self, func: Callable[[Any], bool], criteria_message: str):
+    def __init__(self, func: Callable[[Any], bool], criteria_message: str) -> None:
         """
         :param func: the callable (must take a single value) which returns
         True or False depending on whether the validation criteria have been met
@@ -39,7 +39,7 @@ class Validator:
 
 
 def isfile_validator(
-    extensions: Union[str, List[str]] = None, must_exist: bool = False
+    extensions: Union[str, List[str], None] = None, must_exist: bool = False
 ) -> Validator:
     """
     Validates that a given value is a path to a file.
@@ -49,7 +49,7 @@ def isfile_validator(
     if extensions is not None:
         for extension in extensions:
             if not isinstance(extension, str):
-                raise TypeError(f"All extensions must be strings")
+                raise TypeError("All extensions must be strings")
 
     def validate(value: str) -> bool:
         # check that value is a str
@@ -62,10 +62,8 @@ def isfile_validator(
             # check that the file has a valid extension
             if extensions is not None:
                 valid_extension = any(
-                    [
-                        value.lower().endswith(extension.lower())
-                        for extension in extensions
-                    ]
+                    value.lower().endswith(extension.lower())
+                    for extension in extensions
                 )
             else:
                 valid_extension = True
@@ -76,10 +74,8 @@ def isfile_validator(
                     and valid_extension
                     and os.path.exists(value)
                 )
-            else:
-                return is_not_dir and root_folder_exists and valid_extension
-        else:
-            return False
+            return is_not_dir and root_folder_exists and valid_extension
+        return False
 
     return Validator(
         validate,
@@ -168,7 +164,7 @@ def greater_than_equal_to_validator(start) -> Validator:
         if isinstance(value, (float, int)):
             return start <= value
         if isinstance(value, BaseImageContainer):
-            return (start <= value.image).all()
+            return bool((start <= value.image).all())
         return False
 
     return Validator(validate, f"Value(s) must be greater than or equal to {start}")
@@ -187,7 +183,7 @@ def greater_than_validator(start) -> Validator:
         if isinstance(value, (float, int)):
             return start < value
         if isinstance(value, BaseImageContainer):
-            return (start < value.image).all()
+            return bool((start < value.image).all())
         return False
 
     return Validator(validate, f"Value(s) must be greater than {start}")
@@ -312,7 +308,7 @@ def reserved_string_list_validator(
     )
 
 
-def for_each_validator(item_validator=Validator) -> Validator:
+def for_each_validator(item_validator: Validator) -> Validator:
     """
     Validates that the value must be iteratable and each of its items are
     valid based on the item_validator.
@@ -492,7 +488,9 @@ class ParameterValidator:
     """
 
     def __init__(
-        self, parameters: Dict[str, Parameter], post_validators: List[Validator] = None
+        self,
+        parameters: Dict[str, Parameter],
+        post_validators: Optional[List[Validator]] = None,
     ):
         """
         :param parameters: a dictionary of input parameters. An example might be:
@@ -519,7 +517,7 @@ class ParameterValidator:
         self.parameters: Dict[str, Parameter] = parameters
         self.post_validators: List[Validator] = post_validators
 
-    def get_defaults(self):
+    def get_defaults(self) -> dict:
         """Return a dictionary of default values for each of the parameters
         in the ParameterValidator. If a parameter does not have a default value,
         it is excluded from the dictionary

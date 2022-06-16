@@ -157,10 +157,10 @@ spin labeling. Magnetic Resonance in Medicine, 40(3):383–396,
 sep 1998. doi:10.1002/mrm.1910400308.""",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="ASL Quantification")
 
-    def _run(self):
+    def _run(self) -> None:
         """Calculates the perfusion rate based on the inputs"""
 
         # create output image
@@ -288,7 +288,7 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
                     self.FIT_IMAGE_NAME[key].upper(),
                 ]
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria
         'control' must be derived from BaseImageContainer
         'label' must be derived from BaseImageContainer
@@ -480,7 +480,7 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
         :type post_label_delay: float
         :param label_efficiency: labelling efficiency, :math:`\alpha`
         :type label_efficiency: float
-        :param t1_arterial_blood: longitudinal relaxation time of arterial 
+        :param t1_arterial_blood: longitudinal relaxation time of arterial
           blood in seconds, :math:`T_{1,b}`
         :type t1_arterial_blood: float
         :return: the perfusion rate in ml/100g/min, :math:`f`
@@ -553,7 +553,7 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
         :type bolus_duration: float
         :param label_efficiency: labelling efficiency, :math:`\alpha`
         :type label_efficiency: float
-        :param t1_arterial_blood: longitudinal relaxation time of arterial 
+        :param t1_arterial_blood: longitudinal relaxation time of arterial
           blood in seconds, :math:`T_{1,b}`
         :type t1_arterial_blood: float
         :return: the perfusion rate in ml/100g/min, :math:`f`

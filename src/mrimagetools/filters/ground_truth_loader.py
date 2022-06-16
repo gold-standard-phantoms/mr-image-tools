@@ -123,10 +123,10 @@ class GroundTruthLoaderFilter(BaseFilter):
     KEY_PARAMETER_OVERRIDE = "parameter_override"
     KEY_GROUND_TRUTH_MODULATE = "ground_truth_modulate"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("GroundTruthLoader")
 
-    def _run(self):
+    def _run(self) -> None:
         """Load the inputs using a NiftiLoaderFilter and JsonLoaderFilter.
         Create the image outputs and the segmentation key outputs"""
         image_container: NiftiImageContainer = self.inputs[self.KEY_IMAGE]
@@ -213,7 +213,7 @@ class GroundTruthLoaderFilter(BaseFilter):
         # Pipe through all parameters
         self.outputs = {**self.outputs, **self.inputs[self.KEY_PARAMETERS], **overrides}
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria.
         'image': NiftiImageContainer, must be 5D, 5th dimension same length as 'quantities'
         'quantities': list[str]

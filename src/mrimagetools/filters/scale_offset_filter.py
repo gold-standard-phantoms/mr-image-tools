@@ -44,10 +44,10 @@ class ScaleOffsetFilter(BaseFilter):
     KEY_SCALE = "scale"
     KEY_OFFSET = "offset"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Scale/offset filter")
 
-    def _run(self):
+    def _run(self) -> None:
         """Apply the scaling and offset to the image"""
         image: BaseImageContainer = self.inputs["image"]
 
@@ -65,7 +65,7 @@ class ScaleOffsetFilter(BaseFilter):
 
         self.outputs[self.KEY_IMAGE] = output
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Validate the inputs.
         'image' must be derived from BaseImageContainer
         'scale' (optional) must be a float or integer

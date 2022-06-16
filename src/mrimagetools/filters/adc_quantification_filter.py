@@ -74,13 +74,13 @@ class AdcQuantificationFilter(BaseFilter):
     KEY_B_VECTORS = "b_vectors"
     KEY_ADC = "adc"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="ADC Quantification")
 
-    def _run(self):
+    def _run(self) -> None:
         """Calculates the apparent diffusion coefficient based on the inputs"""
         b_values: list = self.inputs[self.KEY_B_VALUES]
-        b_vectors: List[List[float, float, float]] = self.inputs[self.KEY_B_VECTORS]
+        b_vectors: List[List[float]] = self.inputs[self.KEY_B_VECTORS]
         dwi: BaseImageContainer = self.inputs[self.KEY_DWI]
         self.outputs[self.KEY_ADC] = dwi.clone()
 
@@ -126,7 +126,7 @@ class AdcQuantificationFilter(BaseFilter):
         self.outputs[self.KEY_ADC].metadata["b_values"] = b_values
         self.outputs[self.KEY_ADC].metadata["b_vectors"] = b_vectors
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria
         'dwi' must be derived from BaseImageContainer and have length of at least 2
           in the 4th dimension.
@@ -187,7 +187,7 @@ class AdcQuantificationFilter(BaseFilter):
             )
 
         # check that all the values in b_vectors are of length 3
-        if not all([len(val) == 3 for val in self.inputs[self.KEY_B_VECTORS]]):
+        if not all(len(val) == 3 for val in self.inputs[self.KEY_B_VECTORS]):
             raise FilterInputValidationError(
                 "All entries in list 'b_vectors' should have length 3"
             )

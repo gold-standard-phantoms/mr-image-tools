@@ -6,6 +6,7 @@ from copy import deepcopy
 from tempfile import TemporaryDirectory
 
 import jsonschema
+import jsonschema.exceptions
 import nibabel as nib
 import numpy as np
 import numpy.testing
@@ -17,7 +18,7 @@ from mrimagetools.validators.schemas.index import SCHEMAS
 
 
 @pytest.fixture(name="validation_data")
-def input_data_fixture():
+def input_data_fixture() -> dict:
     """Fixture with test data"""
 
     mask_data = np.array(
@@ -42,7 +43,7 @@ def input_data_fixture():
     }
 
 
-def test_combine_masks_params_schema(validation_data: dict):
+def test_combine_masks_params_schema(validation_data: dict) -> None:
     """Check that the example test_params passes the json schema"""
     jsonschema.validate(validation_data["test_params"], SCHEMAS["combine_masks"])
 
@@ -57,7 +58,7 @@ def test_combine_masks_params_schema(validation_data: dict):
         jsonschema.validate(d, SCHEMAS["combine_masks"])
 
 
-def test_combine_masks_mock_data(validation_data: dict):
+def test_combine_masks_mock_data(validation_data: dict) -> None:
     """test combine_masks function"""
     with TemporaryDirectory() as temp_dir:
 

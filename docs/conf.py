@@ -13,7 +13,6 @@
 import os
 import sys
 
-
 import sphinx.ext.apidoc
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__name__), "../src")))
@@ -74,7 +73,7 @@ bibtex_bibfiles = ["refs.bib"]
 bibtex_default_style = "plain"
 
 
-def run_apidoc(_):
+def run_apidoc(_) -> None:
     """A hook to run on documentation building which will
     first generate the API stubs for the Sphinx build"""
 
@@ -86,6 +85,6 @@ def run_apidoc(_):
     sphinx.ext.apidoc.main(["-f", "-o", output_dir, source_dir, exclude_pattern])
 
 
-def setup(app):
+def setup(app) -> None:
     """Hook the apidoc generation on build"""
     app.connect("builder-inited", run_apidoc)

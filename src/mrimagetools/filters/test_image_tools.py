@@ -6,7 +6,6 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
-from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.image_tools import FloatToIntImageFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
@@ -48,7 +47,7 @@ FTI_METHOD_TEST_DATA = [
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_data_fixture():
+def input_validation_data_fixture() -> dict:
     """Returns a dictionary containing test data for the filter input validation"""
 
     test_image_float = NiftiImageContainer(
@@ -68,7 +67,7 @@ def input_validation_data_fixture():
     }
 
 
-def test_float_to_int_filter_validate_inputs(validation_data: dict):
+def test_float_to_int_filter_validate_inputs(validation_data: dict) -> None:
     """Check that a FilterInputValidationError is raised when the inputs to the
     FloatToIntImageFilter filter are incorrect or missing"""
     validate_filter_inputs(
@@ -77,7 +76,9 @@ def test_float_to_int_filter_validate_inputs(validation_data: dict):
 
 
 @pytest.mark.parametrize("multiplier, expected_datatype", FTI_DTYPE_TEST_DATA)
-def test_float_to_int_filter_data_types(multiplier: float, expected_datatype: np.dtype):
+def test_float_to_int_filter_data_types(
+    multiplier: float, expected_datatype: np.dtype
+) -> None:
     """Test that the FloatToIntImageFilter returns the correct datatype based on
     the values in the input image"""
 
@@ -97,7 +98,7 @@ def test_float_to_int_filter_data_types(multiplier: float, expected_datatype: np
 
 
 @pytest.mark.parametrize("multiplier, method, expected", FTI_METHOD_TEST_DATA)
-def test_float_to_int_filter_methods(multiplier, method, expected):
+def test_float_to_int_filter_methods(multiplier, method, expected) -> None:
     """Tests that the FloatToIntImageFilter returns expected values based on
     the chosen method"""
 

@@ -2,7 +2,7 @@
 
 from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.add_complex_noise_filter import AddComplexNoiseFilter
-from mrimagetools.filters.basefilter import FilterInputValidationError
+from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.filters.filter_block import FilterBlock
 from mrimagetools.filters.mri_signal_filter import MriSignalFilter
 from mrimagetools.filters.transform_resample_image_filter import (
@@ -122,10 +122,10 @@ class AcquireMriImageFilter(FilterBlock):
     KEY_REF_IMAGE = AddComplexNoiseFilter.KEY_REF_IMAGE
     KEY_SNR = AddComplexNoiseFilter.KEY_SNR
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Acquire MRI Image Filter")
 
-    def _create_filter_block(self):
+    def _create_filter_block(self) -> AddComplexNoiseFilter:
         """Runs:
         1. MriSignalFilter
         2. TransformResampleFilter
@@ -195,7 +195,7 @@ class AcquireMriImageFilter(FilterBlock):
         # return add_complex_noise_filter
         return add_complex_noise_filter
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """
         Checks that the inputs meet their validation criteria
         Note that values are only checked if they are present and the correct

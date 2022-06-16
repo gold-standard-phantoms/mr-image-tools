@@ -1,3 +1,5 @@
+# type:ignore
+# TODO: remove the above line and fix typing errors
 """ parameters.py tests """
 import os
 from tempfile import TemporaryDirectory
@@ -31,7 +33,7 @@ from mrimagetools.validators.parameters import (
 )
 
 
-def test_range_inclusive_validator_creator():
+def test_range_inclusive_validator_creator() -> None:
     """Check the inclusive validator creator raises
     errors when start >end"""
 
@@ -39,7 +41,7 @@ def test_range_inclusive_validator_creator():
         range_inclusive_validator(2, 1)
 
 
-def test_range_inclusive_validator():
+def test_range_inclusive_validator() -> None:
     """Test the inclusive validator with some values"""
     validator = range_inclusive_validator(-1, 1)
     assert str(validator) == "Value(s) must be between -1 and 1 (inclusive)"
@@ -52,7 +54,7 @@ def test_range_inclusive_validator():
     assert not validator("not a number")
 
 
-def test_range_inclusive_validator_image_container():
+def test_range_inclusive_validator_image_container() -> None:
     """Test the inclusive validator with an image container"""
     validator = range_inclusive_validator(-1, 1)
     assert str(validator) == "Value(s) must be between -1 and 1 (inclusive)"
@@ -69,7 +71,7 @@ def test_range_inclusive_validator_image_container():
     assert not validator(image_container)
 
 
-def test_range_exclusive_validator_creator():
+def test_range_exclusive_validator_creator() -> None:
     """Check the exclusive validator creator raises
     errors when start >= end"""
     with pytest.raises(ValueError):
@@ -78,7 +80,7 @@ def test_range_exclusive_validator_creator():
         range_exclusive_validator(2, 1)
 
 
-def test_range_exclusive_validator():
+def test_range_exclusive_validator() -> None:
     """Test the exclusive validator with some values"""
     validator = range_exclusive_validator(-1, 1)
     assert str(validator) == "Value(s) must be between -1 and 1 (exclusive)"
@@ -89,7 +91,7 @@ def test_range_exclusive_validator():
     assert not validator("not a number")
 
 
-def test_range_exclusive_validator_image_container():
+def test_range_exclusive_validator_image_container() -> None:
     """Test the exclusive validator with an image container"""
     validator = range_exclusive_validator(-1, 1)
     assert str(validator) == "Value(s) must be between -1 and 1 (exclusive)"
@@ -102,7 +104,7 @@ def test_range_exclusive_validator_image_container():
     assert not validator(image_container)
 
 
-def test_greater_than_validator_creator():
+def test_greater_than_validator_creator() -> None:
     """Check the greater_than_validator creator raises
     errors when start is not a number type"""
     with pytest.raises(TypeError):
@@ -111,7 +113,7 @@ def test_greater_than_validator_creator():
         greater_than_validator([])
 
 
-def test_greater_than_validator():
+def test_greater_than_validator() -> None:
     """Test the greater_than_validator with some values"""
     validator = greater_than_validator(100)
     assert str(validator) == "Value(s) must be greater than 100"
@@ -124,7 +126,7 @@ def test_greater_than_validator():
     assert not validator("not a number")
 
 
-def test_greater_than_validator_image_container():
+def test_greater_than_validator_image_container() -> None:
     """Test the greater than validator with an image container"""
     validator = greater_than_validator(1.5)
     assert str(validator) == "Value(s) must be greater than 1.5"
@@ -137,7 +139,7 @@ def test_greater_than_validator_image_container():
     assert validator(image_container)
 
 
-def test_greater_than_equal_to_validator_creator():
+def test_greater_than_equal_to_validator_creator() -> None:
     """Check the greater_than_equal_to_validator creator raises
     errors when start is not a number type"""
     with pytest.raises(TypeError):
@@ -146,7 +148,7 @@ def test_greater_than_equal_to_validator_creator():
         greater_than_equal_to_validator([])
 
 
-def test_greater_than_equal_to_validator():
+def test_greater_than_equal_to_validator() -> None:
     """Test the greater_than_equal_to_validator with some values"""
     validator = greater_than_equal_to_validator(100)
     assert str(validator) == "Value(s) must be greater than or equal to 100"
@@ -159,7 +161,7 @@ def test_greater_than_equal_to_validator():
     assert not validator("not a number")
 
 
-def test_greater_than_equal_to_validator_image_container():
+def test_greater_than_equal_to_validator_image_container() -> None:
     """Test the greater than equal to validator with an image container"""
     validator = greater_than_equal_to_validator(1.5)
     assert str(validator) == "Value(s) must be greater than or equal to 1.5"
@@ -172,7 +174,7 @@ def test_greater_than_equal_to_validator_image_container():
     assert validator(image_container)
 
 
-def test_from_list_validator_creator():
+def test_from_list_validator_creator() -> None:
     """The the from list validator creation"""
     with pytest.raises(TypeError):
         from_list_validator("foo")
@@ -182,7 +184,7 @@ def test_from_list_validator_creator():
         from_list_validator({})
 
 
-def test_from_list_validator():
+def test_from_list_validator() -> None:
     """Test the from list validator"""
     validator = from_list_validator(["FOO", "BAR", "foo", 2])
     assert str(validator) == "Value must be in ['FOO', 'BAR', 'foo', 2]"
@@ -208,7 +210,7 @@ def test_from_list_validator():
     assert not validator(1)
 
 
-def test_isinstance_validator_creator():
+def test_isinstance_validator_creator() -> None:
     """The the isinstance validator creation"""
     isinstance_validator(int)  # ok
     isinstance_validator((int, float, str))  # ok
@@ -222,7 +224,7 @@ def test_isinstance_validator_creator():
         isinstance_validator({})
 
 
-def test_isinstance_validator():
+def test_isinstance_validator() -> None:
     """Test the isinstance_validator"""
     validator = isinstance_validator(str)
     assert str(validator) == "Value must be of type str"
@@ -258,7 +260,7 @@ def test_isinstance_validator():
     assert not validator(["foo", "bar"])
 
 
-def test_of_length_validator_creator():
+def test_of_length_validator_creator() -> None:
     """Test the of length validator creator"""
     of_length_validator(1)
     of_length_validator(100)
@@ -272,7 +274,7 @@ def test_of_length_validator_creator():
         of_length_validator("foo")
 
 
-def test_of_length_validator():
+def test_of_length_validator() -> None:
     """Test the of length validator"""
     validator = of_length_validator(5)
     assert str(validator) == "Value (string or list) must have length 5"
@@ -288,7 +290,7 @@ def test_of_length_validator():
     assert validator([1.0, 2.0, 3.0, 4.0, 5.0])
 
 
-def test_list_of_type_validator_creator():
+def test_list_of_type_validator_creator() -> None:
     """Test the list of validator creation"""
     list_of_type_validator(int)  # ok
     list_of_type_validator((int, float, str))  # ok
@@ -302,7 +304,7 @@ def test_list_of_type_validator_creator():
         list_of_type_validator({})
 
 
-def test_list_of_type_validator():
+def test_list_of_type_validator() -> None:
     """Test the list of type validator"""
     validator = list_of_type_validator(str)
     assert str(validator) == "Value must be a list of type str"
@@ -342,7 +344,7 @@ def test_list_of_type_validator():
     assert not validator(["foo", "bar"])
 
 
-def test_non_empty_list_validator():
+def test_non_empty_list_validator() -> None:
     """Test the non-empty list validator"""
     validator = non_empty_list_validator()
     assert str(validator) == "Value must be a non-empty list"
@@ -353,13 +355,13 @@ def test_non_empty_list_validator():
     assert not validator([])
 
 
-def test_regex_validator_creator():
+def test_regex_validator_creator() -> None:
     """Test the regex validator creator"""
     with pytest.raises(ValueError):
         regex_validator("[")  # bad regex
 
 
-def test_regex_validator():
+def test_regex_validator() -> None:
     """Test the regex validator"""
     validator = regex_validator(r"^M*(s|t)$")
     assert str(validator) == "Value must match pattern ^M*(s|t)$"
@@ -380,7 +382,7 @@ def test_regex_validator():
     assert not validator(1)
 
 
-def test_reserved_string_list_validator_creator():
+def test_reserved_string_list_validator_creator() -> None:
     """Test the reserved string list validator creator"""
     with pytest.raises(TypeError):
         reserved_string_list_validator(1)
@@ -392,7 +394,7 @@ def test_reserved_string_list_validator_creator():
         reserved_string_list_validator(["foo", 1])
 
 
-def test_reserved_string_list_validator():
+def test_reserved_string_list_validator() -> None:
     """Test the reserved string list validator"""
     validator = reserved_string_list_validator(
         strings=["M0", "CONTROL", "LABEL"], delimiter="_"
@@ -425,7 +427,7 @@ def test_reserved_string_list_validator():
     assert not validator("M0_foo")
 
 
-def test_for_each_validator_creator():
+def test_for_each_validator_creator() -> None:
     """Test the for each validator creator"""
     with pytest.raises(TypeError):
         for_each_validator(item_validator="not a validator")
@@ -435,7 +437,7 @@ def test_for_each_validator_creator():
         for_each_validator(item_validator=range_inclusive_validator)
 
 
-def test_for_each_validator():
+def test_for_each_validator() -> None:
     """Test the for each validator"""
 
     validator = for_each_validator(greater_than_validator(0.5))
@@ -451,7 +453,7 @@ def test_for_each_validator():
     assert not validator("not a list or tuple")
 
 
-def test_has_attribute_value_validator_creator():
+def test_has_attribute_value_validator_creator() -> None:
     """Test the has_attribute_value_validator creator"""
 
     # attribute_name must be a string
@@ -459,7 +461,7 @@ def test_has_attribute_value_validator_creator():
         has_attribute_value_validator(attribute_name=5, attribute_value=5)
 
 
-def test_has_attribute_value_validator():
+def test_has_attribute_value_validator() -> None:
     """Test the has_attribute_value_validator"""
 
     validator = has_attribute_value_validator(
@@ -482,7 +484,7 @@ def test_has_attribute_value_validator():
     assert not validator([])
 
 
-def test_or_validator_creator():
+def test_or_validator_creator() -> None:
     """Test the or_validator creator"""
 
     with pytest.raises(TypeError):
@@ -499,7 +501,7 @@ def test_or_validator_creator():
     )
 
 
-def test_or_validator():
+def test_or_validator() -> None:
     """Test the or_validator"""
     validator = or_validator(
         [
@@ -524,7 +526,7 @@ def test_or_validator():
     assert not validator(200)
 
 
-def test_and_validator_creator():
+def test_and_validator_creator() -> None:
     """Test the and_validator creator"""
 
     with pytest.raises(TypeError):
@@ -541,7 +543,7 @@ def test_and_validator_creator():
     )
 
 
-def test_and_validator():
+def test_and_validator() -> None:
     """Test the and_validator"""
     validator = and_validator(
         [
@@ -566,7 +568,7 @@ def test_and_validator():
     assert not validator(15.1)
 
 
-def test_shape_validator_creator():
+def test_shape_validator_creator() -> None:
     """Tests the image_shape_validator creator"""
     test_image = NumpyImageContainer(np.ones((8, 8, 8)))
 
@@ -584,7 +586,7 @@ def test_shape_validator_creator():
     shape_validator(["image_1", "image_2", "image_3"], 2)
 
 
-def test_shape_validator():
+def test_shape_validator() -> None:
     """Tests the image_shape_validator"""
 
     image_1 = NumpyImageContainer(np.ones((5, 3, 8)))
@@ -628,7 +630,7 @@ def test_shape_validator():
     assert validator(d)
 
 
-def test_parameter_validator_valid():
+def test_parameter_validator_valid() -> None:
     """Test the parameter validator with some valid example data"""
     parameter_validator = ParameterValidator(
         {
@@ -642,7 +644,7 @@ def test_parameter_validator_valid():
     }  # no ValidationError raised
 
 
-def test_parameter_validator_valid_with_optional_parameters():
+def test_parameter_validator_valid_with_optional_parameters() -> None:
     """Test the parameter validator with some valid example data
     including a (missing) optional parameter"""
     parameter_validator = ParameterValidator(
@@ -656,7 +658,7 @@ def test_parameter_validator_valid_with_optional_parameters():
     }  # no ValidationError raised
 
 
-def test_parameter_validator_missing_required():
+def test_parameter_validator_missing_required() -> None:
     """Test the parameter validator with some valid example data"""
     parameter_validator = ParameterValidator(
         {
@@ -672,7 +674,7 @@ def test_parameter_validator_missing_required():
         parameter_validator.validate({"foo": "bar foo bar"})
 
 
-def test_parameter_validator_multiple_validators():
+def test_parameter_validator_multiple_validators() -> None:
     """Test the parameter validator with multiple validators"""
     parameter_validator = ParameterValidator(
         {
@@ -691,7 +693,7 @@ def test_parameter_validator_multiple_validators():
         parameter_validator.validate({"a_number": 1.7})
 
 
-def test_parameter_validator_multiple_errors():
+def test_parameter_validator_multiple_errors() -> None:
     """Test that multiple errors are correctly reported by the validator"""
     parameter_validator = ParameterValidator(
         {
@@ -714,7 +716,7 @@ def test_parameter_validator_multiple_errors():
         parameter_validator.validate({"a_number": 0.9, "b_number": [1, 2]})
 
 
-def test_parameter_validator_bad_error_type():
+def test_parameter_validator_bad_error_type() -> None:
     """Test that a TypeError is raised if a bad error type is given to the validator"""
 
     parameter_validator = ParameterValidator({})
@@ -728,7 +730,7 @@ def test_parameter_validator_bad_error_type():
     )  # sanity check - should be allowed
 
 
-def test_parameter_validator_change_error_type():
+def test_parameter_validator_change_error_type() -> None:
     """Test that the appropriate error type is raised when user-specified"""
 
     parameter_validator = ParameterValidator(
@@ -739,7 +741,7 @@ def test_parameter_validator_change_error_type():
         parameter_validator.validate({}, error_type=RuntimeError)
 
 
-def test_isfile_validator_creator():
+def test_isfile_validator_creator() -> None:
     """Check the isfile validator raises errors when extension is
     not a string or list of strings
     """
@@ -754,7 +756,7 @@ def test_isfile_validator_creator():
         isfile_validator([".ext", ".nii", 1])
 
 
-def test_isfile_validator():
+def test_isfile_validator() -> None:
     """Tests the isfile validator with some values"""
 
     with TemporaryDirectory() as temp_dir:

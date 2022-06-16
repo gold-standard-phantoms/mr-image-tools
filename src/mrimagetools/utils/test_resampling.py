@@ -176,7 +176,7 @@ def test_transform_resample_affine(
     )
 
 
-def test_transform_resample_image_mock_data():
+def test_transform_resample_image_mock_data() -> None:
     """Test the transform_resample_image function with mock data"""
     # Create some synthetic data
 
@@ -275,7 +275,7 @@ def create_test_image() -> Tuple[nib.Nifti2Image, Tuple[float, float, float]]:
     "theta, expected",
     atd.ROT_X_TEST_DATA,
 )
-def test_rot_x_mat(theta: float, expected: np.ndarray):
+def test_rot_x_mat(theta: float, expected: np.ndarray) -> None:
     """Tests rot_x_mat with some angles, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.rot_x_mat(theta), expected, 6)
 
@@ -284,7 +284,7 @@ def test_rot_x_mat(theta: float, expected: np.ndarray):
     "theta, expected",
     atd.ROT_Y_TEST_DATA,
 )
-def test_rot_y_mat(theta: float, expected: np.ndarray):
+def test_rot_y_mat(theta: float, expected: np.ndarray) -> None:
     """Tests rot_y_mat with some angles, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.rot_y_mat(theta), expected, 6)
 
@@ -293,7 +293,7 @@ def test_rot_y_mat(theta: float, expected: np.ndarray):
     "theta, expected",
     atd.ROT_Z_TEST_DATA,
 )
-def test_rot_z_mat(theta: float, expected: np.ndarray):
+def test_rot_z_mat(theta: float, expected: np.ndarray) -> None:
     """Tests rot_z_mat with some angles, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.rot_z_mat(theta), expected, 6)
 
@@ -302,7 +302,9 @@ def test_rot_z_mat(theta: float, expected: np.ndarray):
     "vector, expected",
     atd.TRANSLATE_TEST_DATA,
 )
-def test_translate_mat(vector: Tuple[float, float, float], expected: np.ndarray):
+def test_translate_mat(
+    vector: Tuple[float, float, float], expected: np.ndarray
+) -> None:
     """Tests translate_mat with some translation vectors, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.translate_mat(vector), expected, 6)
 
@@ -311,6 +313,6 @@ def test_translate_mat(vector: Tuple[float, float, float], expected: np.ndarray)
     "scale, expected",
     atd.SCALE_TEST_DATA,
 )
-def test_scale_mat(scale: Tuple[float, float, float], expected: np.ndarray):
+def test_scale_mat(scale: Tuple[float, float, float], expected: np.ndarray) -> None:
     """Tests scale_mat with some scale factors, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.scale_mat(scale), expected, 6)

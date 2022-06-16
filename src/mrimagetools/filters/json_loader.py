@@ -43,10 +43,10 @@ class JsonLoaderFilter(BaseFilter):
     KEY_SCHEMA = "schema"
     KEY_ROOT_OBJECT_NAME = "root_object_name"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("JsonLoader")
 
-    def _run(self):
+    def _run(self) -> None:
         """Load the input `filename`. Create the relevant
         outputs."""
         with open(self.inputs[self.KEY_FILENAME]) as file:
@@ -56,7 +56,7 @@ class JsonLoaderFilter(BaseFilter):
             else:
                 self.outputs = json.load(file)
 
-    def _validate_inputs(self):
+    def _validate_inputs(self) -> None:
         """There must be an input named `filename`.
         It must end in .json. It must
         point to a existing file.

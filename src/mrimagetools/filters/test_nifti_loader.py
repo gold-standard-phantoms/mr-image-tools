@@ -12,7 +12,7 @@ from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
 
 
-def test_nifti_loader_input_validation_no_input():
+def test_nifti_loader_input_validation_no_input() -> None:
     """Test all of the NiftiLoader input validation -
     No input filename (but some input so the filter will run)"""
 
@@ -22,7 +22,7 @@ def test_nifti_loader_input_validation_no_input():
         nifti_loader_filter.run()
 
 
-def test_nifti_loader_input_validation_non_string_input():
+def test_nifti_loader_input_validation_non_string_input() -> None:
     """Test all of the NiftiLoader input validation -
     Non-string filename"""
 
@@ -33,7 +33,7 @@ def test_nifti_loader_input_validation_non_string_input():
         nifti_loader_filter.run()
 
 
-def test_nifti_loader_input_validation_bad_nifti_filename():
+def test_nifti_loader_input_validation_bad_nifti_filename() -> None:
     """Test all of the NiftiLoader input validation -
     Bad NIFTI filename"""
 
@@ -47,7 +47,7 @@ def test_nifti_loader_input_validation_bad_nifti_filename():
             nifti_loader_filter.run()
 
 
-def test_nifti_loader_input_validation_missing_nifti_file():
+def test_nifti_loader_input_validation_missing_nifti_file() -> None:
     """Test all of the NiftiLoader input validation -
     Missing NIFTI file"""
 
@@ -61,7 +61,7 @@ def test_nifti_loader_input_validation_missing_nifti_file():
             nifti_loader_filter.run()
 
 
-def test_nifti_loader():
+def test_nifti_loader() -> None:
     """Test the loading functionality"""
 
     with TemporaryDirectory() as temp_dir:
