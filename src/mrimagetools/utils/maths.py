@@ -119,7 +119,7 @@ class ExpressionEvaluator:
         Type[ast.AST], Callable[[InputType, InputType], InputType]
     ] = field(default_factory=lambda: copy(SUPPORTED_BINARY_OPERATORS))
 
-    def _eval(self, node: ast.AST, variables: dict[str, InputType]) -> InputType:
+    def _eval(self, node: ast.AST, variables: Dict[str, InputType]) -> InputType:
         """Evaluates the node using the supplied variables and the supported operators
         :param node: The ast node
         :param variables: The variables to be substituted into the expression
@@ -148,7 +148,7 @@ class ExpressionEvaluator:
 
     # pylint: disable=too-many-return-statements
     def _valid(
-        self, node: ast.AST, variables: dict[str, InputType], raise_exception=False
+        self, node: ast.AST, variables: Dict[str, InputType], raise_exception=False
     ) -> bool:
         """Determines whether the expression can be evaluated with the given variables.
         Optionally, raises an exception if the expression cannot be evaluated

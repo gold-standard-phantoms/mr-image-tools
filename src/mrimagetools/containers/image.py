@@ -4,7 +4,7 @@ be instantiated with either NIFTI files or using numpy arrays """
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Tuple, Type, Union
+from typing import List, Tuple, Type, Union
 
 import nibabel as nib
 import numpy as np
@@ -27,7 +27,7 @@ PHASE_IMAGE_TYPE = "PHASE_IMAGE_TYPE"
 COMPLEX_IMAGE_TYPE = "COMPLEX_IMAGE_TYPE"
 
 
-VoxelSizeType = Union[list[float], tuple[float, ...], npt.NDArray[np.floating]]
+VoxelSizeType = Union[List[float], Tuple[float, ...], npt.NDArray[np.floating]]
 
 
 class BaseImageContainer(ABC):

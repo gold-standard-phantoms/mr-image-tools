@@ -1,5 +1,5 @@
 default:
-    image: python:3.9-bullseye 
+    image: python:3.8-bullseye
 
 stages:
   - test
@@ -31,7 +31,7 @@ deploy_production:
   only:
     - master
 
-pages:  
+pages:
   stage: test
   script:
   - cd docs
@@ -41,4 +41,3 @@ pages:
   artifacts:
     paths:
     - public
-

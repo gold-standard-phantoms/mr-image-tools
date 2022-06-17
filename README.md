@@ -107,7 +107,7 @@ MRImageTools is now installed. Go to the [Documentation Overview](../index.md).
 
 # Development
 
-Development of this software project must comply with a few code styling/quality rules and processes:
+Development should be carried out using Python 3.8. Development must comply with a few code styling/quality rules and processes:
 
 
 * Before pushing any code, make sure the CHANGELOG.md is updated as per the instructions in the CHANGELOG.md file. tox should also be run to ensure that tests and code-quality checks pass.

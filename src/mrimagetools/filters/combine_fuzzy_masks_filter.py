@@ -1,5 +1,7 @@
 """Combined Fuzzy Masks Filter"""
 
+from typing import List
+
 import numpy as np
 
 from mrimagetools.containers.image import BaseImageContainer
@@ -161,7 +163,7 @@ class CombineFuzzyMasksFilter(BaseFilter):
         if isinstance(self.inputs[self.KEY_FUZZY_MASK], list):
 
             # first check against a validator
-            fuzzy_mask: list[BaseImageContainer] = self.inputs[self.KEY_FUZZY_MASK]
+            fuzzy_mask: List[BaseImageContainer] = self.inputs[self.KEY_FUZZY_MASK]
             fuzzy_mask_list_validator = ParameterValidator(
                 parameters={
                     self.KEY_FUZZY_MASK: Parameter(

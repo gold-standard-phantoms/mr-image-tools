@@ -1,6 +1,6 @@
 """ General utilities """
 import os
-from typing import Any, Dict, Mapping, Optional, Union
+from typing import Any, Dict, Mapping, Optional, Tuple, Union
 
 import numpy as np
 from numpy.random import default_rng
@@ -41,7 +41,7 @@ def map_dict(
     }
 
 
-def splitext(path: str) -> tuple[str, str]:
+def splitext(path: str) -> Tuple[str, str]:
     """The normal os.path.splitext treats path/example.tar.gz
     as having a filepath of path/example.tar with a .gz
     extension - this fixes it"""

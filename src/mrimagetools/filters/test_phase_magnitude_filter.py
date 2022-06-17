@@ -23,9 +23,9 @@ from mrimagetools.filters.phase_magnitude_filter import PhaseMagnitudeFilter
 
 
 @pytest.fixture(name="test_data")
-def fixture_test_image() -> tuple[
-    np.ndarray[Any, np.dtype[np.float64]],
-    np.ndarray[Any, np.dtype[np.float64]],
+def fixture_test_image() -> Tuple[
+    np.ndarray,
+    np.ndarray,
     NiftiImageContainer,
 ]:
     """Create a random test NiftiImageContainer.

@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import git
 import nibabel as nib
@@ -287,7 +287,7 @@ class BidsOutputFilter(BaseFilter):
         subject_string = "sub-" + self.inputs[self.KEY_SUBJECT_LABEL]
         output_directory = os.path.join(output_directory, subject_string)
         # map the image metadata to the json sidecar
-        json_sidecar: dict[str, Any] = map_dict(
+        json_sidecar: Dict[str, Any] = map_dict(
             image.metadata, self.BIDS_MAPPING, io_map_optional=True
         )
         series_number_string = f"acq-{image.metadata[self.SERIES_NUMBER]:03d}"

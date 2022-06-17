@@ -1,6 +1,7 @@
 """Create volumes from segmentation mask filter"""
 
-import jsonschema
+from typing import List
+
 import numpy as np
 
 from mrimagetools.containers.image import BaseImageContainer
@@ -43,8 +44,8 @@ class CreateVolumesFromSegMask(BaseFilter):
 
     **Outputs**
 
-    Once run, the filter will populate the dictionary :class:`CreateVolumesFromSegMask.outputs` with the
-    following entries
+    Once run, the filter will populate the dictionary :class:`CreateVolumesFromSegMask.outputs`
+    with the following entries
 
     :param 'image': The combined 5D image, with volumes where the values for each quantity have been
       assigned to the regions defined in ``'seg_mask'``. The final entry in the 5th dimension is
@@ -74,10 +75,10 @@ class CreateVolumesFromSegMask(BaseFilter):
     def _run(self) -> None:
         """runs the filter"""
         seg_mask: BaseImageContainer = self.inputs[self.KEY_SEG_MASK].clone()
-        label_values: list[int] = self.inputs[self.KEY_LABEL_VALUES]
-        label_names: list[str] = self.inputs[self.KEY_LABEL_NAMES]
+        label_values: List[int] = self.inputs[self.KEY_LABEL_VALUES]
+        label_names: List[str] = self.inputs[self.KEY_LABEL_NAMES]
         quantities: dict = self.inputs[self.KEY_QUANTITIES]
-        units: list[str] = self.inputs[self.KEY_UNITS]
+        units: List[str] = self.inputs[self.KEY_UNITS]
 
         num_quantities = len(units)
         num_labels = len(label_values)
@@ -161,14 +162,14 @@ class CreateVolumesFromSegMask(BaseFilter):
         # label_names should be the same length as label_values
         if len(self.inputs[self.KEY_LABEL_NAMES]) != len(label_values):
             raise FilterInputValidationError(
-                f"'label_names' must be the same length as 'label_values'"
+                "'label_names' must be the same length as 'label_values'"
             )
 
         seg_mask: BaseImageContainer = self.inputs[self.KEY_SEG_MASK]
         # The data type of the image data in 'seg_mask' should be a signed or unsigned integer
         if not issubclass(seg_mask.image.dtype.type, np.integer):
             raise FilterInputValidationError(
-                f"{self} filter requires the image data in the input 'seg_mask'"
+                "{self} filter requires the image data in the input 'seg_mask'"
                 "to be either signed or unsigned integer type"
                 f"type is {seg_mask.image.dtype}"
             )
@@ -222,5 +223,5 @@ class CreateVolumesFromSegMask(BaseFilter):
         # units should be the same length as the keys in 'quantities'
         if len(self.inputs[self.KEY_UNITS]) != len(quantities.keys()):
             raise FilterInputValidationError(
-                f"'units' must be the same length as number of keys in 'quantities'"
+                "'units' must be the same length as number of keys in 'quantities'"
             )

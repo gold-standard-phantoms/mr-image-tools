@@ -1,7 +1,7 @@
 """ General Kinetic Model Filter """
 
 import logging
-from typing import Any, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 import numpy as np
 
@@ -271,7 +271,7 @@ class GkmFilter(BaseFilter):
         label_type = self.inputs[self.KEY_LABEL_TYPE].lower()
 
         # blank dictionary for metadata to add
-        metadata: dict[str, Any] = {}
+        metadata: Dict[str, Any] = {}
         m0_tissue = GkmFilter.check_and_make_image_from_value(
             self.inputs[self.KEY_M0], perfusion_rate.shape, metadata, self.KEY_M0
         )

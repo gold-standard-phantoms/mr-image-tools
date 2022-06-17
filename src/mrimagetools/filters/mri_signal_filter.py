@@ -1,6 +1,6 @@
 """ MRI Signal Filter """
 
-from typing import Any, Type, TypeVar
+from typing import Any, Dict, Type, TypeVar
 
 import numpy as np
 
@@ -167,7 +167,7 @@ class MriSignalFilter(BaseFilter):
         t2: np.ndarray = self.inputs[self.KEY_T2].image
         m0: np.ndarray = self.inputs[self.KEY_M0].image
 
-        metadata: dict[str, Any] = {}
+        metadata: Dict[str, Any] = {}
         mag_enc: np.ndarray
         if self.inputs.get(self.KEY_MAG_ENC) is not None:
             mag_enc = self.inputs[self.KEY_MAG_ENC].image
