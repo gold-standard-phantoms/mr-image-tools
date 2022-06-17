@@ -654,10 +654,16 @@ def test_mri_signal_filter_metadata_inheritence(mock_data) -> None:
     mri_signal_filter = MriSignalFilter()
     mri_signal_filter.add_inputs(test_data)
     mri_signal_filter.run()
-    mri_signal_filter.outputs["image"].metadata == {
+    assert mri_signal_filter.outputs["image"].metadata == {
         "key1": "val1",
         "key2": 2,
         "key3": 3,
+        "acq_contrast": "ge",
+        "echo_time": 0.01,
+        "excitation_flip_angle": 90.0,
+        "image_flavour": "OTHER",
+        "mr_acq_type": "3D",
+        "repetition_time": 1.0,
     }
     # m0 and mag_enc with overlapping keys
     test_data["mag_enc"].metadata = {
@@ -668,9 +674,15 @@ def test_mri_signal_filter_metadata_inheritence(mock_data) -> None:
     mri_signal_filter = MriSignalFilter()
     mri_signal_filter.add_inputs(test_data)
     mri_signal_filter.run()
-    mri_signal_filter.outputs["image"].metadata == {
+    assert mri_signal_filter.outputs["image"].metadata == {
         "key1": "val1",
         "key2": "key2",
         "key3": "three",
         "key4": 4,
+        "acq_contrast": "ge",
+        "echo_time": 0.01,
+        "excitation_flip_angle": 90.0,
+        "image_flavour": "OTHER",
+        "mr_acq_type": "3D",
+        "repetition_time": 1.0,
     }
