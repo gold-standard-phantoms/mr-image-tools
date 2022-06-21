@@ -39,7 +39,7 @@ class MriSignalFilter(BaseFilter):
     :type 't2_star': BaseImageContainer
     :param 'm0': Equilibrium magnetisation (non-complex data)
     :type 'm0': BaseImageContainer
-    :param 'mag_eng': Added to M0 before relaxation is calculated,
+    :param 'mag_enc': Added to M0 before relaxation is calculated,
         provides a means to encode another signal into the MRI signal (non-complex data)
     :type 'mag_enc': BaseImageContainer, optional.
     :param 'acq_contrast': Determines which signal model to use:
