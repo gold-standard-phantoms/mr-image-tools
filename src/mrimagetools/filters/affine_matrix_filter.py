@@ -92,7 +92,7 @@ class AffineMatrixFilter(BaseFilter):
     KEY_AFFINE_LAST = "affine_last"
     KEY_AFFINE_INVERSE = "affine_inverse"
 
-    def __init(self) -> None:
+    def __init__(self) -> None:
         super().__init__(name="Compute Affine Matrix")
 
     def _run(self) -> None:
