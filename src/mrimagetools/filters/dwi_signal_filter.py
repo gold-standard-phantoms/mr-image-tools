@@ -1,6 +1,7 @@
 """Diffusion weighting signal generation filter"""
 
-from typing import List
+import copy
+from typing import List, Union
 
 import numpy as np
 
@@ -10,6 +11,7 @@ from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
     for_each_validator,
+    greater_than_equal_to_validator,
     isinstance_validator,
 )
 
@@ -25,18 +27,28 @@ class DwiSignalFilter(BaseFilter):
     :type 'adc': BaseImageContainer
     :param 'b_values': List of b-values, must be positive float
     :type 'b_values' : List[float]
-    :param 'b_vectors' : List of b-vectors, one for each b-values
+    :param 'b_vectors' : List of b-vectors, one for each b-values if
+        it is not normalized then the actual b_values will be processed
     :type 'b_vectors': List[List[float, float, float]]
+    :param 's0': Image with no diffusion weighting applied. must be
+        3D with the three dimension of equal shape to the first three
+        dimension of adc
+    :type 's0': BaseImageContainer
 
     **Outputs**
 
-    :param 'image': Output image, must have the same affine
+    :param 'attenuation': Output image, must have the same affine
         as 'adc'. It containes the attenuation coefficient of each voxel
         the 4th dimension should be of the same length as 'b_values'
-    :type 'image': BaseImageContainer
+    :type 'attenuation': BaseImageContainer
+    :param 'dwi': Output image, must have the same affine
+        as 'adc'. It containes fully encoded MRI signal of each voxel
+        the 4th dimension should be of the same length as 'b_values'
+        if s0 was NOT provided then 'dwi' = 'attenuation'
+    :type 'dwi': BaseImageContainer
 
     **Metadata**
-    :class:`DwiSignalFilter.outputs["image"].metadata` will be derived
+    :class:`DwiSignalFilter.outputs["attenuation"].metadata` will be derived
     from the input ``'adc'``, with the following entries appended/updated:
 
     *``image_flavor`` = "dwi"
@@ -48,7 +60,10 @@ class DwiSignalFilter(BaseFilter):
     KEY_ADC = "adc"
     KEY_B_VALUES = "b_values"
     KEY_B_VECTORS = "b_vectors"
-    KEY_IMAGE = "image"
+    KEY_S0 = "s0"
+    KEY_ATTENUATION = "attenuation"
+    KEY_DWI = "dwi"
+    M_IMAGE_FLAVOR = "image_flavor"
 
     def __init__(self) -> None:
         super().__init__(name="DWI Signal")
@@ -58,24 +73,61 @@ class DwiSignalFilter(BaseFilter):
         b_values: list = self.inputs[self.KEY_B_VALUES]
         b_vectors: List[List[float]] = self.inputs[self.KEY_B_VECTORS]
         adc: BaseImageContainer = self.inputs[self.KEY_ADC]
-        self.outputs[self.KEY_IMAGE] = adc.clone()
+        s0: Union[BaseImageContainer, None] = self.inputs.get(self.KEY_S0, None)
 
-        A_shape = np.shape(adc.image)
-        A_image = np.zeros([A_shape[0], A_shape[1], A_shape[2], len(b_values)])
+        self.outputs[self.KEY_ATTENUATION] = adc.clone()
+        self.outputs[self.KEY_DWI] = adc.clone()
+
+        true_b_values = copy.deepcopy(b_values)
+        normalized_b_vectors = copy.deepcopy(b_vectors)
         for i in range(0, len(b_values)):
-            A_image[:, :, :, i] = np.exp(
-                -(
-                    (b_values[i] * b_vectors[i][0] * adc.image[:, :, :, 0])
-                    + (b_values[i] * b_vectors[i][1] * adc.image[:, :, :, 1])
-                    + (b_values[i] * b_vectors[i][2] * adc.image[:, :, :, 2])
-                )
-            )
+            true_b_values[i] = b_values[i] * np.linalg.norm(
+                b_vectors[i]
+            )  # calculating true b values
+            normalized_b_vectors[i] = b_vectors[i] / np.linalg.norm(
+                b_vectors[i]
+            )  # type: ignore # normalizing b vectors
 
-        self.outputs[self.KEY_IMAGE].image = A_image
+        attenuation_shape = np.shape(adc.image)
+        attenuation_image = np.zeros(
+            [
+                attenuation_shape[0],
+                attenuation_shape[1],
+                attenuation_shape[2],
+                len(b_values),
+            ]
+        )
+        dwi_image = copy.deepcopy(attenuation_image)
+
+        for i in range(0, len(b_values)):
+            sum_for_exp = 0
+            for dimension in range(0, 3):
+                sum_for_exp += (
+                    true_b_values[i]
+                    * normalized_b_vectors[i][dimension]
+                    * adc.image[:, :, :, dimension]
+                )
+            attenuation_image[:, :, :, i] = np.exp(-sum_for_exp)
+            if s0 is not None:
+                dwi_image[:, :, :, i] = np.multiply(
+                    s0.image[:, :, :], attenuation_image[:, :, :, i]
+                )
+            if s0 is None:
+                dwi_image[:, :, :, i] = attenuation_image[:, :, :, i]
+
+        self.outputs[self.KEY_ATTENUATION].image = attenuation_image
+        self.outputs[self.KEY_DWI].image = dwi_image
         # update metadata
-        self.outputs[self.KEY_IMAGE].metadata["ImageFlavor"] = "DWI"
-        self.outputs[self.KEY_IMAGE].metadata["b_values"] = b_values
-        self.outputs[self.KEY_IMAGE].metadata["b_vectors"] = b_vectors
+        self.outputs[self.KEY_ATTENUATION].metadata[self.M_IMAGE_FLAVOR] = "DWI"
+        self.outputs[self.KEY_ATTENUATION].metadata[
+            "b_values"
+        ] = b_values  # TODO input or true b_val ?
+        self.outputs[self.KEY_ATTENUATION].metadata[
+            "b_vectors"
+        ] = b_vectors  # TODO input or true b_vect ?
+        self.outputs[self.KEY_DWI].metadata[self.M_IMAGE_FLAVOR] = "DWI"
+        self.outputs[self.KEY_DWI].metadata[self.KEY_B_VALUES] = b_values
+        self.outputs[self.KEY_DWI].metadata[self.KEY_B_VECTORS] = b_vectors
 
     def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria
@@ -113,17 +165,35 @@ class DwiSignalFilter(BaseFilter):
         b_validator = ParameterValidator(
             parameters={
                 self.KEY_B_VALUES: Parameter(
-                    validators=for_each_validator(isinstance_validator((float, int)))
+                    validators=[
+                        for_each_validator(isinstance_validator((float, int))),
+                        for_each_validator(greater_than_equal_to_validator(0)),
+                    ]
                 ),
                 self.KEY_B_VECTORS: Parameter(
-                    validators=for_each_validator(
-                        for_each_validator(isinstance_validator((float, int)))
-                    )
+                    validators=[
+                        for_each_validator(
+                            for_each_validator(isinstance_validator((float, int)))
+                        ),
+                    ]
                 ),
             }
         )
 
         b_validator.validate(self.inputs, error_type=FilterInputValidationError)
+
+        s0_validator = ParameterValidator(
+            parameters={
+                self.KEY_S0: Parameter(
+                    validators=[
+                        isinstance_validator(BaseImageContainer),
+                    ],
+                    optional=True,
+                ),
+            }
+        )
+
+        s0_validator.validate(self.inputs, error_type=FilterInputValidationError)
 
         # check the lengths of b_values and b_vectors
         if not len(self.inputs[self.KEY_B_VALUES]) == len(
@@ -134,7 +204,16 @@ class DwiSignalFilter(BaseFilter):
             )
 
         # check that all the values in b_vectors are of length 3
-        if not all([len(val) == 3 for val in self.inputs[self.KEY_B_VECTORS]]):
+        if not all(len(val) == 3 for val in self.inputs[self.KEY_B_VECTORS]):
             raise FilterInputValidationError(
                 "All entries in list 'b_vectors' should have length 3"
             )
+
+        # check the shape of s0 and adc
+        if not self.inputs.get(self.KEY_S0) is None:
+            if np.shape(self.inputs[self.KEY_ADC].image[:, :, :, 0]) != np.shape(
+                self.inputs[self.KEY_S0].image
+            ):
+                raise FilterInputValidationError(
+                    "adc and s0 have different first three dimension"
+                )
