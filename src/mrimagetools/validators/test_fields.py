@@ -1,7 +1,8 @@
+"""Tests for fields.py"""
 import pytest
 
 from mrimagetools.validators.checkers import is_a_unit
-from mrimagetools.validators.fields import UnitField
+from mrimagetools.validators.fields import NiftiDataTypeField, UnitField
 
 
 def test_units() -> None:
@@ -21,3 +22,25 @@ def test_units() -> None:
         assert not is_a_unit(unit)
         with pytest.raises(ValueError):
             UnitField.validate(unit)
+
+
+def test_nifti_data_type_field() -> None:
+    """Test the nifti data type field"""
+    for data_type in ["int8", "float32", "complex128"]:
+        NiftiDataTypeField.validate(data_type)  # no exception raised
+
+    # bad type
+    for data_type in [1, Exception(), str]:
+        with pytest.raises(TypeError):
+            NiftiDataTypeField.validate(data_type)
+
+    # bad value
+    for data_type in ["foobar", "foo"]:
+        with pytest.raises(ValueError):
+            NiftiDataTypeField.validate(data_type)
+
+
+def test_get_nifti_data_type_codes() -> None:
+    """Check that we can return the integer codes for NIFTI data type strings"""
+    for data_type in [("none", 0), ("float32", 16), ("uint64", 1280)]:
+        assert NiftiDataTypeField(data_type[0]).type_code == data_type[1]
