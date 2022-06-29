@@ -1,6 +1,6 @@
 """Parameter model classes and function.
 Used for parameter validation and typing in the filters"""
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
 # Reexport some pydantic imports so they can be imported from this module
 # pylint: disable=unused-import
@@ -30,7 +30,7 @@ class ParameterModel(BaseModel):
         # BaseImageContainer : str
         # where the left is a Type, and the right is a function for encoding (e.g. str)
         # If a type is not in this dictionary, the __repr__ or __str__ function is called
-        json_encoders = {}
+        json_encoders: Dict[type, Callable[[Any], str]] = {}
 
         # Allow non-json types to be processed with a ParameterModel
         arbitrary_types_allowed = True

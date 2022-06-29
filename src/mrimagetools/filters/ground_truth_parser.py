@@ -44,7 +44,7 @@ class GroundTruthConfig(ParameterModel):
     parameters: Dict[str, Any] = Field(default_factory=dict)
 
     @validator("quantities", "calculated_quantities")
-    def quantity_names_are_unique(cls, value: List[Quantity]):
+    def quantity_names_are_unique(cls, value: List[Quantity]) -> List[Quantity]:
         """To check the quantity names are unique"""
 
         names = [quantity.name for quantity in value]
@@ -61,14 +61,14 @@ class GroundTruthInput(ParameterModel):
     config: GroundTruthConfig
 
     @validator("image")
-    def image_must_be_5d(cls, value: NiftiImageContainer):
+    def image_must_be_5d(cls, value: NiftiImageContainer) -> NiftiImageContainer:
         """The input image must be 5D"""
         if len(value.image.shape) != 5:
             raise ValueError(f"Image must be 5D but has shape {value.image.shape}")
         return value
 
     @root_validator(skip_on_failure=True)
-    def check_num_image_match_quantities(cls, values: dict):
+    def check_num_image_match_quantities(cls, values: dict) -> dict:
         """The size of the fifth dimension of the images should
         match the number of defined quantities"""
         quantity_names = [quantity.name for quantity in values["config"].quantities]
@@ -84,7 +84,7 @@ class GroundTruthInput(ParameterModel):
         return values
 
     @root_validator(skip_on_failure=True)
-    def check_duplicate_quantity_names(cls, values: dict):
+    def check_duplicate_quantity_names(cls, values: dict) -> dict:
         """Checks for duplicates between quantities and calculated_quantities"""
         quantity_names = [quantity.name for quantity in values["config"].quantities] + [
             quantity.name for quantity in values["config"].calculated_quantities
@@ -130,7 +130,7 @@ class GroundTruthParser(BaseFilter):
     KEY_QUANTITY = "quantity"
     KEY_DATA_TYPE = "data_type"
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(name="Ground Truth Parser")
         self.parsed_inputs: GroundTruthInput
         self.parsed_outputs: GroundTruthOutput
@@ -161,7 +161,7 @@ class GroundTruthParser(BaseFilter):
             # METADATA
             # If we have a segmentation label, round and squash the
             # data to uint16 and update the NIFTI header
-            metadata = {}
+            metadata: Dict[str, Any] = {}
             if quantity.cast_to is not None:
                 header["datatype"] = quantity.cast_to.type_code
 
@@ -169,7 +169,9 @@ class GroundTruthParser(BaseFilter):
                 metadata[self.KEY_DATA_TYPE] = quantity
 
             metadata[self.KEY_QUANTITY] = quantity.name
-            metadata[self.KEY_UNITS] = quantity.units
+
+            if quantity.units is not None:
+                metadata[self.KEY_UNITS] = quantity.units
 
             # IMAGE
             nifti_image_type = self.parsed_inputs.image.nifti_type

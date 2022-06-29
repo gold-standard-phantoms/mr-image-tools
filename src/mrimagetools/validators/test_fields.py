@@ -1,4 +1,6 @@
 """Tests for fields.py"""
+from typing import Any
+
 import pytest
 
 from mrimagetools.validators.checkers import is_a_unit
@@ -7,6 +9,7 @@ from mrimagetools.validators.fields import NiftiDataTypeField, UnitField
 
 def test_units() -> None:
     """Test the unit validator"""
+    unit: Any
     for unit in ["m", "kilometer/hour", "m^2/s**-1", "newton*meters"]:
         assert is_a_unit(unit)
         UnitField.validate(unit)  # no exception raised
@@ -26,6 +29,7 @@ def test_units() -> None:
 
 def test_nifti_data_type_field() -> None:
     """Test the nifti data type field"""
+    data_type: Any
     for data_type in ["int8", "float32", "complex128"]:
         NiftiDataTypeField.validate(data_type)  # no exception raised
 
