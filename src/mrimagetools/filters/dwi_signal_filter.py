@@ -80,8 +80,8 @@ class DwiSignalFilter(BaseFilter):
 
         true_b_values = copy.deepcopy(b_values)
         normalized_b_vectors = copy.deepcopy(b_vectors)
-        for i in range(0, len(b_values)):
-            true_b_values[i] = b_values[i] * np.linalg.norm(
+        for i, b_value in enumerate(b_values):
+            true_b_values[i] = b_value * np.linalg.norm(
                 b_vectors[i]
             )  # calculating true b values
             normalized_b_vectors[i] = b_vectors[i] / np.linalg.norm(
@@ -99,11 +99,11 @@ class DwiSignalFilter(BaseFilter):
         )
         dwi_image = copy.deepcopy(attenuation_image)
 
-        for i in range(0, len(b_values)):
+        for i, true_b_value in enumerate(true_b_values):
             sum_for_exp = 0
             for dimension in range(0, 3):
                 sum_for_exp += (
-                    true_b_values[i]
+                    true_b_value
                     * normalized_b_vectors[i][dimension]
                     * adc.image[:, :, :, dimension]
                 )
@@ -121,10 +121,10 @@ class DwiSignalFilter(BaseFilter):
         self.outputs[self.KEY_ATTENUATION].metadata[self.M_IMAGE_FLAVOR] = "DWI"
         self.outputs[self.KEY_ATTENUATION].metadata[
             "b_values"
-        ] = b_values  # TODO input or true b_val ?
+        ] = b_values  # for now the input b_val is returned
         self.outputs[self.KEY_ATTENUATION].metadata[
             "b_vectors"
-        ] = b_vectors  # TODO input or true b_vect ?
+        ] = b_vectors  # for now the input b_vect is returned
         self.outputs[self.KEY_DWI].metadata[self.M_IMAGE_FLAVOR] = "DWI"
         self.outputs[self.KEY_DWI].metadata[self.KEY_B_VALUES] = b_values
         self.outputs[self.KEY_DWI].metadata[self.KEY_B_VECTORS] = b_vectors
@@ -208,6 +208,10 @@ class DwiSignalFilter(BaseFilter):
             raise FilterInputValidationError(
                 "All entries in list 'b_vectors' should have length 3"
             )
+        # chek that s0 is 3D
+        if not self.inputs.get(self.KEY_S0) is None:
+            if len(np.shape(self.inputs[self.KEY_S0].image)) != 3:
+                raise FilterInputValidationError("s0 is not 3D")
 
         # check the shape of s0 and adc
         if not self.inputs.get(self.KEY_S0) is None:
