@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - DWI signal filter.
+- Unit field validation
+- Pydantic-based validation/data sanitising
 - General maths utility function and filter.
 - Filter that assigns values to regions specified in a segmentation mask.
 - Filter validation utility function.

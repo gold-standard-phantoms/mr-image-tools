@@ -4,3 +4,4 @@ jsonschema
 nilearn
 gitpython
 pydantic
+pint
