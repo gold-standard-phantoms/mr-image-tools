@@ -34,14 +34,24 @@ def test_filter_name() -> None:
 
 
 def test_add_same_input() -> None:
-    """
-    Check that adding two inputs with the same key raises and error
-    """
+    """Check that adding two inputs with the same key raises and error, but using
+    the set method does not."""
     base_filter = BaseFilterTester()
     base_filter.add_input("key", 1)
 
     with pytest.raises(FilterInputKeyError):
         base_filter.add_input("key", 2)
+
+    base_filter.set_input("key", 2)
+    assert base_filter._i["key"] == 2  # pylint: disable=protected-access
+
+
+def test_set_input_resets_needs_run() -> None:
+    """Check that when a new input is set, the filter is marked
+    as needing to be run"""
+    base_filter = BaseFilterTester()
+    base_filter.set_input("key", 2)
+    assert base_filter.needs_run
 
 
 class SumFilter(BaseFilter):
@@ -69,11 +79,9 @@ def test_validate_inputs() -> None:
     """Filter should only allow int or float inputs"""
     sum_filter = SumFilter()
     sum_filter.add_input("input1", 5)
-    sum_filter.run()
     sum_filter.add_input("input2", 10.5)
-    sum_filter.run()
+    sum_filter.add_input("input3", "str")
     with pytest.raises(FilterInputValidationError):
-        sum_filter.add_input("input3", "str")
         sum_filter.run()
 
 

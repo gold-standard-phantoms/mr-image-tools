@@ -64,6 +64,9 @@ class BaseFilter(ABC):
         # Needs to be run (inputs have changed)
         self.needs_run = False
 
+        # Keep track of the number of times the filter has been run
+        self.times_run = 0
+
     def __str__(self) -> str:
         return self.name
 
@@ -71,14 +74,38 @@ class BaseFilter(ABC):
         """
         Adds an input with a given key and value.
         If the key is already in the inputs, an RuntimeError is raised
+        Raises and exception if the filter has already been run (the child
+        filters are not yet marked as needing to be run again).
         """
         # Mark this filter as needing to be run
-        self.needs_run = True
+        if self.times_run > 0:
+            raise FilterInputKeyError(
+                f"Trying to set key: {key}"
+                "however the filter has already been run so this is not supported (yet)."
+            )
 
         if key in self._i:
             raise FilterInputKeyError(
                 f"Key: {key} already existing in inputs for {self.name} filter."
             )
+        self.needs_run = True
+        self._i[key] = value
+
+    def set_input(self, key: str, value: Any) -> None:
+        """Sets an input with a given key and value.
+        No exception is raised if the input already exists. However,
+        raises and exception if the filter has already been run (the child
+        filters are not yet marked as needing to be run again)."""
+        if self.times_run > 0:
+            raise FilterInputKeyError(
+                f"Trying to set key: {key}"
+                "however the filter has already been run so this is not supported (yet)."
+            )
+        if key not in self._i:
+            self.needs_run = True
+        if key in self._i and not self._i[key] == value:
+            # the value has changed, so mark the filter as needing to be run
+            self.needs_run = True
         self._i[key] = value
 
     def add_inputs(
@@ -214,6 +241,7 @@ class BaseFilter(ABC):
 
         # Run this filter
         self._run()
+        self.times_run += 1
 
         # Mark this filter as not needing to be run
         self.needs_run = False
