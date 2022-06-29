@@ -1,0 +1,186 @@
+"""Tests from GroundTruthParser"""
+from copy import deepcopy
+from typing import Final
+
+import numpy as np
+import pytest
+from nibabel import Nifti1Image
+
+from mrimagetools.containers.image import NiftiImageContainer, NumpyImageContainer
+from mrimagetools.filters.basefilter import FilterInputValidationError
+from mrimagetools.filters.ground_truth_parser import GroundTruthParser
+
+
+@pytest.fixture(name="valid_dict_input")
+def fixture_valid_inputs() -> dict:
+    """A basic input to the filter.
+    Contains two (2x2x2) datasets. The first has values
+    set to one, the second has values set to two."""
+    data = np.ones((2, 2, 2, 1, 2))
+    data[:, :, :, :, 1] *= 2.0
+
+    return {
+        "config": {
+            "quantities": [
+                {"name": "t1", "units": "s"},
+                {"name": "adc", "units": "mm**2/s"},
+            ],
+        },
+        "image": NiftiImageContainer(nifti_img=Nifti1Image(data, affine=np.eye(4))),
+    }
+
+
+@pytest.fixture(name="complex_dict_input")
+def fixture_complex_dict_input() -> dict:
+    """A more complex input.
+    Contains three (2x2x2x2(t)) datasets. The first has values
+    set to one, the second has values set to two, the third
+    is set to three, but cast as a uint64.
+    There is also a calculated quantity and a set of parameter"""
+    data = np.ones((2, 2, 2, 2, 3))
+    data[:, :, :, :, 1] *= 2.0
+    data[:, :, :, :, 2] *= 3.0
+    return {
+        "config": {
+            "quantities": [
+                {"name": "t1", "units": "s"},
+                {"name": "adc", "units": "mm**2/s"},
+                {"name": "inty", "cast_to": "uint64"},
+            ],
+            "parameters": {"foo": "bar", "arr": [1, 2, 3]},
+        },
+        "image": NiftiImageContainer(nifti_img=Nifti1Image(data, affine=np.eye(4))),
+    }
+
+
+def test_basic_validation_and_run(valid_dict_input: dict):
+    """Test the filter runs with some basic inputs. Test the output is as expected."""
+    parser = GroundTruthParser()
+    parser.add_input("image", valid_dict_input["image"])
+    parser.add_input("config", valid_dict_input["config"])
+    parser.run()
+    assert parser.parsed_inputs.image == valid_dict_input["image"]
+    assert parser.parsed_inputs.config.quantities == [
+        {"name": "t1", "units": "s", "cast_to": None},
+        {"name": "adc", "units": "mm**2/s", "cast_to": None},
+    ]
+    np.testing.assert_array_equal(parser.outputs["t1"].image, np.ones((2, 2, 2)))
+    np.testing.assert_array_equal(parser.outputs["adc"].image, 2.0 * np.ones((2, 2, 2)))
+
+
+def test_complex_validation_and_run(complex_dict_input: dict):
+    """Test the filter run with some complex input. Test the output is as expected."""
+    parser = GroundTruthParser()
+    parser.add_input("image", complex_dict_input["image"])
+    parser.add_input("config", complex_dict_input["config"])
+    parser.run()
+    assert parser.parsed_inputs.image == complex_dict_input["image"]
+    assert parser.parsed_inputs.config.quantities == [
+        {"name": "t1", "units": "s", "cast_to": None},
+        {"name": "adc", "units": "mm**2/s", "cast_to": None},
+        {"name": "inty", "units": None, "cast_to": "uint64"},
+    ]
+    np.testing.assert_array_equal(parser.outputs["t1"].image, np.ones((2, 2, 2, 2)))
+    np.testing.assert_array_equal(
+        parser.outputs["adc"].image, 2.0 * np.ones((2, 2, 2, 2))
+    )
+    np.testing.assert_array_equal(
+        parser.outputs["inty"].image, 3 * np.ones((2, 2, 2, 2))
+    )
+    # Check the casting
+    assert parser.outputs["inty"].image.dtype == np.uint64
+
+
+def test_basic_validation_with_parameters(valid_dict_input: dict):
+    """Test the filter runs with some basic inputs and parameters"""
+    parser = GroundTruthParser()
+    parser.add_input("image", valid_dict_input["image"])
+    parser.add_input(
+        "config",
+        {
+            "quantities": valid_dict_input["config"]["quantities"],
+            "parameters": {"foo": "bar"},
+        },
+    )
+    parser.run()
+    assert parser.parsed_inputs.config.parameters == {"foo": "bar"}
+
+
+def test_duplicate_quantity_names_validation(valid_dict_input: dict):
+    """duplicate quantity names are not allowed"""
+    parser = GroundTruthParser()
+    parser.add_input("image", valid_dict_input["image"])
+    parser.add_input(
+        "config",
+        {
+            "quantities": [
+                {"name": "t1", "units": "s", "cast_to": "float64"},
+                {"name": "t1", "units": "mm**2/s", "cast_to": "float64"},
+            ]
+        },
+    )
+    with pytest.raises(FilterInputValidationError):
+        parser.run()
+
+
+def test_bad_image_type_validation():
+    """The `image` is not an image"""
+    parser = GroundTruthParser()
+    image_container = "not_an_image_container"
+    parser.add_input("image", image_container)
+    parser.add_input("config", {"quantities": []})
+    with pytest.raises(FilterInputValidationError):
+        parser.run()
+
+
+def test_missing_config_validation(valid_dict_input: dict):
+    """The config is missing"""
+    parser = GroundTruthParser()
+    parser.add_input("image", valid_dict_input["image"])
+    with pytest.raises(FilterInputValidationError):
+        parser.run()
+
+
+def test_bad_shape_image_validation():
+    """Test a 4d image (not 5d) throws an exception"""
+    parser = GroundTruthParser()
+    parser.add_input("image", NumpyImageContainer(image=np.ones(shape=(2, 2))))
+    parser.add_input("config", {"quantities": []})
+    with pytest.raises(FilterInputValidationError):
+        parser.run()
+
+
+def test_duplicate_quantity_calculated_names_validation(valid_dict_input: dict):
+    """duplicate names between quantities and calculated quantities are not allowed"""
+    parser = GroundTruthParser()
+    parser.add_input("image", valid_dict_input["image"])
+    config: Final[dict] = {
+        "quantities": [
+            {"name": "t1", "units": "s", "cast_to": "float64"},
+            {
+                "name": "adc",
+                "units": "mm**2/s",
+                "cast_to": "float64",
+            },  # duplicate
+        ],
+        "calculated_quantities": [
+            {
+                "name": "adc",
+                "units": "mm**2/s",
+                "cast_to": "float64",
+                "expression": "t1*1",
+            },  # duplicate
+        ],
+    }
+
+    parser.add_input("config", deepcopy(config))
+    with pytest.raises(FilterInputValidationError):
+        parser.run()
+
+    parser = GroundTruthParser()
+    parser.add_input("image", valid_dict_input["image"])
+    config["calculated_quantities"][0][
+        "name"
+    ] = "t2_aug"  # change the name to a unique one
+    parser.set_input("config", deepcopy(config))
+    parser.run()  # should now run

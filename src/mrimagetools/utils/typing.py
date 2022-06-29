@@ -1,4 +1,6 @@
 """Typing utilities"""
+from __future__ import annotations
+
 from typing import Any, Type, TypeVar
 
 T = TypeVar("T")

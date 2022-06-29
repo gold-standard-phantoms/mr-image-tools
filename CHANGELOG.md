@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Nifti data type field validation
 - Unit field validation
 - Pydantic-based validation/data sanitising
+- Generic ground truth loader filter.
 - General maths utility function and filter.
 - Filter that assigns values to regions specified in a segmentation mask.
 - Filter validation utility function.
