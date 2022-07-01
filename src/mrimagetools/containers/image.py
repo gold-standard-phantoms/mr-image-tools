@@ -10,6 +10,7 @@ import nibabel as nib
 import numpy as np
 import numpy.typing as npt
 
+UNITS_UNKNOWN = "unknown"
 UNITS_METERS = "meter"
 UNITS_MILLIMETERS = "mm"
 UNITS_MICRONS = "micron"
@@ -43,7 +44,9 @@ class BaseImageContainer(ABC):
     - PHASE_IMAGE_TYPE
     - COMPLEX_IMAGE_TYPE
     if this is not specified, it will be set to REAL_IMAGE_TYPE for scalar
-    image dtypes and COMPLEX_IMAGE_TYPE for complex dtypes
+    image dtypes and COMPLEX_IMAGE_TYPE for complex dtypes.
+    If the space and time units are not set, they will be initialised to `mm` and
+    `seconds` respectively.
     :param metadata: a metadata dictionary which is associated with the image data.
     This might contain, for example, timing parameters associated with the image
     acquisition.
@@ -101,6 +104,12 @@ class BaseImageContainer(ABC):
         if not isinstance(metadata, dict):
             raise TypeError(f"metadata should be a dict, not {metadata}")
         self._metadata = metadata
+
+        # Check that the space and time units are set. If not, set the defaults
+        if self.space_units == UNITS_UNKNOWN:
+            self.space_units = UNITS_MILLIMETERS
+        if self.time_units == UNITS_UNKNOWN:
+            self.time_units = UNITS_SECONDS
 
         # Check we aren't passed unexpected parameters
         if len(kwargs) != 0:
@@ -466,6 +475,7 @@ class NiftiImageContainer(BaseImageContainer):
         """
         Uses the NIFTI header xyzt_units to extract the space units.
         Returns one of:
+        'unknown'
         'meter'
         'mm'
         'micron'
@@ -482,6 +492,7 @@ class NiftiImageContainer(BaseImageContainer):
         """
         Uses the NIFTI header xyzt_units to extract the time units.
         Returns one of:
+        'unknown'
         'sec'
         'msec'
         'usec'

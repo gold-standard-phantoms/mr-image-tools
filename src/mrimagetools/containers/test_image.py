@@ -728,3 +728,17 @@ def test_numpy_to_nifti(numpy_image_container: NumpyImageContainer) -> None:
             new_image_container.time_step_seconds
             == numpy_image_container.time_step_seconds
         )
+
+
+def test_default_units_are_set() -> None:
+    """Test that some sensibile default units are set when creating
+    image containers"""
+
+    for image_container in [
+        NiftiImageContainer(
+            nifti_img=nib.Nifti1Image(dataobj=np.ones((2, 2, 2, 2)), affine=np.eye(4))
+        ),
+        NumpyImageContainer(image=np.ones((2, 2, 2, 2))),
+    ]:
+        assert image_container.space_units == "mm"
+        assert image_container.time_units == "sec"
