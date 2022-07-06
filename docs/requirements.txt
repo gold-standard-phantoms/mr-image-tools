@@ -2,3 +2,4 @@ Sphinx==4.5.0
 sphinx-markdown-builder==0.5.5
 sphinx-rtd-theme==1.0.0
 sphinxcontrib-bibtex==2.4.2
+sphinx-autodoc-typehints==1.18.3
