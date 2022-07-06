@@ -46,9 +46,7 @@ FilterDictType = Dict[str, Any]
 
 
 class BaseFilter(ABC):
-    """
-    An abstract base class for filters. All filters should inherit this class
-    """
+    """An abstract base class for filters. All filters should inherit this class"""
 
     def __init__(self, name: str = "Unknown") -> None:
         self.name = name
@@ -61,8 +59,8 @@ class BaseFilter(ABC):
         # Parent filters (a list of dict {FILTER: Filter, IO_MAP: dict/None})
         self.parent_dict_list = []  # type: List[Dict]
 
-        # Needs to be run (inputs have changed)
-        self.needs_run = False
+        # Needs to be run (has just been created or inputs have changed)
+        self.needs_run = True
 
         # Keep track of the number of times the filter has been run
         self.times_run = 0
@@ -179,12 +177,15 @@ class BaseFilter(ABC):
         # Otherwise, add parent as a new parent
         self.parent_dict_list.append(new_parent_dict)
 
-    def run(self, history=None) -> None:
-        """
-        Calls the _run class on all parents (recursively) to make sure they are up-to-date.
+    def run(
+        self, validate_only: bool = False, history: Optional[List["BaseFilter"]] = None
+    ) -> None:
+        """Calls the _run class on all parents (recursively) to make sure they are up-to-date.
         Then maps the parents' outputs to inputs for this filter.
         Then calls the _run method on this filter.
-        """
+        :param validate_only: If set true, NO filters will be run. This can be useful for
+        testing validation. However, care must be taken to manually run any necessary parent filters
+        :param history: Not necessary to specify, used to stop cyclic (infinite) recursion"""
         # Don't run anything if the inputs haven't changed
         if not self.needs_run:
             return
@@ -198,8 +199,9 @@ class BaseFilter(ABC):
         history.append(self)
 
         # Run all of the parent filters
-        for parent_dict in self.parent_dict_list:
-            parent_dict[FILTER].run(history=history)
+        if not validate_only:
+            for parent_dict in self.parent_dict_list:
+                parent_dict[FILTER].run(history=history)
 
         logger.info("Running %s", self)
         # Populate all of the inputs to this filter
@@ -239,12 +241,13 @@ class BaseFilter(ABC):
         # Validate the inputs to this filter
         self._validate_inputs()
 
-        # Run this filter
-        self._run()
-        self.times_run += 1
+        if not validate_only:
+            # Run this filter
+            self._run()
+            self.times_run += 1
 
-        # Mark this filter as not needing to be run
-        self.needs_run = False
+            # Mark this filter as not needing to be run
+            self.needs_run = False
 
     @abstractmethod
     def _run(self) -> None:

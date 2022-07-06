@@ -1,6 +1,7 @@
 """ FilterBlock class """
 
 from abc import abstractmethod
+from typing import List, Optional
 
 from mrimagetools.filters.basefilter import BaseFilter
 
@@ -24,14 +25,16 @@ class FilterBlock(BaseFilter):
     def _run(self) -> None:
         pass  # do nothing
 
-    def run(self, history=None) -> None:
+    def run(
+        self, validate_only: bool = False, history: Optional[List["BaseFilter"]] = None
+    ) -> None:
         """
         Calls the BaseFilter's run method to make sure all of the
         inputs of this FilterBlock are up-to-date and valid. Then runs
         this FilterBlock's output filter, and populates the outputs
         to this FilterBlock.
         """
-        super().run(history=history)
+        super().run(validate_only=validate_only, history=history)
         filter_block = self._create_filter_block()
-        filter_block.run()
+        filter_block.run(validate_only=validate_only)
         self.outputs = filter_block.outputs
