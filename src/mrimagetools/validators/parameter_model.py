@@ -1,13 +1,13 @@
 """Parameter model classes and function.
 Used for parameter validation and typing in the filters"""
 from typing import Any, Callable, Dict, Type, Union
-from unittest.mock import Base
 
 # Reexport some pydantic imports so they can be imported from this module
 # pylint: disable=unused-import
 from pydantic import (
     BaseConfig,
     BaseModel,
+    Extra,
     Field,
     ValidationError,
     root_validator,
@@ -47,6 +47,7 @@ class ModelMixin:
 
         # Allow non-json types to be processed with a ParameterModel
         arbitrary_types_allowed = True
+        extra = Extra.forbid
 
 
 class ParameterModel(ModelMixin, BaseModel):
