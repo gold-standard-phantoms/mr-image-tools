@@ -715,7 +715,7 @@ class BidsOutputFilter(BaseFilter):
                     validators=isinstance_validator(str),
                     optional=True,
                 ),
-                BackgroundSuppressionFilter.M_BSUP_INV_PULSE_TIMING: Parameter(
+                BackgroundSuppressionFilter.M_BACKGROUND_SUPPRESSION: Parameter(
                     validators=isinstance_validator(bool), optional=True
                 ),
                 BackgroundSuppressionFilter.M_BSUP_INV_PULSE_TIMING: Parameter(
