@@ -7,11 +7,11 @@ The validator may be used with:
 A ValidationError will be raised if any validation rules fail.
 """
 import os
+import typing
 from copy import deepcopy
+from typing import Final, Literal
 
 import jsonschema
-import numpy as np
-from numpy.random import default_rng
 
 from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
 from mrimagetools.filters.gkm_filter import GkmFilter
@@ -28,7 +28,7 @@ from mrimagetools.validators.parameters import (
     greater_than_validator,
     isinstance_validator,
     list_of_type_validator,
-    non_empty_list_validator,
+    non_empty_list_or_tuple_validator,
     of_length_validator,
     or_validator,
     range_inclusive_validator,
@@ -92,21 +92,22 @@ asl_context_length_validator_generator = lambda other: Validator(
 
 
 # Supported image types
-ASL = "asl"
-GROUND_TRUTH = "ground_truth"
-STRUCTURAL = "structural"
-SUPPORTED_IMAGE_TYPES = [ASL, GROUND_TRUTH, STRUCTURAL]
+SupportedImageTypes = Literal["asl", "ground_truth", "structural"]
+GROUND_TRUTH: SupportedImageTypes = "ground_truth"
+ASL: SupportedImageTypes = "asl"
+STRUCTURAL: SupportedImageTypes = "structural"
+SUPPORTED_IMAGE_TYPES: Final[tuple] = typing.get_args(SupportedImageTypes)
 
 # Supported asl contexts
-M0SCAN = "m0scan"
-CONTROL = "control"
-LABEL = "label"
+M0SCAN: Final[str] = "m0scan"
+CONTROL: Final[str] = "control"
+LABEL: Final[str] = "label"
 SUPPORTED_ASL_CONTEXTS = [M0SCAN, CONTROL, LABEL]
 
 # Suported Interpolation types
-LINEAR = "linear"
-CONTINUOUS = "continuous"
-NEAREST = "nearest"
+LINEAR: Final[str] = "linear"
+CONTINUOUS: Final[str] = "continuous"
+NEAREST: Final[str] = "nearest"
 SUPPORTED_INTERPOLATION_TYPES = [LINEAR, CONTINUOUS, NEAREST]
 
 DEFAULT_ASL_MATRIX = [64, 64, 40]
@@ -341,7 +342,7 @@ IMAGE_TYPE_VALIDATOR = {
                             and_validator(
                                 [
                                     list_of_type_validator((int, float)),
-                                    non_empty_list_validator(),
+                                    non_empty_list_or_tuple_validator(),
                                 ]
                             ),
                             isinstance_validator(dict),
@@ -357,7 +358,7 @@ IMAGE_TYPE_VALIDATOR = {
                             and_validator(
                                 [
                                     list_of_type_validator((int, float)),
-                                    non_empty_list_validator(),
+                                    non_empty_list_or_tuple_validator(),
                                 ]
                             ),
                             isinstance_validator(dict),

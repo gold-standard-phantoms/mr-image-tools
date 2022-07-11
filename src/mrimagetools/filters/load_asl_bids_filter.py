@@ -7,6 +7,7 @@ import nibabel as nib
 import numpy as np
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
     Parameter,
@@ -88,11 +89,15 @@ class LoadAslBidsFilter(BaseFilter):
         # load in the NIFTI image
         image = nib.load(self.inputs[self.KEY_IMAGE_FILENAME])
         # load in the sidecar
-        with open(self.inputs[self.KEY_SIDECAR_FILENAME], "r") as json_file:
+        with open(
+            self.inputs[self.KEY_SIDECAR_FILENAME], "r", encoding="utf-8"
+        ) as json_file:
             sidecar = json.load(json_file)
             json_file.close()
         # load in the aslcontext tsv
-        with open(self.inputs[self.KEY_ASLCONTEXT_FILENAME], "r") as tsv_file:
+        with open(
+            self.inputs[self.KEY_ASLCONTEXT_FILENAME], "r", encoding="utf-8"
+        ) as tsv_file:
             loaded_tsv = tsv_file.readlines()
             tsv_file.close()
 
@@ -101,9 +106,9 @@ class LoadAslBidsFilter(BaseFilter):
 
         # create the output source image
         self.outputs[self.KEY_SOURCE] = NiftiImageContainer(
-            image, metadata=sidecar.copy()
+            image, metadata=ImageMetadata.from_bids(sidecar)
         )
-        self.outputs[self.KEY_SOURCE].metadata["asl_context"] = asl_context
+        self.outputs[self.KEY_SOURCE].metadata.asl_context = asl_context
         self.outputs[self.KEY_SIDECAR] = sidecar
 
         # iterate over 'control', 'label' and 'm0'. Determine which volumes correspond using
@@ -120,20 +125,30 @@ class LoadAslBidsFilter(BaseFilter):
                 self.outputs[key].image = np.squeeze(
                     self.outputs[self.KEY_SOURCE].image[:, :, :, volume_indices]
                 )
-                self.outputs[key].metadata["asl_context"] = [
+                self.outputs[key].metadata.asl_context = [
                     asl_context[i] for i in volume_indices
                 ]
                 # adjust any lists in the metdata that correspond to a value per volume
-                for metadata_key in self.outputs[key].metadata.keys():
+                for metadata_key in (
+                    self.outputs[key].metadata.dict(exclude_none=True).keys()
+                ):
                     if metadata_key not in self.LIST_FIELDS_TO_EXCLUDE:
-                        if isinstance(self.outputs[key].metadata[metadata_key], list):
-                            if len(self.outputs[key].metadata[metadata_key]) == len(
-                                asl_context
-                            ):
-                                self.outputs[key].metadata[metadata_key] = [
-                                    self.outputs[key].metadata[metadata_key][i]
-                                    for i in volume_indices
-                                ]
+                        if isinstance(
+                            getattr(self.outputs[key].metadata, metadata_key), list
+                        ):
+                            if len(
+                                getattr(self.outputs[key].metadata, metadata_key)
+                            ) == len(asl_context):
+                                setattr(
+                                    self.outputs[key].metadata,
+                                    metadata_key,
+                                    [
+                                        getattr(
+                                            self.outputs[key].metadata, metadata_key
+                                        )[i]
+                                        for i in volume_indices
+                                    ],
+                                )
 
     def _validate_inputs(self) -> None:
         """Checks that inputs meet their validation criteria

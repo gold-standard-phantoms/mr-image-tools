@@ -27,6 +27,7 @@ from mrimagetools.containers.image import (
     NiftiImageContainer,
     NumpyImageContainer,
 )
+from mrimagetools.containers.image_metadata import ImageMetadata
 
 
 @pytest.fixture
@@ -637,21 +638,23 @@ def test_nifti_image_container_image_set_different_dtype(
 def test_image_container_metadata_init() -> None:
     """Test the metadata initialisation on the Image Container classes"""
     numpy = NumpyImageContainer(image=np.ones((1, 1, 1)), affine=np.eye(4))
-    assert numpy.metadata == {}
+    assert numpy.metadata.dict(exclude_none=True) == {}
     nifti = NiftiImageContainer(
         nifti_img=nib.Nifti1Image(np.ones((1, 1, 1)), affine=np.eye(4))
     )
-    assert nifti.metadata == {}
+    assert nifti.metadata.dict(exclude_none=True) == {}
 
     numpy = NumpyImageContainer(
-        image=np.ones((1, 1, 1)), affine=np.eye(4), metadata={"foo": "bar"}
+        image=np.ones((1, 1, 1)),
+        affine=np.eye(4),
+        metadata=ImageMetadata(series_description="bar"),
     )
-    assert numpy.metadata == {"foo": "bar"}
+    assert numpy.metadata.dict(exclude_none=True) == {"series_description": "bar"}
     nifti = NiftiImageContainer(
         nifti_img=nib.Nifti1Image(np.ones((1, 1, 1)), affine=np.eye(4)),
-        metadata={"bar": "foo"},
+        metadata=ImageMetadata(series_description="bar"),
     )
-    assert nifti.metadata == {"bar": "foo"}
+    assert nifti.metadata.dict(exclude_none=True) == {"series_description": "bar"}
 
     with pytest.raises(TypeError):
         NumpyImageContainer(
@@ -667,13 +670,9 @@ def test_image_container_metadata_init() -> None:
 def test_image_container_metadata_get_set() -> None:
     """Test the Image Container metadata getting and setting"""
     numpy = NumpyImageContainer(image=np.ones((1, 1, 1)), affine=np.eye(4))
-    assert numpy.metadata == {}
-    numpy.metadata = {"one": 1, "two": 2}
-    assert numpy.metadata == {"one": 1, "two": 2}
-    numpy.metadata["three"] = 3
-    assert numpy.metadata == {"one": 1, "two": 2, "three": 3}
-    with pytest.raises(TypeError):
-        numpy.metadata = "not a dict"  # type: ignore
+    assert numpy.metadata.dict(exclude_none=True) == {}
+    numpy.metadata = ImageMetadata(series_description="desc")
+    assert numpy.metadata.dict(exclude_none=True) == {"series_description": "desc"}
 
 
 def test_nifti_to_numpy(nifti_image_containers_a: List[NiftiImageContainer]) -> None:

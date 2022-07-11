@@ -1,11 +1,12 @@
 """ General Kinetic Model Filter """
 
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Final, Literal, Optional, Union
 
 import numpy as np
 
 from mrimagetools.containers.image import BaseImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
     Parameter,
@@ -250,8 +251,8 @@ class GkmFilter(BaseFilter):
     PCASL = "pcasl"
     PASL = "pasl"
 
-    MODEL_FULL = "full"
-    MODEL_WP = "whitepaper"
+    MODEL_FULL: Final[str] = "full"
+    MODEL_WP: Final[str] = "whitepaper"
 
     def __init__(self) -> None:
         super().__init__(name="General Kinetic Model")
@@ -267,11 +268,11 @@ class GkmFilter(BaseFilter):
         signal_time: float = self.inputs[self.KEY_SIGNAL_TIME]
         label_efficiency: float = self.inputs[self.KEY_LABEL_EFFICIENCY]
         t1_arterial_blood: float = self.inputs[self.KEY_T1_ARTERIAL_BLOOD]
-        model: str = self.inputs[self.KEY_MODEL]
+        model: Literal["full", "whitepaper"] = self.inputs[self.KEY_MODEL]
         label_type = self.inputs[self.KEY_LABEL_TYPE].lower()
 
         # blank dictionary for metadata to add
-        metadata: Dict[str, Any] = {}
+        metadata: ImageMetadata = ImageMetadata()
         m0_tissue = GkmFilter.check_and_make_image_from_value(
             self.inputs[self.KEY_M0], perfusion_rate.shape, metadata, self.KEY_M0
         )
@@ -323,35 +324,35 @@ class GkmFilter(BaseFilter):
             )
         # add metadata depending on the label type
         if label_type == self.PASL:
-            metadata[self.M_BOLUS_CUT_OFF_FLAG] = True
-            metadata[self.M_BOLUS_CUT_OFF_DELAY_TIME] = label_duration
+            metadata.bolus_cut_off_flag = True
+            metadata.bolus_cut_off_delay_time = label_duration
         elif label_type in [self.CASL, self.PCASL]:
-            metadata[self.KEY_LABEL_DURATION] = label_duration
+            metadata.label_duration = label_duration
 
+        delta_m_container: BaseImageContainer = self.inputs[
+            self.KEY_PERFUSION_RATE
+        ].clone()
         # copy 'perfusion_rate' image container and set the image to delta_m
-        self.outputs[self.KEY_DELTA_M] = self.inputs[self.KEY_PERFUSION_RATE].clone()
         # remove some metadata fields
-        self.outputs[self.KEY_DELTA_M].metadata.pop("units", None)
-        self.outputs[self.KEY_DELTA_M].metadata.pop("quantity", None)
-        self.outputs[self.KEY_DELTA_M].image = delta_m
+        delta_m_container.metadata.units = None
+        delta_m_container.metadata.quantity = None
+        delta_m_container.image = delta_m
+        self.outputs[self.KEY_DELTA_M] = delta_m_container
 
         # add common fields to metadata
-        metadata = {
-            **metadata,
-            **{
-                self.KEY_LABEL_TYPE: self.inputs[self.KEY_LABEL_TYPE].lower(),
-                self.M_POST_LABEL_DELAY: (signal_time - label_duration),
-                self.KEY_LABEL_EFFICIENCY: label_efficiency,
-                self.KEY_T1_ARTERIAL_BLOOD: t1_arterial_blood,
-                "image_flavour": "PERFUSION",
-                self.M_GKM_MODEL: model,
-            },
-        }
+        metadata.label_type = self.inputs[self.KEY_LABEL_TYPE].lower()
+        metadata.post_label_delay = signal_time - label_duration
+        metadata.label_efficiency = label_efficiency
+        metadata.t1_arterial_blood = t1_arterial_blood
+        metadata.image_flavor = "PERFUSION"
+        metadata.gkm_model = model
         # merge this with the output image's metadata
-        self.outputs[self.KEY_DELTA_M].metadata = {
-            **self.outputs[self.KEY_DELTA_M].metadata,
-            **metadata,
-        }
+        self.outputs[self.KEY_DELTA_M].metadata = ImageMetadata(
+            **{
+                **self.outputs[self.KEY_DELTA_M].metadata.dict(exclude_none=True),
+                **metadata.dict(exclude_none=True),
+            }
+        )
 
     def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
@@ -469,7 +470,7 @@ class GkmFilter(BaseFilter):
     def check_and_make_image_from_value(
         arg: Union[float, BaseImageContainer],
         shape: tuple,
-        metadata: dict,
+        metadata: ImageMetadata,
         metadata_key: Optional[str],
     ) -> np.ndarray:
         """Checks the type of the input parameter to see if it is a float or a BaseImageContainer.
@@ -510,12 +511,12 @@ class GkmFilter(BaseFilter):
             # Check if all value in array are equal and update metadata if so
             if np.all(out_array == flatten_arr[0]):
                 if metadata_key is not None:
-                    metadata[metadata_key] = flatten_arr[0]
+                    setattr(metadata, metadata_key, flatten_arr[0])
 
         else:
             out_array = arg * np.ones(shape)
             if metadata_key is not None:
-                metadata[metadata_key] = arg
+                setattr(metadata, metadata_key, arg)
 
         return out_array
 

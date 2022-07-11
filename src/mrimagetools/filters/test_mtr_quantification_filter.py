@@ -7,12 +7,14 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.mtr_quantification_filter import MtrQuantificationFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
+from mrimagetools.validators.fields import UnitField
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture() -> dict:
+def data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     test_dims = (4, 4, 1)
     test_seg_mask = np.arange(16).reshape(test_dims)
@@ -23,27 +25,27 @@ def test_data_fixture() -> dict:
     return {
         "image_nosat": NiftiImageContainer(
             nib.Nifti1Image(s_nosat, np.eye(4)),
-            metadata={
-                "series_type": "structural",
-                "modality": "T1w",
-                "series_number": 1,
-            },
+            metadata=ImageMetadata(
+                series_type="structural",
+                modality="T1w",
+                series_number=1,
+            ),
         ),
         "image_sat": NiftiImageContainer(
             nib.Nifti1Image(s_sat, np.eye(4)),
-            metadata={
-                "series_type": "structural",
-                "modality": "T1w",
-                "series_number": 1,
-            },
+            metadata=ImageMetadata(
+                series_type="structural",
+                modality="T1w",
+                series_number=1,
+            ),
         ),
         "image_mtr": NiftiImageContainer(
             nib.Nifti1Image(mtr, np.eye(4)),
-            metadata={
-                "series_type": "structural",
-                "modality": "T1w",
-                "series_number": 1,
-            },
+            metadata=ImageMetadata(
+                series_type="structural",
+                modality="T1w",
+                series_number=1,
+            ),
         ),
     }
 
@@ -103,11 +105,11 @@ def test_mtr_quantification_filter_mock_data(test_data) -> None:
 
     # Check the metadata has been added
 
-    assert mtr_quantification_filter.outputs["mtr"].metadata == {
-        "modality": "MTRmap",
-        "Quantity": "MTR",
-        "Units": "pu",
-        "ImageType": ["DERIVED", "PRIMARY", "MTRmap", "None"],
-        "series_type": "structural",
-        "series_number": 1,
-    }
+    assert mtr_quantification_filter.outputs["mtr"].metadata == ImageMetadata(
+        modality="MTRmap",
+        quantity="MTR",
+        units=UnitField("pu"),
+        image_type=("DERIVED", "PRIMARY", "MTRmap", "NONE"),
+        series_type="structural",
+        series_number=1,
+    )

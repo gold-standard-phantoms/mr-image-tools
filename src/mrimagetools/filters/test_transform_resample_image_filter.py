@@ -1,10 +1,10 @@
+# type: ignore
 """ Transform Resample image Filter Tests """
 # pylint: disable=duplicate-code
 
 import logging
 
 import nibabel as nib
-import nibabel.affines
 import nilearn as nil
 import numpy as np
 import numpy.testing
@@ -149,7 +149,7 @@ def test_transform_resample_image_filter_mock_data() -> None:
 
     # confirm the voxel_size is calculated correctly.
     numpy.testing.assert_array_equal(
-        new_nifti_container.metadata["voxel_size"],
+        new_nifti_container.metadata.voxel_size,
         nib.affines.voxel_sizes(new_nifti_container.affine),
     )
 

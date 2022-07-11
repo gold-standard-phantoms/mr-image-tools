@@ -1,6 +1,7 @@
 """Tests for asl_quantification_filter.py"""
 
 from copy import deepcopy
+from typing import Final
 
 import nibabel as nib
 import numpy as np
@@ -9,9 +10,11 @@ import pytest
 from numpy.random import default_rng
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.filters.gkm_filter import GkmFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
+from mrimagetools.validators.fields import UnitField
 
 TEST_DIM_3D = (2, 2, 2)
 TEST_DIM_4D = (2, 2, 2, 10)
@@ -30,29 +33,29 @@ TEST_NIFTI_CON_ONES = NiftiImageContainer(
     nifti_img=TEST_NIFTI_ONES,
 )
 
-TEST_METADATA = {
-    "RepetitionTime": 5.0,
-    "RepetitionTimePreparation": 5.0,
-    "EchoTime": 0.01,
-    "FlipAngle": 90,
-    "M0Type": "Included",
-    "ComplexImageComponent": "REAL",
-    "ImageType": [
+TEST_METADATA: Final[ImageMetadata] = ImageMetadata(
+    repetition_time=5.0,
+    repetition_time_preparation=5.0,
+    echo_time=0.01,
+    excitation_flip_angle=90,
+    m0_type="Included",
+    complex_image_component="REAL",
+    image_type=(
         "ORIGINAL",
         "PRIMARY",
         "PERFUSION",
         "NONE",
-    ],
-    "BackgroundSuppression": False,
-    "VascularCrushing": False,
-    "LabelingDuration": 1.8,
-    "PostLabelingDelay": 1.8,
-    "LabelingEfficiency": 0.85,
-}
+    ),
+    background_suppression=False,
+    vascular_crushing=False,
+    label_duration=1.8,
+    post_label_delay=1.8,
+    label_efficiency=0.85,
+)
 
 
 @pytest.fixture(name="test_data_wp")
-def test_data_wp_fixture() -> dict:
+def data_wp_fixture() -> dict:
     label_3d = NiftiImageContainer(
         nib.Nifti2Image(0.99 * np.ones(TEST_DIM_3D), affine=np.eye(4)),
         metadata=TEST_METADATA,
@@ -80,13 +83,13 @@ def test_data_wp_fixture() -> dict:
         "label_duration": 1.8,
         "post_label_delay": 1.8,
         "label_efficiency": 0.85,
-        "model": "whitepaper",
+        "gkm_model": "whitepaper",
         "t1_arterial_blood": 1.65,
     }
 
 
 @pytest.fixture(name="multiphase_data")
-def test_fixture_multiphase() -> dict:
+def fixture_multiphase() -> dict:
     """Generates test data using the general kinetic model with ground truths
     for perfusion rate and transit time"""
     n_vols = 10
@@ -146,11 +149,11 @@ def test_fixture_multiphase() -> dict:
 
 
 @pytest.fixture(name="test_data_full")
-def test_data_full_fixture(multiphase_data) -> dict:
+def data_full_fixture(multiphase_data) -> dict:
     dim_4d_2 = (2, 2, 2, 9)
     metadata = deepcopy(TEST_METADATA)
-    metadata["PostLabelingDelay"] = multiphase_data["post_label_delay"]
-    metadata["MultiphaseIndex"] = multiphase_data["multiphase_index"]
+    metadata.post_label_delay = multiphase_data["post_label_delay"]
+    metadata.multiphase_index = multiphase_data["multiphase_index"]
 
     label = NiftiImageContainer(
         nib.Nifti2Image(multiphase_data["label"]["casl"], affine=np.eye(4)),
@@ -199,7 +202,7 @@ def input_validation_dict_fixture(test_data_wp, test_data_full) -> dict:
             "label": [False, test_data_wp["label_3d"], TEST_NIFTI_ONES, 1.0, "str"],
             "m0": [False, test_data_wp["m0"], TEST_NIFTI_ONES, 1.0, "str"],
             "label_type": [False, "casl", "CSL", 1.0, TEST_NIFTI_CON_ONES],
-            "model": [False, "whitepaper", "whitpaper", 1.0, TEST_NIFTI_CON_ONES],
+            "gkm_model": [False, "whitepaper", "whitpaper", 1.0, TEST_NIFTI_CON_ONES],
             "label_duration": [False, 1.8, -1.8, "str"],
             "post_label_delay": [False, 1.8, -1.8, "str"],
             "label_efficiency": [False, 0.85, 1.85, "str"],
@@ -226,7 +229,7 @@ def input_validation_dict_fixture(test_data_wp, test_data_full) -> dict:
             "m0": [False, test_data_full["m0"], TEST_NIFTI_ONES, 1.0, "str"],
             "t1_tissue": [False, test_data_full["t1_tissue"], TEST_NIFTI_ONES, "str"],
             "label_type": [False, "casl", "CSL", 1.0, TEST_NIFTI_CON_ONES],
-            "model": [False, "full", "fll", 1.0, TEST_NIFTI_CON_ONES],
+            "gkm_model": [False, "full", "fll", 1.0, TEST_NIFTI_CON_ONES],
             "label_duration": [False, 1.8, -1.8, "str"],
             "post_label_delay": [
                 False,
@@ -399,7 +402,7 @@ def test_asl_quantification_filter_with_mock_data_casl(test_data_wp) -> None:
         "label": test_data_wp["label_3d"],
         "m0": test_data_wp["m0"],
         "label_type": "casl",
-        "model": "whitepaper",
+        "gkm_model": "whitepaper",
         "lambda_blood_brain": 0.9,
         "label_duration": 1.8,
         "post_label_delay": 1.8,
@@ -426,22 +429,24 @@ def test_asl_quantification_filter_with_mock_data_casl(test_data_wp) -> None:
     )
 
     # check the image metadata
-    assert asl_quantification_filter.outputs["perfusion_rate"].metadata == {
-        "ComplexImageComponent": "REAL",
-        "ImageType": [
+    assert asl_quantification_filter.outputs[
+        "perfusion_rate"
+    ].metadata == ImageMetadata(
+        complex_image_component="REAL",
+        image_type=(
             "DERIVED",
             "PRIMARY",
             "PERFUSION",
             "RCBF",
-        ],
-        "BackgroundSuppression": False,
-        "VascularCrushing": False,
-        "LabelingDuration": 1.8,
-        "PostLabelingDelay": 1.8,
-        "LabelingEfficiency": 0.85,
-        "asl_context": "cbf",
-        "Units": "ml/100g/min",
-        "EstimationAlgorithm": """Calculated using the single subtraction simplified model for
+        ),
+        background_suppression=False,
+        vascular_crushing=False,
+        label_duration=1.8,
+        post_label_delay=1.8,
+        label_efficiency=0.85,
+        asl_context="cbf",
+        units=UnitField("ml/100g/min"),
+        estimation_algorithm="""Calculated using the single subtraction simplified model for
 CBF quantification from the ASL White Paper:
 
 Alsop et. al., Recommended implementation of arterial
@@ -450,7 +455,7 @@ a consensus of the ISMRM perfusion study group and the
 european consortium for ASL in dementia. Magnetic Resonance
 in Medicine, 73(1):102–116, apr 2014. doi:10.1002/mrm.25197
 """,
-    }
+    )
 
 
 def test_asl_quantification_filter_with_mock_timeseries(test_data_wp) -> None:
@@ -461,7 +466,7 @@ def test_asl_quantification_filter_with_mock_timeseries(test_data_wp) -> None:
         "label": test_data_wp["label_4d"],
         "m0": test_data_wp["m0"],
         "label_type": "casl",
-        "model": "whitepaper",
+        "gkm_model": "whitepaper",
         "lambda_blood_brain": 0.9,
         "label_duration": 1.8,
         "post_label_delay": 1.8,
@@ -531,7 +536,7 @@ def test_asl_quantification_filter_with_mock_data_pasl(test_data_wp) -> None:
         "label": test_data_wp["label_3d"],
         "m0": test_data_wp["m0"],
         "label_type": "pasl",
-        "model": "whitepaper",
+        "gkm_model": "whitepaper",
         "lambda_blood_brain": 0.9,
         "label_duration": 0.8,
         "post_label_delay": 1.8,
@@ -558,22 +563,24 @@ def test_asl_quantification_filter_with_mock_data_pasl(test_data_wp) -> None:
     )
 
     # check the image metadata
-    assert asl_quantification_filter.outputs["perfusion_rate"].metadata == {
-        "ComplexImageComponent": "REAL",
-        "ImageType": [
+    assert asl_quantification_filter.outputs[
+        "perfusion_rate"
+    ].metadata == ImageMetadata(
+        complex_image_component="REAL",
+        image_type=(
             "DERIVED",
             "PRIMARY",
             "PERFUSION",
             "RCBF",
-        ],
-        "BackgroundSuppression": False,
-        "VascularCrushing": False,
-        "LabelingDuration": 1.8,
-        "PostLabelingDelay": 1.8,
-        "LabelingEfficiency": 0.85,
-        "asl_context": "cbf",
-        "Units": "ml/100g/min",
-        "EstimationAlgorithm": """Calculated using the single subtraction simplified model for
+        ),
+        background_suppression=False,
+        vascular_crushing=False,
+        label_duration=1.8,
+        post_label_delay=1.8,
+        label_efficiency=0.85,
+        asl_context="cbf",
+        units=UnitField("ml/100g/min"),
+        estimation_algorithm="""Calculated using the single subtraction simplified model for
 CBF quantification from the ASL White Paper:
 
 Alsop et. al., Recommended implementation of arterial
@@ -582,7 +589,7 @@ a consensus of the ISMRM perfusion study group and the
 european consortium for ASL in dementia. Magnetic Resonance
 in Medicine, 73(1):102–116, apr 2014. doi:10.1002/mrm.25197
 """,
-    }
+    )
 
 
 ## Tests for when the AslQuantificationFilter uses the 'full' model.
@@ -621,7 +628,7 @@ def test_asl_quantification_filter_full_mock_data(
     for label_type in ["casl"]:
         asl_quantification_filter = AslQuantificationFilter()
         asl_quantification_filter.add_inputs(test_data_full)
-        asl_quantification_filter.add_input("model", "full")
+        asl_quantification_filter.add_input("gkm_model", "full")
         asl_quantification_filter.run()
 
         # compare the image with the ground truth
@@ -635,26 +642,28 @@ def test_asl_quantification_filter_full_mock_data(
         )
 
         # check the image metadata
-        assert asl_quantification_filter.outputs["perfusion_rate"].metadata == {
-            "ComplexImageComponent": "REAL",
-            "ImageType": [
+        assert asl_quantification_filter.outputs[
+            "perfusion_rate"
+        ].metadata == ImageMetadata(
+            complex_image_component="REAL",
+            image_type=(
                 "DERIVED",
                 "PRIMARY",
                 "PERFUSION",
                 "RCBF",
-            ],
-            "BackgroundSuppression": False,
-            "VascularCrushing": False,
-            "LabelingDuration": test_data_full["label_duration"],
-            "PostLabelingDelay": test_data_full["post_label_delay"],
-            "LabelingEfficiency": test_data_full["label_efficiency"],
-            "asl_context": "cbf",
-            "Units": "ml/100g/min",
-            "EstimationAlgorithm": """Least Squares fit to the General Kinetic Model for
+            ),
+            background_suppression=False,
+            vascular_crushing=False,
+            label_duration=test_data_full["label_duration"],
+            post_label_delay=test_data_full["post_label_delay"],
+            label_efficiency=test_data_full["label_efficiency"],
+            asl_context="cbf",
+            units=UnitField("ml/100g/min"),
+            estimation_algorithm="""Least Squares fit to the General Kinetic Model for
 Arterial Spin Labelling:
 
 Buxton et. al., A general
 kinetic model for quantitative perfusion imaging with arterial
 spin labeling. Magnetic Resonance in Medicine, 40(3):383–396,
 sep 1998. doi:10.1002/mrm.1910400308.""",
-        }
+        )

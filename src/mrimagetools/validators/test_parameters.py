@@ -22,7 +22,7 @@ from mrimagetools.validators.parameters import (
     isfile_validator,
     isinstance_validator,
     list_of_type_validator,
-    non_empty_list_validator,
+    non_empty_list_or_tuple_validator,
     of_length_validator,
     or_validator,
     range_exclusive_validator,
@@ -346,7 +346,7 @@ def test_list_of_type_validator() -> None:
 
 def test_non_empty_list_validator() -> None:
     """Test the non-empty list validator"""
-    validator = non_empty_list_validator()
+    validator = non_empty_list_or_tuple_validator()
     assert str(validator) == "Value must be a non-empty list"
     assert validator([1, 2, 3])
     assert validator(["foo", "bar"])
@@ -635,7 +635,9 @@ def test_parameter_validator_valid() -> None:
     parameter_validator = ParameterValidator(
         {
             "foo": Parameter(reserved_string_list_validator(["foo", "bar"])),
-            "bar": Parameter(non_empty_list_validator(), default_value=[1, 2, 3]),
+            "bar": Parameter(
+                non_empty_list_or_tuple_validator(), default_value=[1, 2, 3]
+            ),
         }
     )
     assert parameter_validator.validate({"foo": "bar foo bar"}) == {
@@ -650,7 +652,7 @@ def test_parameter_validator_valid_with_optional_parameters() -> None:
     parameter_validator = ParameterValidator(
         {
             "foo": Parameter(reserved_string_list_validator(["foo", "bar"])),
-            "bar": Parameter(non_empty_list_validator(), optional=True),
+            "bar": Parameter(non_empty_list_or_tuple_validator(), optional=True),
         }
     )
     assert parameter_validator.validate({"foo": "bar foo bar"}) == {
@@ -663,7 +665,7 @@ def test_parameter_validator_missing_required() -> None:
     parameter_validator = ParameterValidator(
         {
             "foo": Parameter(reserved_string_list_validator(["foo", "bar"])),
-            "bar": Parameter(non_empty_list_validator()),
+            "bar": Parameter(non_empty_list_or_tuple_validator()),
         }
     )
 

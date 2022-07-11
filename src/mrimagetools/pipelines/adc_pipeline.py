@@ -68,7 +68,9 @@ def adc_pipeline(dwi_nifti_filename: str, output_dir: str = None) -> dict:
         )
 
         BidsOutputFilter.save_json(
-            adc_quantification_filter.outputs[AdcQuantificationFilter.KEY_ADC].metadata,
+            adc_quantification_filter.outputs[
+                AdcQuantificationFilter.KEY_ADC
+            ].metadata.dict(exclude_none=None),
             adc_json_filename,
         )
         output_filenames = {"nifti": adc_nifti_filename, "json": adc_json_filename}

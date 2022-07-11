@@ -12,7 +12,9 @@ import pytest
 from mrimagetools.cli import main as cli
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.load_bids_filter import LoadBidsFilter
-from mrimagetools.filters.test_adc_quantification_filter import test_data_fixture
+
+# pylint: disable=unused-import (importing the fixture)
+from mrimagetools.filters.test_adc_quantification_filter import data_fixture
 from mrimagetools.pipelines.adc_pipeline import adc_pipeline
 
 
@@ -26,7 +28,7 @@ def pipeline_test_data_fixture(test_data, tmp_path) -> dict:
     dwi_json_filename = base_filename + ".json"
     nib.save(test_data["dwi"].nifti_image, dwi_nifti_filename)
     BidsOutputFilter.save_json(
-        test_data["dwi"].metadata,
+        test_data["dwi"].metadata.dict(exclude_none=True),
         dwi_json_filename,
     )
 

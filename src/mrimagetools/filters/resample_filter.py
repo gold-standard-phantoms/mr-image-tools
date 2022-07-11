@@ -1,5 +1,4 @@
 """ Resample Filter """
-import nibabel as nib
 import nibabel.affines
 import numpy as np
 from nilearn.image import resample_img
@@ -80,10 +79,10 @@ class ResampleFilter(BaseFilter):
         resampled_image.space_units = self.inputs[self.KEY_IMAGE].space_units
         resampled_image.time_units = self.inputs[self.KEY_IMAGE].time_units
 
-        self.outputs[self.KEY_IMAGE] = resampled_image
-        self.outputs[self.KEY_IMAGE].metadata["voxel_size"] = list(
+        resampled_image.metadata.voxel_size = list(
             nibabel.affines.voxel_sizes(resampled_image.nifti_image.affine)
         )
+        self.outputs[self.KEY_IMAGE] = resampled_image
 
     def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria

@@ -5,6 +5,7 @@ import jsonschema
 import numpy as np
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
     Parameter,
@@ -165,18 +166,18 @@ class GroundTruthLoaderFilter(BaseFilter):
 
                 # If we have a segmentation label, round and squash the
                 # data to uint16 and update the NIFTI header
-                metadata = {}
+                metadata: ImageMetadata = ImageMetadata()
                 if quantity == "seg_label":
                     header["datatype"] = 512
                     image_data = np.around(image_data).astype(dtype=np.uint16)
-                    metadata[self.KEY_SEGMENTATION] = self.inputs[self.KEY_SEGMENTATION]
+                    metadata.segmentation = self.inputs[self.KEY_SEGMENTATION]
 
                 nifti_image_type = image_container.nifti_type
-                metadata[self.KEY_MAG_STRENGTH] = self.inputs[self.KEY_PARAMETERS][
+                metadata.magnetic_field_strength = self.inputs[self.KEY_PARAMETERS][
                     self.KEY_MAG_STRENGTH
                 ]
-                metadata[self.KEY_QUANTITY] = quantity
-                metadata[self.KEY_UNITS] = self.inputs[self.KEY_UNITS][i]
+                metadata.quantity = quantity
+                metadata.units = self.inputs[self.KEY_UNITS][i]
 
                 # If we have a ground_truth_modulate input, and this quantity is to be modulated
                 if (

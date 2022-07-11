@@ -8,11 +8,13 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
+from mrimagetools.validators.fields import UnitField
 
 
 @pytest.fixture(name="input_validation_dict")
@@ -194,66 +196,66 @@ def test_ground_truth_loader_filter_with_mock_data(mock_data: dict) -> None:
         ground_truth_filter.outputs["perfusion_rate"].image,
         np.zeros((3, 3, 3), dtype=np.float32),
     )
-    assert ground_truth_filter.outputs["perfusion_rate"].metadata == {
-        "magnetic_field_strength": 3.0,
-        "quantity": "perfusion_rate",
-        "units": "ml/100g/min",
-    }
+    assert ground_truth_filter.outputs["perfusion_rate"].metadata == ImageMetadata(
+        magnetic_field_strength=3.0,
+        quantity="perfusion_rate",
+        units=UnitField("ml/100g/min"),
+    )
 
     assert ground_truth_filter.outputs["transit_time"].image.dtype == np.float32
     numpy.testing.assert_array_equal(
         ground_truth_filter.outputs["transit_time"].image,
         np.ones((3, 3, 3), dtype=np.float32),
     )
-    assert ground_truth_filter.outputs["transit_time"].metadata == {
-        "magnetic_field_strength": 3.0,
-        "quantity": "transit_time",
-        "units": "s",
-    }
+    assert ground_truth_filter.outputs["transit_time"].metadata == ImageMetadata(
+        magnetic_field_strength=3.0,
+        quantity="transit_time",
+        units=UnitField("s"),
+    )
 
     assert ground_truth_filter.outputs["t1"].image.dtype == np.float32
     numpy.testing.assert_array_equal(
         ground_truth_filter.outputs["t1"].image,
         np.ones((3, 3, 3), dtype=np.float32) * 2,
     )
-    assert ground_truth_filter.outputs["t1"].metadata == {
-        "magnetic_field_strength": 3.0,
-        "quantity": "t1",
-        "units": "s",
-    }
+    assert ground_truth_filter.outputs["t1"].metadata == ImageMetadata(
+        magnetic_field_strength=3.0,
+        quantity="t1",
+        units=UnitField("s"),
+    )
 
     assert ground_truth_filter.outputs["t2"].image.dtype == np.float32
     numpy.testing.assert_array_equal(
         ground_truth_filter.outputs["t2"].image,
         np.ones((3, 3, 3), dtype=np.float32) * 3,
     )
-    assert ground_truth_filter.outputs["t2"].metadata == {
-        "magnetic_field_strength": 3.0,
-        "quantity": "t2",
-        "units": "s",
-    }
+    assert ground_truth_filter.outputs["t2"].metadata == ImageMetadata(
+        magnetic_field_strength=3.0,
+        quantity="t2",
+        units=UnitField("s"),
+    )
 
     assert ground_truth_filter.outputs["t2_star"].image.dtype == np.float32
     numpy.testing.assert_array_equal(
         ground_truth_filter.outputs["t2_star"].image,
         np.ones((3, 3, 3), dtype=np.float32) * 4,
     )
-    assert ground_truth_filter.outputs["t2_star"].metadata == {
-        "magnetic_field_strength": 3.0,
-        "quantity": "t2_star",
-        "units": "s",
-    }
+    assert ground_truth_filter.outputs["t2_star"].metadata == ImageMetadata(
+        magnetic_field_strength=3.0,
+        quantity="t2_star",
+        units=UnitField("s"),
+    )
 
     assert ground_truth_filter.outputs["m0"].image.dtype == np.float32
     numpy.testing.assert_array_equal(
         ground_truth_filter.outputs["m0"].image,
         np.ones((3, 3, 3), dtype=np.float32) * 5,
     )
-    assert ground_truth_filter.outputs["m0"].metadata == {
-        "magnetic_field_strength": 3.0,
-        "quantity": "m0",
-        "units": "",
-    }
+    assert ground_truth_filter.outputs["m0"].metadata == ImageMetadata(
+        magnetic_field_strength=3.0,
+        quantity="m0",
+        units=UnitField(""),
+    )
 
     # Check the seg_label type has changed to a uint16
     assert ground_truth_filter.outputs["seg_label"].image.dtype == np.uint16
@@ -261,16 +263,16 @@ def test_ground_truth_loader_filter_with_mock_data(mock_data: dict) -> None:
         ground_truth_filter.outputs["seg_label"].image,
         np.ones((3, 3, 3), dtype=np.uint16) * 6,
     )
-    assert ground_truth_filter.outputs["seg_label"].metadata == {
-        "magnetic_field_strength": 3.0,
-        "quantity": "seg_label",
-        "units": "",
-        "segmentation": {
+    assert ground_truth_filter.outputs["seg_label"].metadata == ImageMetadata(
+        magnetic_field_strength=3.0,
+        quantity="seg_label",
+        units=UnitField(""),
+        segmentation={
             "csf": 3,
             "grey_matter": 1,
             "white_matter": 2,
         },
-    }
+    )
 
 
 def test_ground_truth_loader_filter_with_test_data() -> None:
@@ -350,11 +352,11 @@ def test_ground_truth_loader_filter_lambda_blood_brain_in_image(
     gt_filter.add_inputs(mock_data)
     gt_filter.run()
 
-    assert gt_filter.outputs["lambda_blood_brain"].metadata == {
-        "magnetic_field_strength": 3.0,
-        "quantity": "lambda_blood_brain",
-        "units": "g/ml",
-    }
+    assert gt_filter.outputs["lambda_blood_brain"].metadata == ImageMetadata(
+        magnetic_field_strength=3.0,
+        quantity="lambda_blood_brain",
+        units=UnitField("g/ml"),
+    )
 
     numpy.testing.assert_array_equal(
         gt_filter.outputs["lambda_blood_brain"].image,

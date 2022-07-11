@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Final, Literal, Optional, Sequence, Union
 
 import git
 import nibabel as nib
@@ -19,6 +19,11 @@ from mrimagetools.containers.image import (
     PHASE_IMAGE_TYPE,
     REAL_IMAGE_TYPE,
     BaseImageContainer,
+)
+from mrimagetools.containers.image_metadata import (
+    AslContext,
+    AslSingleContext,
+    ImageMetadata,
 )
 from mrimagetools.data.filepaths import ASL_BIDS_SCHEMA, M0SCAN_BIDS_SCHEMA
 from mrimagetools.filters.background_suppression_filter import (
@@ -39,7 +44,7 @@ from mrimagetools.validators.parameters import (
     from_list_validator,
     greater_than_equal_to_validator,
     isinstance_validator,
-    non_empty_list_validator,
+    non_empty_list_or_tuple_validator,
     or_validator,
     regex_validator,
 )
@@ -47,11 +52,13 @@ from mrimagetools.validators.user_parameter_input import (
     ASL,
     ASL_CONTEXT,
     GROUND_TRUTH,
+    M0SCAN,
     MODALITY,
     STRUCTURAL,
     SUPPORTED_ASL_CONTEXTS,
     SUPPORTED_IMAGE_TYPES,
     SUPPORTED_STRUCT_MODALITY_LABELS,
+    SupportedImageTypes,
 )
 
 logger = logging.getLogger(__name__)
@@ -146,9 +153,9 @@ class BidsOutputFilter(BaseFilter):
     :type 'post_label_delay': float or List containg either float or ``None``.
     :param 'label_efficiency': the degree of inversion of the magnetisation (between 0 and 1)
     :type 'label_efficiency': float
-    :param 'image_flavour': a string that is used as the third entry in the BIDS field ``ImageType``
+    :param 'image_flavor': a string that is used as the third entry in the BIDS field ``ImageType``
         (corresponding with the dicom tag (0008,0008).  For ASL images this should be 'PERFUSION'.
-    :type 'image_flavour': str
+    :type 'image_flavor': str
     :param 'background_suppression': A boolean denoting whether background suppression has been
       performed. Can be omitted, in which case it will be assumed there
       is no background suppression.
@@ -191,30 +198,30 @@ class BidsOutputFilter(BaseFilter):
     """
 
     # Key Constants
-    KEY_IMAGE = "image"
-    KEY_OUTPUT_DIRECTORY = "output_directory"
-    KEY_FILENAME_PREFIX = "filename_prefix"
-    KEY_SUBJECT_LABEL = "subject_label"
-    KEY_FILENAME = "filename"
-    KEY_SIDECAR = "sidecar"
+    KEY_IMAGE: Final[str] = "image"
+    KEY_OUTPUT_DIRECTORY: Final[str] = "output_directory"
+    KEY_FILENAME_PREFIX: Final[str] = "filename_prefix"
+    KEY_SUBJECT_LABEL: Final[str] = "subject_label"
+    KEY_FILENAME: Final[str] = "filename"
+    KEY_SIDECAR: Final[str] = "sidecar"
 
-    SERIES_DESCRIPTION = "series_description"
-    SERIES_NUMBER = "series_number"
-    SERIES_TYPE = "series_type"
-    DRO_SOFTWARE = "DROSoftware"
-    DRO_SOFTWARE_VERSION = "DROSoftwareVersion"
-    DRO_SOFTWARE_URL = "DROSoftwareUrl"
-    ACQ_DATE_TIME = "AcquisitionDateTime"
-    IMAGE_TYPE = "ImageType"
-    M0_TYPE = "M0Type"
-    M0_ESTIMATE = "M0Estimate"
+    SERIES_DESCRIPTION: Final[str] = "series_description"
+    SERIES_NUMBER: Final[str] = "series_number"
+    SERIES_TYPE: Final[str] = "series_type"
+    DRO_SOFTWARE: Final[str] = "DROSoftware"
+    DRO_SOFTWARE_VERSION: Final[str] = "DROSoftwareVersion"
+    DRO_SOFTWARE_URL: Final[str] = "DROSoftwareUrl"
+    ACQ_DATE_TIME: Final[str] = "AcquisitionDateTime"
+    IMAGE_TYPE: Final[str] = "ImageType"
+    M0_TYPE: Final[str] = "M0Type"
+    M0_ESTIMATE: Final[str] = "M0Estimate"
 
-    ASL_SUBDIR = "perf"
-    STRUCT_SUBDIR = "anat"
-    GT_SUBDIR = "ground_truth"
+    ASL_SUBDIR: Final[str] = "perf"
+    STRUCT_SUBDIR: Final[str] = "anat"
+    GT_SUBDIR: Final[str] = "ground_truth"
 
     # metadata parameters to BIDS fields mapping dictionary
-    BIDS_MAPPING = {
+    BIDS_MAPPING: Final[Dict] = {
         GkmFilter.KEY_LABEL_TYPE: "ArterialSpinLabelingType",
         GkmFilter.KEY_LABEL_DURATION: "LabelingDuration",
         GkmFilter.KEY_LABEL_EFFICIENCY: "LabelingEfficiency",
@@ -241,14 +248,14 @@ class BidsOutputFilter(BaseFilter):
     }
 
     # maps ASLDRO MRI contrast to BIDS contrast names
-    ACQ_CONTRAST_MAPPING = {
+    ACQ_CONTRAST_MAPPING: Final[Dict] = {
         MriSignalFilter.CONTRAST_GE: "GR",
         MriSignalFilter.CONTRAST_SE: "SE",
         MriSignalFilter.CONTRAST_IR: "IR",
     }
 
     # maps ASLDRO image type names to complex components used in BIDS
-    COMPLEX_IMAGE_COMPONENT_MAPPING = {
+    COMPLEX_IMAGE_COMPONENT_MAPPING: Final[Dict] = {
         REAL_IMAGE_TYPE: "REAL",
         IMAGINARY_IMAGE_TYPE: "IMAGINARY",
         COMPLEX_IMAGE_TYPE: "COMPLEX",
@@ -257,7 +264,7 @@ class BidsOutputFilter(BaseFilter):
     }
 
     # Maps ASLDRO tissue types to BIDS standard naming
-    LABEL_MAP_MAPPING = {
+    LABEL_MAP_MAPPING: Final[Dict] = {
         "background": "BG",
         "grey_matter": "GM",
         "white_matter": "WM",
@@ -266,7 +273,7 @@ class BidsOutputFilter(BaseFilter):
         "lesion": "L",
     }
 
-    QUANTITY_MAPPING = {
+    QUANTITY_MAPPING: Final[Dict] = {
         "t1": "T1map",
         "t2": "T2map",
         "t2_star": "T2starmap",
@@ -288,9 +295,11 @@ class BidsOutputFilter(BaseFilter):
         output_directory = os.path.join(output_directory, subject_string)
         # map the image metadata to the json sidecar
         json_sidecar: Dict[str, Any] = map_dict(
-            image.metadata, self.BIDS_MAPPING, io_map_optional=True
+            image.metadata.dict(exclude_unset=True),
+            self.BIDS_MAPPING,
+            io_map_optional=True,
         )
-        series_number_string = f"acq-{image.metadata[self.SERIES_NUMBER]:03d}"
+        series_number_string = f"acq-{image.metadata.series_number:03d}"
         # if the `filename_prefix` is not empty add an underscore after it
         if self.inputs[self.KEY_FILENAME_PREFIX] == "":
             filename_prefix = ""
@@ -324,24 +333,24 @@ class BidsOutputFilter(BaseFilter):
         ]
 
         # default modality_label
-        modality_label = ""
+        modality_label: str = ""
         # series_type specific things
         ## Series type 'asl'
         sub_directory: Optional[str] = None
         asl_context_filename: Optional[str] = None
         asl_context_tsv: Optional[str] = None
-        if image.metadata[self.SERIES_TYPE] == ASL:
+        if image.metadata.asl_context is not None and image.metadata.series_type == ASL:
             # ASL series, create aslcontext.tsv string
             sub_directory = self.ASL_SUBDIR
 
             modality_label = self.determine_asl_modality_label(
-                image.metadata[ASL_CONTEXT]
+                image.metadata.asl_context
             )
 
             if modality_label == ASL:
                 # create _aslcontext_tsv
                 asl_context_tsv = "volume_type\n" + "\n".join(
-                    image.metadata[ASL_CONTEXT]
+                    image.metadata.asl_context
                 )
                 asl_context_filename = os.path.join(
                     output_directory,
@@ -358,14 +367,14 @@ class BidsOutputFilter(BaseFilter):
                 ].upper()
 
                 # set the BIDS field M0 correctly
-                if any("m0scan" in s for s in image.metadata[ASL_CONTEXT]):
+                if any("m0scan" in s for s in image.metadata.asl_context):
                     # if aslcontext contains one or more "m0scan" volumes set to
                     # "Included" to indicate "WithinASL"
                     json_sidecar[self.M0_TYPE] = "Included"
-                elif isinstance(image.metadata.get("m0"), (float, int)):
+                elif image.metadata.m0 is not None:
                     # numerical value of m0 supplied so use this.
                     json_sidecar[self.M0_TYPE] = "Estimate"
-                    json_sidecar[self.M0_ESTIMATE] = image.metadata["m0"]
+                    json_sidecar[self.M0_ESTIMATE] = image.metadata.m0
                 else:
                     # no numeric value or m0scan, so set to "Absent"
                     json_sidecar[self.M0_TYPE] = "Absent"
@@ -374,7 +383,7 @@ class BidsOutputFilter(BaseFilter):
                 json_sidecar["ImageType"] = [
                     "ORIGINAL",
                     "PRIMARY",
-                    image.metadata["image_flavour"],
+                    image.metadata.image_flavor,
                     "NONE",
                 ]
 
@@ -422,9 +431,7 @@ class BidsOutputFilter(BaseFilter):
                     max_pld = np.max(json_sidecar["PostLabelingDelay"])
                     label_and_pld_dur = json_sidecar["LabelingDuration"] + max_pld
                     inv_pulse_times = label_and_pld_dur - np.asarray(
-                        image.metadata[
-                            BackgroundSuppressionFilter.M_BSUP_INV_PULSE_TIMING
-                        ]
+                        image.metadata.background_suppression_inv_pulse_timing
                     )
 
                     json_sidecar[
@@ -463,9 +470,13 @@ class BidsOutputFilter(BaseFilter):
                 validate(instance=json_sidecar, schema=m0scan_bids_schema)
 
         ## Series type 'structural'
-        elif image.metadata[self.SERIES_TYPE] == STRUCTURAL:
+        elif image.metadata.series_type == STRUCTURAL:
+            if image.metadata.modality is None:
+                raise ValueError(
+                    "modality metadata must be set for structural series type"
+                )
             sub_directory = self.STRUCT_SUBDIR
-            modality_label = image.metadata[MODALITY]
+            modality_label = image.metadata.modality
             json_sidecar["ImageType"] = [
                 "ORIGINAL",
                 "PRIMARY",
@@ -474,12 +485,14 @@ class BidsOutputFilter(BaseFilter):
             ]
 
         ## Series type 'ground_truth'
-        elif image.metadata[self.SERIES_TYPE] == GROUND_TRUTH:
+        elif image.metadata.series_type == GROUND_TRUTH:
+            if image.metadata.quantity is None:
+                raise ValueError(
+                    "Metadata quantity value should have been set if this is a ground truth image"
+                )
             sub_directory = self.GT_SUBDIR
             # set the modality label using QUANTITY_MAPPING
-            modality_label = self.QUANTITY_MAPPING[
-                image.metadata[GroundTruthLoaderFilter.KEY_QUANTITY]
-            ]
+            modality_label = self.QUANTITY_MAPPING[image.metadata.quantity]
             json_sidecar["Quantity"] = modality_label
 
             # if there is a LabelMap field, use LABEL_MAP_MAPPING to change the subfield names to
@@ -533,7 +546,7 @@ class BidsOutputFilter(BaseFilter):
             logger.info("saving %s", asl_context_filename)
             if asl_context_tsv is None:
                 raise ValueError("asl_context_tsv has not been assigned")
-            with open(asl_context_filename, "w") as tsv_file:
+            with open(asl_context_filename, "w", encoding="utf-8") as tsv_file:
                 tsv_file.write(asl_context_tsv)
                 tsv_file.close()
 
@@ -571,14 +584,15 @@ class BidsOutputFilter(BaseFilter):
         readme_filename = os.path.join(self.inputs[self.KEY_OUTPUT_DIRECTORY], "README")
         if not os.path.isfile(readme_filename):
             logger.info("saving %s", readme_filename)
-            with open(readme_filename, mode="w") as readme_file:
+            with open(readme_filename, mode="w", encoding="utf-8") as readme_file:
                 readme_file.write(self.readme_canned_text())
                 readme_file.close()
 
         # now append to readme some information about the image series
-        with open(readme_filename, mode="a") as readme_file:
+        with open(readme_filename, mode="a", encoding="utf-8") as readme_file:
             readme_file.write(
-                f"{image.metadata[self.SERIES_NUMBER]}. {modality_label}: {image.metadata.get(self.SERIES_DESCRIPTION)}\n"
+                f"{image.metadata.series_number}. {modality_label}: "
+                f"{image.metadata.series_description}\n"
             )
             readme_file.close()
 
@@ -587,7 +601,9 @@ class BidsOutputFilter(BaseFilter):
             self.inputs[self.KEY_OUTPUT_DIRECTORY], ".bidsignore"
         )
         if not os.path.isfile(bidsignore_filename):
-            with open(bidsignore_filename, mode="w") as bidsignore_file:
+            with open(
+                bidsignore_filename, mode="w", encoding="utf-8"
+            ) as bidsignore_file:
                 bidsignore_file.writelines(
                     "\n".join(
                         [
@@ -653,7 +669,7 @@ class BidsOutputFilter(BaseFilter):
                     ]
                 ),
                 ASL_CONTEXT: Parameter(
-                    validators=isinstance_validator((str, list)),
+                    validators=isinstance_validator((str, list, tuple)),
                     optional=True,
                 ),
                 GkmFilter.KEY_LABEL_TYPE: Parameter(
@@ -665,7 +681,10 @@ class BidsOutputFilter(BaseFilter):
                 ),
                 GkmFilter.M_BOLUS_CUT_OFF_DELAY_TIME: Parameter(
                     validators=or_validator(
-                        [isinstance_validator(float), non_empty_list_validator()]
+                        [
+                            isinstance_validator(float),
+                            non_empty_list_or_tuple_validator(),
+                        ]
                     ),
                     optional=True,
                 ),
@@ -674,7 +693,10 @@ class BidsOutputFilter(BaseFilter):
                 ),
                 GkmFilter.M_POST_LABEL_DELAY: Parameter(
                     validators=or_validator(
-                        [isinstance_validator(float), non_empty_list_validator()]
+                        [
+                            isinstance_validator(float),
+                            non_empty_list_or_tuple_validator(),
+                        ]
                     ),
                     optional=True,
                 ),
@@ -689,7 +711,7 @@ class BidsOutputFilter(BaseFilter):
                     validators=isinstance_validator(str),
                     optional=True,
                 ),
-                "image_flavour": Parameter(
+                "image_flavor": Parameter(
                     validators=isinstance_validator(str),
                     optional=True,
                 ),
@@ -712,32 +734,34 @@ class BidsOutputFilter(BaseFilter):
             }
         )
         # validate the metadata
-        metadata = self.inputs[self.KEY_IMAGE].metadata
-        metdata_validator.validate(metadata, error_type=FilterInputValidationError)
+        metadata: ImageMetadata = self.inputs[self.KEY_IMAGE].metadata
+        metdata_validator.validate(
+            metadata.dict(exclude_unset=True), error_type=FilterInputValidationError
+        )
 
         # Specific validation for series_type == "structural"
-        if metadata[self.SERIES_TYPE] == STRUCTURAL:
-            if metadata.get(MODALITY) is None:
+        if metadata.series_type == STRUCTURAL:
+            if metadata.modality is None:
                 raise FilterInputValidationError(
                     "metadata field 'modality' is required when `series_type` is 'structural'"
                 )
 
         # specific validation when series_type is "ground_truth"
-        if metadata[self.SERIES_TYPE] == GROUND_TRUTH:
-            if metadata.get(GroundTruthLoaderFilter.KEY_QUANTITY) is None:
+        if metadata.series_type == GROUND_TRUTH:
+            if metadata.quantity is None:
                 raise FilterInputValidationError(
                     "metadata field 'quantity' is required when `series_type` is 'ground_truth'"
                 )
-        if metadata[self.SERIES_TYPE] == GROUND_TRUTH:
-            if metadata.get(GroundTruthLoaderFilter.KEY_UNITS) is None:
+        if metadata.series_type == GROUND_TRUTH:
+            if metadata.units is None:
                 raise FilterInputValidationError(
                     "metadata field 'units' is required when `series_type` is 'ground_truth'"
                 )
 
         # Specific validation for series_type == "asl"
-        if metadata[self.SERIES_TYPE] == ASL:
+        if metadata.series_type == ASL:
             # asl_context needs some further validating
-            asl_context = metadata.get(ASL_CONTEXT)
+            asl_context = metadata.asl_context
             if asl_context is None:
                 raise FilterInputValidationError(
                     "metadata field 'asl_context' is required when `series_type` is 'asl'"
@@ -751,7 +775,7 @@ class BidsOutputFilter(BaseFilter):
                     }
                 )
 
-            elif isinstance(asl_context, list):
+            elif isinstance(asl_context, (list, tuple)):
                 asl_context_validator = ParameterValidator(
                     parameters={
                         ASL_CONTEXT: Parameter(
@@ -774,55 +798,38 @@ class BidsOutputFilter(BaseFilter):
 
             if modality_label == ASL:
                 # do some checking for when the `modality` is 'asl'
-                if metadata.get(GkmFilter.KEY_LABEL_TYPE) is None:
+                if metadata.label_type is None:
                     raise FilterInputValidationError(
                         "metadata field 'label_type' is required for 'series_type'"
                         + " and 'modality' is 'asl'"
                     )
-                if metadata.get(GkmFilter.M_POST_LABEL_DELAY) is None:
+                if metadata.post_label_delay is None:
                     raise FilterInputValidationError(
                         "metadata field 'post_label_delay' is required for 'series_type'"
                         + " and 'modality' is 'asl'"
                     )
-                if metadata.get("image_flavour") is None:
+                if metadata.image_flavor is None:
                     raise FilterInputValidationError(
-                        "metadata field 'image_flavour' is required for 'series_type'"
+                        "metadata field 'image_flavor' is required for 'series_type'"
                         + " and 'modality' is 'asl'"
                     )
                 # if "background_suppression" is True then additional parameters are required
-                if metadata.get(BackgroundSuppressionFilter.M_BACKGROUND_SUPPRESSION):
+                if metadata.background_suppression:
                     # check that 'background_suppression' actually is a bool and not an int
-                    if not isinstance(
-                        metadata.get(
-                            BackgroundSuppressionFilter.M_BACKGROUND_SUPPRESSION
-                        ),
-                        bool,
-                    ):
+                    if not isinstance(metadata.background_suppression, bool):
                         raise FilterInputValidationError(
                             "'BackgroundSuppression should be a bool"
                         )
-                    if (
-                        metadata.get(
-                            BackgroundSuppressionFilter.M_BSUP_INV_PULSE_TIMING
-                        )
-                        is None
-                    ):
+                    if metadata.background_suppression_inv_pulse_timing is None:
                         raise FilterInputValidationError(
                             "metadata field 'background_suppression_inv_pulse_timing' is required "
                             "if 'background_suppression' is True"
                         )
                 elif (
                     # Catch the case where it is 0 because False is a subclass of int
-                    (
-                        metadata.get(
-                            BackgroundSuppressionFilter.M_BACKGROUND_SUPPRESSION
-                        )
-                        == 0
-                    )
+                    metadata.background_suppression == 0
                     and not isinstance(
-                        metadata.get(
-                            BackgroundSuppressionFilter.M_BACKGROUND_SUPPRESSION
-                        ),
+                        metadata.background_suppression,
                         bool,
                     )
                 ):
@@ -831,29 +838,30 @@ class BidsOutputFilter(BaseFilter):
                     )
 
                 # validation specific for multiphase ASL
-                if isinstance(metadata.get(GkmFilter.M_POST_LABEL_DELAY), list):
-                    if len(metadata.get(GkmFilter.M_POST_LABEL_DELAY)) > 1:
-                        if metadata.get("multiphase_index") is None:
+                if isinstance(metadata.post_label_delay, Sequence):
+                    if len(metadata.post_label_delay) > 1:
+                        if metadata.multiphase_index is None:
                             raise FilterInputValidationError(
                                 "metadata field 'multiphase_index' is required for 'series_type'"
                                 + "and 'modality' is 'asl', and 'post_label_delay' has length > 1"
                             )
-                        if not len(metadata.get("multiphase_index")) == len(
-                            metadata.get(GkmFilter.M_POST_LABEL_DELAY)
+                        if not len(metadata.multiphase_index) == len(
+                            metadata.post_label_delay
                         ):
                             raise FilterInputValidationError(
-                                "For 'series_type' and 'modality' 'asl', and if 'post_label_delay' has length > 1"
+                                "For 'series_type' and 'modality' 'asl', "
+                                "and if 'post_label_delay' has length > 1"
                                 "'multiphase_index' must have the same length as 'post_label_delay'"
                             )
-                        # for each multiphase index, the values of post_label_delay should all be the
-                        # same or none
-                        unique_mpindex = np.unique(metadata["multiphase_index"])
+                        # for each multiphase index, the values of
+                        # post_label_delay should all be the same or none
+                        unique_mpindex = np.unique(metadata.multiphase_index)
 
                         for index in unique_mpindex:
                             mp_index_pld_vals = [
                                 val
-                                for idx, val in enumerate(metadata["post_label_delay"])
-                                if metadata["multiphase_index"][idx] == index
+                                for idx, val in enumerate(metadata.post_label_delay)
+                                if metadata.multiphase_index[idx] == index
                                 and val is not None
                             ]
                             if not np.all(
@@ -865,27 +873,24 @@ class BidsOutputFilter(BaseFilter):
                                     "same "
                                 )
 
-                if metadata.get(GkmFilter.KEY_LABEL_TYPE) in (
-                    GkmFilter.CASL,
-                    GkmFilter.PCASL,
-                ):
+                if metadata.label_type in (GkmFilter.CASL, GkmFilter.PCASL):
                     # validation specific to (p)casl
 
-                    if metadata.get(GkmFilter.KEY_LABEL_DURATION) is None:
+                    if metadata.label_duration is None:
                         raise FilterInputValidationError(
                             "metadata field 'label_duration' is required for 'series_type'"
                             + "and 'modality' is 'asl', and 'label_type' is 'pcasl' or 'casl'"
                         )
-                elif metadata.get(GkmFilter.KEY_LABEL_TYPE) == GkmFilter.PASL:
+                elif metadata.label_type == GkmFilter.PASL:
                     # validation specific to pasl
-                    if metadata.get(GkmFilter.M_BOLUS_CUT_OFF_FLAG) is None:
+                    if metadata.bolus_cut_off_flag is None:
                         raise FilterInputValidationError(
                             "metadata field 'bolus_cut_off_flag' is required for"
                             + " 'series_type and 'modality' is 'asl', "
                             + "and 'label_type' is 'pasl'"
                         )
-                    if metadata.get(GkmFilter.M_BOLUS_CUT_OFF_FLAG):
-                        if metadata.get(GkmFilter.M_BOLUS_CUT_OFF_DELAY_TIME) is None:
+                    if metadata.bolus_cut_off_flag:
+                        if metadata.bolus_cut_off_delay_time is None:
                             raise FilterInputValidationError(
                                 "metadata field 'bolus_cut_off_delay_time' is required for"
                                 + " 'series_type and 'modality' is 'asl', "
@@ -902,7 +907,9 @@ class BidsOutputFilter(BaseFilter):
         self.inputs = {**self._i, **new_params}
 
     @staticmethod
-    def determine_asl_modality_label(asl_context: Union[str, List[str]]) -> str:
+    def determine_asl_modality_label(
+        asl_context: Union[AslSingleContext, AslContext]
+    ) -> Literal["asl", "m0scan"]:
         """Function that determines the modality_label for asl image types based
         on an input asl_context list
 
@@ -910,10 +917,9 @@ class BidsOutputFilter(BaseFilter):
             , e.g. ["m0scan", "control", "label"]
         :type asl_context: Union[str, List[str]]
         :return: a string determining the asl context, either "asl" or "m0scan"
-        :rtype: str
-        """
+        :rtype: str"""
         # by default the modality label should be "asl"
-        modality_label = ASL
+        modality_label: Literal["asl", "m0scan"] = "asl"
         if isinstance(asl_context, str):
             if asl_context == "m0scan":
                 modality_label = "m0scan"

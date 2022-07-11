@@ -6,11 +6,8 @@ from typing import List, Tuple
 import nibabel as nib
 import numpy as np
 
-from mrimagetools.containers.image import (
-    COMPLEX_IMAGE_TYPE,
-    BaseImageContainer,
-    NiftiImageContainer,
-)
+from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 
 
@@ -24,7 +21,7 @@ class CombineTimeSeriesFilter(BaseFilter):
       value in the output metadata; else,
     * concatenate the values in a list.
 
-    Instance variables of the BaseImageContainer such as ``image_flavour``, will all
+    Instance variables of the BaseImageContainer such as ``image_flavor``, will all
     be checked for consistency and copied across to the output image.
 
     **Inputs**
@@ -72,7 +69,7 @@ class CombineTimeSeriesFilter(BaseFilter):
         output_container = NiftiImageContainer(
             nifti_img=nib.Nifti1Image(dataobj=dataobj, affine=containers[0].affine)
         )
-        output_container.nifti_image.header["xyzt_units"] = (  # type: ignore
+        output_container.nifti_image.header["xyzt_units"] = (
             containers[0].as_nifti().header["xyzt_units"]
         )
         output_container.data_domain = containers[0].data_domain
@@ -80,37 +77,50 @@ class CombineTimeSeriesFilter(BaseFilter):
         # to be the same as the first input
 
         # Create the metadata
-        output_container.metadata = {}
+        output_container.metadata = ImageMetadata()
         # Find all of the keys in all of the metadata
         all_keys = {
-            key for container in containers for key in container.metadata.keys()
+            key
+            for container in containers
+            for key in container.metadata.dict(exclude_none=True).keys()
         }
 
         for key in all_keys:
-            present = [key in container.metadata for container in containers]
+            present = [
+                key in container.metadata.dict(exclude_none=True)
+                for container in containers
+            ]
             if sum(present) == 1:
                 # The key appears in one container only, so copy it to the output
-                output_container.metadata[key] = containers[
-                    present.index(True)
-                ].metadata[key]
+                setattr(
+                    output_container.metadata,
+                    key,
+                    getattr(containers[present.index(True)].metadata, key),
+                )
             else:
                 # The key appears in more than one containers
                 all_values = [
-                    container.metadata[key] if key in container.metadata else None
+                    getattr(container.metadata, key)
+                    if key in container.metadata.dict(exclude_none=True).keys()
+                    else None
                     for container in containers
                 ]
                 # find values that are not None
                 values_not_none = [val for val in all_values if val is not None]
                 if all_values.count(all_values[0]) == len(all_values):
                     # All values are the same - output that value for the given key
-                    output_container.metadata[key] = containers[0].metadata[key]
+                    setattr(
+                        output_container.metadata,
+                        key,
+                        getattr(containers[0].metadata, key),
+                    )
                 elif all_values.count(values_not_none[0]) == len(values_not_none):
                     # All values that are not None are the same, output just that value for
                     # given key
-                    output_container.metadata[key] = values_not_none[0]
+                    setattr(output_container.metadata, key, values_not_none[0])
                 else:
                     # The values are not the same - concatenate them into a list
-                    output_container.metadata[key] = all_values
+                    setattr(output_container.metadata, key, all_values)
 
         self.outputs[self.KEY_IMAGE] = output_container
 

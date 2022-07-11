@@ -15,11 +15,12 @@ from pydantic import (
 )
 from pydantic.generics import GenericModel
 from pydantic.typing import AnyCallable
+from pydantic.utils import Representation
 
 from mrimagetools.filters.basefilter import FilterInputValidationError
 
 
-class ModelMixin:
+class ModelMixin(Representation):
     """Used for the filter parameters.
     Ensures that raised ValueError, TypeError, and AssertionError
     are caught and raised as FilterInputValidationError.
@@ -45,9 +46,27 @@ class ModelMixin:
         # If a type is not in this dictionary, the __repr__ or __str__ function is called
         json_encoders: Dict[Union[Type[Any], str], AnyCallable] = {}
 
-        # Allow non-json types to be processed with a ParameterModel
+        # Allow arbitrary, non-json-like types to be processed be the JSON schema generation
         arbitrary_types_allowed = True
+        # Does not allow extra (undefined) attributes to be added to a model
         extra = Extra.forbid
+
+    def __repr_str__(self, join_str: str) -> str:
+        """A string represenation of the model. Excludes any attributes that are None.
+        :param join_str: the string used between attribute names/values."""
+        return join_str.join(
+            repr(v) if a is None else f"{a}={v!r}"
+            for a, v in self.__repr_args__()
+            if v is not None  # don't output anything if the value is None
+        )
+
+    def __str__(self) -> str:
+        """The string representation of the model attributes"""
+        return self.__repr_str__(" ")
+
+    def __repr__(self) -> str:
+        """The string representation of the model"""
+        return f'{self.__repr_name__()}({self.__repr_str__(", ")})'
 
 
 class ParameterModel(ModelMixin, BaseModel):

@@ -26,6 +26,7 @@ class UnitField(str):
         field_schema.update(
             pattern=r"^[A-Za-z0-9-\/*^]+$",
             examples=[
+                "ml/100g/min",
                 "meters",
                 "m",
                 "mm^2*s^-1",

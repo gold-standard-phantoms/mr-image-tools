@@ -6,12 +6,14 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.adc_quantification_filter import AdcQuantificationFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
+from mrimagetools.validators.fields import UnitField
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture() -> dict:
+def data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     test_dims = (4, 4, 1)
     test_seg_mask = np.arange(16).reshape(test_dims)
@@ -23,11 +25,11 @@ def test_data_fixture() -> dict:
             np.stack([np.exp(-b_val * adc) for b_val in b_values], axis=3),
             affine=np.eye(4),
         ),
-        metadata={
-            "series_type": "structural",
-            "modality": "DWI",
-            "series_number": 1,
-        },
+        metadata=ImageMetadata(
+            series_type="structural",
+            modality="DWI",
+            series_number=1,
+        ),
     )
     return {
         "dwi": dwi,
@@ -38,7 +40,7 @@ def test_data_fixture() -> dict:
 
 
 @pytest.fixture(name="validation_data")
-def input_validation_dict_fixture(test_data) -> dict:
+def input_validation_dict_fixture(test_data: dict) -> dict:
     """Returs a dictionary with data for input validation"""
     im_wrong_size = NiftiImageContainer(
         nib.Nifti1Image(np.ones((3, 3, 3, 1)), np.eye(4))
@@ -68,14 +70,14 @@ def input_validation_dict_fixture(test_data) -> dict:
     }
 
 
-def test_adc_quantification_filter_validate_inputs(validation_data) -> None:
+def test_adc_quantification_filter_validate_inputs(validation_data: dict) -> None:
     """Check a FilterInputValidationError is raised when the inputs to the
     AdcQuantificationFilter are incorrect or missing"""
 
     validate_filter_inputs(AdcQuantificationFilter, validation_data)
 
 
-def test_adc_quantification_filter_mock_data(test_data) -> None:
+def test_adc_quantification_filter_mock_data(test_data: dict) -> None:
     """Test the AdcQuantificationFilter with some mock data"""
     adc_quantification_filter = AdcQuantificationFilter()
     adc_quantification_filter.add_inputs(test_data)
@@ -88,16 +90,16 @@ def test_adc_quantification_filter_mock_data(test_data) -> None:
         adc_quantification_filter.outputs["adc"].image[:, :, :, 1], test_data["adc"]
     )
     # check metadata
-    assert adc_quantification_filter.outputs["adc"].metadata == {
-        "modality": "ADCmap",
-        "Quantity": "ADC",
-        "Units": "mm^2/s",
-        "ImageType": ["DERIVED", "PRIMARY", "ADCmap", "None"],
-        "series_type": "structural",
-        "series_number": 1,
-        "b_values": test_data["b_values"],
-        "b_vectors": test_data["b_vectors"],
-    }
+    assert adc_quantification_filter.outputs["adc"].metadata == ImageMetadata(
+        modality="ADCmap",
+        quantity="ADC",
+        units=UnitField("mm^2/s"),
+        image_type=("DERIVED", "PRIMARY", "ADCmap", "NONE"),
+        series_type="structural",
+        series_number=1,
+        b_values=test_data["b_values"],
+        b_vectors=test_data["b_vectors"],
+    )
 
     # try reversing the order of the data
     test_data["b_values"].reverse()

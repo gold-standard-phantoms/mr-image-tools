@@ -1,4 +1,5 @@
 """Load Bids Filter"""
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.append_metadata_filter import AppendMetadataFilter
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.filter_block import FilterBlock
@@ -64,9 +65,12 @@ class LoadBidsFilter(FilterBlock):
             JsonLoaderFilter.KEY_ROOT_OBJECT_NAME, AppendMetadataFilter.KEY_METADATA
         )
 
+        json_loader_filter.run()
+        metadata = ImageMetadata.from_bids(json_loader_filter.outputs["metadata"])
+
         append_metadata_filter = AppendMetadataFilter()
         append_metadata_filter.add_parent_filter(nifti_loader_filter)
-        append_metadata_filter.add_parent_filter(json_loader_filter)
+        append_metadata_filter.add_input("metadata", metadata)
 
         return append_metadata_filter
 

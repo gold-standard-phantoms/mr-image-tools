@@ -9,6 +9,7 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.background_suppression_filter import (
     BackgroundSuppressionFilter,
 )
@@ -16,7 +17,7 @@ from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture() -> dict:
+def data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     test_dims = (4, 4, 1)
     test_seg_mask = np.arange(16).reshape(test_dims)
@@ -25,7 +26,8 @@ def test_data_fixture() -> dict:
 
     return {
         "mag_z": NiftiImageContainer(
-            nib.Nifti1Image(mag_z_data, np.eye(4)), metadata={"key_1": 1, "key_2": 2}
+            nib.Nifti1Image(mag_z_data, np.eye(4)),
+            metadata=ImageMetadata(series_number=1, echo_time=2),
         ),
         "t1": NiftiImageContainer(nib.Nifti1Image(t1_data, np.eye(4))),
         "sat_pulse_time": 4.0,
@@ -307,14 +309,16 @@ def test_background_suppression_filter_mock_data(test_data: dict) -> None:
     )
 
     # check metadata
-    assert bsup_filter.outputs[BackgroundSuppressionFilter.KEY_MAG_Z].metadata == {
-        "background_suppression": True,
-        "background_suppression_inv_pulse_timing": test_data["inv_pulse_times"],
-        "background_suppression_sat_pulse_timing": test_data["sat_pulse_time"],
-        "background_suppression_num_pulses": len(test_data["inv_pulse_times"]),
-        "key_1": 1,
-        "key_2": 2,
-    }
+    assert bsup_filter.outputs[
+        BackgroundSuppressionFilter.KEY_MAG_Z
+    ].metadata == ImageMetadata(
+        background_suppression=True,
+        background_suppression_inv_pulse_timing=test_data["inv_pulse_times"],
+        background_suppression_sat_pulse_timing=test_data["sat_pulse_time"],
+        background_suppression_num_pulses=len(test_data["inv_pulse_times"]),
+        series_number=1,
+        echo_time=2,
+    )
     # run where mag_time differs to sat_pulse_time
     bsup_filter = BackgroundSuppressionFilter()
     bsup_filter.add_inputs(

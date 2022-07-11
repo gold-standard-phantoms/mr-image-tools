@@ -2,7 +2,7 @@
 
 from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.add_complex_noise_filter import AddComplexNoiseFilter
-from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.filter_block import FilterBlock
 from mrimagetools.filters.mri_signal_filter import MriSignalFilter
 from mrimagetools.filters.transform_resample_image_filter import (
@@ -62,8 +62,8 @@ class AcquireMriImageFilter(FilterBlock):
     :type 'inversion_flip_angle': float, optional
     :param 'inversion_time': The inversion time in seconds. Only used when
         ``acq_contrast`` is ``"ir"``.
-    :param 'image_flavour': sets the metadata ``image_flavour`` in the output image to this.
-    :type 'image_flavour': str, optional
+    :param 'image_flavor': sets the metadata ``image_flavor`` in the output image to this.
+    :type 'image_flavor': str, optional
     :param 'translation': :math:`[\Delta x,\Delta y,\Delta z]`
         amount to translate along the x, y and z axes.
     :type translation: Tuple[float, float, float], optional
@@ -111,7 +111,7 @@ class AcquireMriImageFilter(FilterBlock):
     KEY_INVERSION_FLIP_ANGLE = MriSignalFilter.KEY_INVERSION_FLIP_ANGLE
     KEY_INVERSION_TIME = MriSignalFilter.KEY_INVERSION_TIME
     KEY_IMAGE = MriSignalFilter.KEY_IMAGE
-    KEY_IMAGE_FLAVOUR = MriSignalFilter.KEY_IMAGE_FLAVOUR
+    KEY_image_flavor = MriSignalFilter.KEY_image_flavor
 
     KEY_TARGET_SHAPE = TransformResampleImageFilter.KEY_TARGET_SHAPE
     KEY_ROTATION_ORIGIN = TransformResampleImageFilter.KEY_ROTATION_ORIGIN
@@ -156,7 +156,7 @@ class AcquireMriImageFilter(FilterBlock):
                     MriSignalFilter.KEY_MAG_ENC,
                     MriSignalFilter.KEY_INVERSION_FLIP_ANGLE,
                     MriSignalFilter.KEY_INVERSION_TIME,
-                    MriSignalFilter.KEY_IMAGE_FLAVOUR,
+                    MriSignalFilter.KEY_image_flavor,
                 ]
             }
         )
@@ -211,7 +211,7 @@ class AcquireMriImageFilter(FilterBlock):
         'excitation_flip_angle': float, optional
         'inversion_flip_angle': float, optional
         'inversion_time': float, optional
-        'image_flavour': str, optional
+        'image_flavor': str, optional
         'target_shape': Tuple[int, int, int], optional
         'rotation': Tuple[float, float, float], optional
         'rotation_origin': Tuple[float, float, float], optional
@@ -276,7 +276,7 @@ class AcquireMriImageFilter(FilterBlock):
                     ],
                     optional=True,
                 ),
-                self.KEY_IMAGE_FLAVOUR: Parameter(
+                self.KEY_image_flavor: Parameter(
                     validators=[
                         isinstance_validator(str),
                     ],

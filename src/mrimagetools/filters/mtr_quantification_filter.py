@@ -4,6 +4,7 @@ import numpy as np
 
 from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.validators.fields import UnitField
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
@@ -94,22 +95,18 @@ class MtrQuantificationFilter(BaseFilter):
         image_nosat: BaseImageContainer = self.inputs[self.KEY_IMAGE_NOSAT]
         image_sat: BaseImageContainer = self.inputs[self.KEY_IMAGE_SAT]
 
-        self.outputs[self.KEY_MTR] = image_sat
-        self.outputs[self.KEY_MTR].image = 100.0 * np.divide(
+        output_image = image_sat.clone()
+        output_image.image = 100.0 * np.divide(
             image_nosat.image - image_sat.image,
             image_nosat.image,
             out=np.zeros_like(image_nosat.image),
             where=image_nosat.image != 0,
         )
-        self.outputs[self.KEY_MTR].metadata[self.M_MODALITY] = "MTRmap"
-        self.outputs[self.KEY_MTR].metadata[self.M_QUANTITY] = "MTR"
-        self.outputs[self.KEY_MTR].metadata[self.M_UNITS] = "pu"
-        self.outputs[self.KEY_MTR].metadata[self.M_IMAGE_TYPE] = [
-            "DERIVED",
-            "PRIMARY",
-            "MTRmap",
-            "None",
-        ]
+        output_image.metadata.modality = "MTRmap"
+        output_image.metadata.quantity = "MTR"
+        output_image.metadata.units = UnitField("pu")
+        output_image.metadata.image_type = ("DERIVED", "PRIMARY", "MTRmap", "NONE")
+        self.outputs[self.KEY_MTR] = output_image
 
     def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria

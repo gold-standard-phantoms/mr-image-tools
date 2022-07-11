@@ -6,6 +6,7 @@ import numpy.typing as npt
 from scipy.optimize import OptimizeResult, minimize
 
 from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.utils.typing import typed
 from mrimagetools.validators.parameters import (
@@ -206,17 +207,19 @@ class BackgroundSuppressionFilter(BaseFilter):
             mag_time,
             inv_eff,
         )
-        metadata = {
-            self.M_BACKGROUND_SUPPRESSION: True,
-            self.M_BSUP_INV_PULSE_TIMING: inv_pulse_times.tolist(),
-            self.M_BSUP_SAT_PULSE_TIMING: mag_time,
-            self.M_BSUP_NUM_PULSES: np.asarray(inv_pulse_times).size,
-        }
+        metadata = ImageMetadata(
+            background_suppression=True,
+            background_suppression_inv_pulse_timing=inv_pulse_times.tolist(),
+            background_suppression_sat_pulse_timing=mag_time,
+            background_suppression_num_pulses=np.asarray(inv_pulse_times).size,
+        )
         # merge the metadata
-        self.outputs[self.KEY_MAG_Z].metadata = {
-            **self.outputs[self.KEY_MAG_Z].metadata,
-            **metadata,
-        }
+        self.outputs[self.KEY_MAG_Z].metadata = ImageMetadata(
+            **{
+                **self.outputs[self.KEY_MAG_Z].metadata.dict(exclude_none=True),
+                **metadata.dict(exclude_none=True),
+            }
+        )
 
         self.outputs[self.KEY_INV_PULSE_TIMES] = inv_pulse_times
 

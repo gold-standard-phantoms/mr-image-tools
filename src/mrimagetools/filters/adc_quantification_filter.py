@@ -5,7 +5,9 @@ from typing import List
 import numpy as np
 
 from mrimagetools.containers.image import BaseImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.validators.fields import UnitField
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
@@ -114,17 +116,18 @@ class AdcQuantificationFilter(BaseFilter):
 
         self.outputs[self.KEY_ADC].image = adc
         # update metadata
-        self.outputs[self.KEY_ADC].metadata["modality"] = "ADCmap"
-        self.outputs[self.KEY_ADC].metadata["Quantity"] = "ADC"
-        self.outputs[self.KEY_ADC].metadata["Units"] = "mm^2/s"
-        self.outputs[self.KEY_ADC].metadata["ImageType"] = [
+        output_metadata: ImageMetadata = self.outputs[self.KEY_ADC].metadata
+        output_metadata.modality = "ADCmap"
+        output_metadata.quantity = "ADC"
+        output_metadata.units = UnitField("mm^2/s")
+        output_metadata.image_type = (
             "DERIVED",
             "PRIMARY",
             "ADCmap",
-            "None",
-        ]
-        self.outputs[self.KEY_ADC].metadata["b_values"] = b_values
-        self.outputs[self.KEY_ADC].metadata["b_vectors"] = b_vectors
+            "NONE",
+        )
+        output_metadata.b_values = b_values
+        output_metadata.b_vectors = b_vectors
 
     def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria

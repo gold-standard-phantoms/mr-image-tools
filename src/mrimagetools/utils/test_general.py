@@ -1,12 +1,18 @@
 # type:ignore
 # TODO: remove the above line and fix typing errors
 """ general.py tests """
+from typing import Any, Dict, Final
+
 import numpy as np
 import numpy.testing
 import pytest
 from numpy.random import default_rng
 
-from mrimagetools.utils.general import generate_random_numbers, map_dict
+from mrimagetools.utils.general import (
+    camel_to_snake_case_keys,
+    generate_random_numbers,
+    map_dict,
+)
 
 
 @pytest.fixture(name="input_dict")
@@ -93,3 +99,26 @@ def test_generate_random_numbers() -> None:
     spec = {"distribution": "uniform"}
     with pytest.raises(KeyError):
         generate_random_numbers(spec)
+
+
+def test_camel_to_snake_case_keys() -> None:
+    """Check the camel to snake case converter"""
+    input_dict: Final[Dict[str, Any]] = {
+        "CamelCase": "CamelCase",
+        "AnotherDict": {
+            "FooBar1": 1,
+            "foo_bar2": 2,
+            "FinalNestingHere": {"Camel": 3, "not_a_camel": 4},
+        },
+        "snake_case": 3,
+    }
+
+    assert camel_to_snake_case_keys(input_dict) == {
+        "camel_case": "CamelCase",
+        "another_dict": {
+            "foo_bar1": 1,
+            "foo_bar2": 2,
+            "final_nesting_here": {"camel": 3, "not_a_camel": 4},
+        },
+        "snake_case": 3,
+    }

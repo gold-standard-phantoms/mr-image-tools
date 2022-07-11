@@ -9,6 +9,7 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.load_bids_filter import LoadBidsFilter
@@ -16,15 +17,15 @@ from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture(tmp_path) -> dict:
+def data_fixture(tmp_path) -> dict:
     """Returns a dictionary with data for testing"""
     test_dims = (4, 4, 4)
     test_data = np.ones(test_dims)
     test_nifti = NiftiImageContainer(nib.Nifti1Image(test_data, np.eye(4)))
     test_sidecar = {
-        "BidsTextField": "some text",
-        "BidsNumericField": 123,
-        "BidsArrayField": [1, 0, 0, 0, 0],
+        "SeriesDescription": "some text",
+        "SeriesNumber": 123,
+        "PostLabelingDelay": [1, 0, 0, 0, 0],
     }
     nifti_filename = os.path.join(tmp_path, "data.nii.gz")
     json_filename = os.path.join(tmp_path, "data.json")
@@ -73,7 +74,10 @@ def test_load_bids_filter_mock_data(test_data) -> None:
         load_bids_filter.outputs["image"].image, test_data["nifti"].image
     )
 
-    assert test_data["sidecar"] == load_bids_filter.outputs["image"].metadata
+    assert (
+        ImageMetadata.from_bids(test_data["sidecar"])
+        == load_bids_filter.outputs["image"].metadata
+    )
     assert load_bids_filter.inputs["json_filename"] == test_data["sidecar_filename"]
 
 

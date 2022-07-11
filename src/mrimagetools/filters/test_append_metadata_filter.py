@@ -2,12 +2,14 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
+from typing import Final
 
 import nibabel as nib
 import numpy as np
 import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.append_metadata_filter import AppendMetadataFilter
 from mrimagetools.filters.basefilter import FilterInputValidationError
 
@@ -25,13 +27,7 @@ TEST_NIFTI_ONES = nib.Nifti2Image(
 )
 TEST_NIFTI_CON_ONES = NiftiImageContainer(nifti_img=TEST_NIFTI_ONES)
 
-TEST_METADATA = {
-    "key1": 1.0,
-    "key2": 2.0,
-    "keystr": "str",
-    "apple": "apple",
-    "pi": np.pi,
-}
+TEST_METADATA: Final[ImageMetadata] = ImageMetadata(echo_time=5.0, quantity="m0")
 
 # test data dictionary,
 # each entry, [0] = optional (True/False), [1] = pass, [2:] = fail
@@ -95,12 +91,13 @@ def test_append_metadata_filter_new_metadata() -> None:
 def test_append_metadata_filter_merge_metadata() -> None:
     """Tests the AppendMetadataFilter with an image that existing metadata"""
     test_image = TEST_NIFTI_CON_ONES.clone()
-    test_image.metadata = {
-        "apple": "pie",
-        "chocolate": "pudding",
-        "number1": 1,
-    }
-    new_metadata = {**test_image.metadata, **TEST_METADATA}
+    test_image.metadata = ImageMetadata(modality="t1")
+    new_metadata = ImageMetadata(
+        **{
+            **test_image.metadata.dict(exclude_none=True),
+            **TEST_METADATA.dict(exclude_none=True),
+        }
+    )
     append_metadata_filter = AppendMetadataFilter()
     append_metadata_filter.add_input("image", test_image)
     append_metadata_filter.add_input("metadata", TEST_METADATA)

@@ -11,9 +11,12 @@ import pytest
 from mrimagetools.cli import main as cli
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.load_bids_filter import LoadBidsFilter
-from mrimagetools.filters.test_mtr_quantification_filter import test_data_fixture
+
+# pylint: disable=unused-import
+from mrimagetools.filters.test_mtr_quantification_filter import data_fixture
 from mrimagetools.pipelines.mtr_pipeline import mtr_pipeline
 from mrimagetools.utils.general import splitext
+from mrimagetools.validators.parameter_model import ParameterModel
 
 
 @pytest.fixture(name="pipeline_test_data")
@@ -102,7 +105,7 @@ def test_mtr_pipeline_mock_data_combined(
         pipeline_test_data["image_combined"]["filename"][0],
     )
 
-    assert out["filenames"] == {}
+    assert not out["filenames"]
     numpy.testing.assert_array_almost_equal(
         out["image"].image, np.expand_dims(test_data["image_mtr"].image, 3)
     )

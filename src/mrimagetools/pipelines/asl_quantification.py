@@ -1,7 +1,6 @@
 """Pipeline to perform ASL quantification and save CBF map"""
-import json
-import logging
 import os
+from typing import Optional
 
 import nibabel as nib
 
@@ -9,48 +8,38 @@ from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilt
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.load_asl_bids_filter import LoadAslBidsFilter
-from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.utils.general import map_dict, splitext
+from mrimagetools.utils.general import splitext
 from mrimagetools.validators.schemas.index import SCHEMAS
 
 PASL_DEFAULT_PARAMS = {
-    "QuantificationModel": "whitepaper",
-    "PostLabelingDelay": 1.8,
-    "LabelingEfficiency": 0.98,
-    "BloodBrainPartitionCoefficient": 0.9,
-    "ArterialSpinLabelingType": "PASL",
-    "BolusCutOffDelayTime": 0.8,
+    "gkm_model": "whitepaper",
+    "post_label_delay": 1.8,
+    "label_efficiency": 0.98,
+    "lambda_blood_brain": 0.9,
+    "label_type": "pasl",
+    "bolus_cut_off_delay_time": 0.8,
 }
 CASL_DEFAULT_PARAMS = {
-    "QuantificationModel": "whitepaper",
-    "PostLabelingDelay": 1.8,
-    "LabelingEfficiency": 0.85,
-    "BloodBrainPartitionCoefficient": 0.9,
-    "ArterialSpinLabelingType": "PCASL",
-    "LabelingDuration": 1.8,
+    "gkm_model": "whitepaper",
+    "post_label_delay": 1.8,
+    "label_efficiency": 0.85,
+    "lambda_blood_brain": 0.9,
+    "label_type": "pcasl",
+    "label_duration": 1.8,
 }
 
 DEFAULT_QUANT_PARAMS = {
-    "PASL": PASL_DEFAULT_PARAMS,
-    "PCASL": CASL_DEFAULT_PARAMS,
-    "CASL": CASL_DEFAULT_PARAMS,
+    "pasl": PASL_DEFAULT_PARAMS,
+    "pcasl": CASL_DEFAULT_PARAMS,
+    "casl": CASL_DEFAULT_PARAMS,
 }
 DEFAULT_T1_ARTERIAL_BLOOD = {3: 1.65, 1.5: 1.35}
 
-BIDS_TO_ASLDRO_MAPPING = {
-    "QuantificationModel": "model",
-    "PostLabelingDelay": "post_label_delay",
-    "LabelingDuration": "label_duration",
-    "LabelingEfficiency": "label_efficiency",
-    "BloodBrainPartitionCoefficient": "lambda_blood_brain",
-    "T1ArterialBlood": "t1_arterial_blood",
-    "ArterialSpinLabelingType": "label_type",
-    "BolusCutOffDelayTime": "label_duration",
-}
-
 
 def asl_quantification(
-    asl_nifti_filename: str, quant_params_filename: str = None, output_dir: str = None
+    asl_nifti_filename: str,
+    quant_params_filename: Optional[str] = None,
+    output_dir: Optional[str] = None,
 ) -> dict:
     """Performs ASL quantification on an ASL BIDS file, optionally using
     quantification parameters.
@@ -118,7 +107,7 @@ def asl_quantification(
     if quant_params_filename is not None:
         json_filter = JsonLoaderFilter()
         json_filter.add_input("filename", quant_params_filename)
-        json_filter.add_input("schema", SCHEMAS["asl_quantification"])
+        #        json_filter.add_input("schema", SCHEMAS["asl_quantification"])
         json_filter.run()
         input_quant_params = json_filter.outputs
 
@@ -139,23 +128,23 @@ def asl_quantification(
     label_image = asl_bids_loader.outputs[LoadAslBidsFilter.KEY_LABEL]
     # pull out the required fields from the image's metadata (BIDS sidecar)
     params_from_image = {
-        key: label_image.metadata.get(key)
+        key: getattr(label_image.metadata, key)
         for key in [
-            "PostLabelingDelay",
-            "LabelingEfficiency",
-            "LabelingDuration",
-            "ArterialSpinLabelingType",
-            "BolusCutOffDelayTime",
+            "post_label_delay",
+            "label_efficiency",
+            "label_duration",
+            "label_type",
+            "bolus_cut_off_delay_time",
         ]
-        if key in label_image.metadata
+        if getattr(label_image.metadata, key) is not None
     }
 
     # the image must have the BIDS field "ArterialSpinLabelingType" otherwise
     # it is not possible to process
-    if not params_from_image.get("ArterialSpinLabelingType") in [
-        "PCASL",
-        "CASL",
-        "PASL",
+    if not params_from_image.get("label_type") in [
+        "pcasl",
+        "casl",
+        "pasl",
     ]:
         raise ValueError(
             "Input ASL image must have BIDS field 'ArterialSpinLabelingType "
@@ -171,19 +160,17 @@ def asl_quantification(
     }
     # merge with defaults, overriding any that are missing:
     quant_params = {
-        **DEFAULT_QUANT_PARAMS[quant_params["ArterialSpinLabelingType"]],
+        **DEFAULT_QUANT_PARAMS[quant_params["label_type"]],
         **quant_params,
     }
     # t1 arterial blood is field strength dependent, determine based on this
-    if input_quant_params.get("T1ArterialBlood", None) is None:
-        quant_params["T1ArterialBlood"] = DEFAULT_T1_ARTERIAL_BLOOD[
-            label_image.metadata["MagneticFieldStrength"]
+    if input_quant_params.get("t1_arterial_blood", None) is None:
+        quant_params["t1_arterial_blood"] = DEFAULT_T1_ARTERIAL_BLOOD[
+            label_image.metadata.magnetic_field_strength
         ]
 
     asl_quantification_filter = AslQuantificationFilter()
-    asl_quantification_filter.add_inputs(
-        map_dict(quant_params, BIDS_TO_ASLDRO_MAPPING, io_map_optional=True)
-    )
+    asl_quantification_filter.add_inputs(quant_params)
     asl_quantification_filter.add_inputs(asl_bids_loader.outputs)
     asl_quantification_filter.run()
 
@@ -203,7 +190,9 @@ def asl_quantification(
             output_nifti_filename,
         )
         BidsOutputFilter.save_json(
-            asl_quantification_filter.outputs["perfusion_rate"].metadata,
+            asl_quantification_filter.outputs["perfusion_rate"].metadata.dict(
+                exclude_none=True
+            ),
             output_json_filename,
         )
         output_filenames = {

@@ -10,6 +10,7 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.load_asl_bids_filter import LoadAslBidsFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
@@ -18,7 +19,7 @@ TEST_VOLUME_DIMENSIONS = (32, 32, 32)
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture() -> BaseImageContainer:
+def data_fixture() -> BaseImageContainer:
     """creates a valid ASL image whichc an be saved using BidsOutputFilter
     returns a dictionary with the filenames and the data
     """
@@ -34,25 +35,35 @@ def test_data_fixture() -> BaseImageContainer:
             image_data[:, :, :, i] = np.ones(TEST_VOLUME_DIMENSIONS) * (i % 2 + 2)
 
     image = NiftiImageContainer(nib.Nifti2Image(image_data, affine=np.eye(4)))
-    image.metadata = {
-        "echo_time": 0.01,
-        "repetition_time": [10.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
-        "excitation_flip_angle": 30,
-        "mr_acq_type": "3D",
-        "acq_contrast": "ge",
-        "series_type": "asl",
-        "series_number": 10,
-        "series_description": "test asl series",
-        "asl_context": "m0scan control label control label control label control label".split(),
-        "label_type": "pcasl",
-        "label_duration": 1.8,
-        "post_label_delay": 1.8,
-        "label_efficiency": 0.85,
-        "lambda_blood_brain": 0.90,
-        "t1_arterial_blood": 1.65,
-        "image_flavour": "PERFUSION",
-        "voxel_size": [1.0, 1.0, 1.0],
-    }
+    image.metadata = ImageMetadata(
+        echo_time=0.01,
+        repetition_time=[10.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
+        excitation_flip_angle=30,
+        mr_acquisition_type="3D",
+        acq_contrast="ge",
+        series_type="asl",
+        series_number=10,
+        series_description="test asl series",
+        asl_context=[
+            "m0scan",
+            "control",
+            "label",
+            "control",
+            "label",
+            "control",
+            "label",
+            "control",
+            "label",
+        ],
+        label_type="pcasl",
+        label_duration=1.8,
+        post_label_delay=1.8,
+        label_efficiency=0.85,
+        lambda_blood_brain=0.90,
+        t1_arterial_blood=1.65,
+        image_flavor="PERFUSION",
+        voxel_size=[1.0, 1.0, 1.0],
+    )
 
     return image
 
@@ -85,16 +96,16 @@ def test_load_asl_bids_filter_validate_inputs(test_data) -> None:
         incorrect_content_aslcontext_1 = os.path.join(
             temp_dir, "incorrect_aslcontext_1.tsv"
         )
-        with open(incorrect_content_aslcontext_1, "w") as tsv_file:
-            tsv_file.write("\n".join(image.metadata["asl_context"][1:]))
+        with open(incorrect_content_aslcontext_1, "w", encoding="utf-8") as tsv_file:
+            tsv_file.write("\n".join(image.metadata.asl_context[1:]))
             tsv_file.close()
 
         # incorrect *_aslcontext.tsv contents 2: incorrect length
         incorrect_content_aslcontext_2 = os.path.join(
             temp_dir, "incorrect_aslcontext_1.tsv"
         )
-        with open(incorrect_content_aslcontext_2, "w") as tsv_file:
-            tsv_file.write("\n".join(image.metadata["asl_context"][:7]))
+        with open(incorrect_content_aslcontext_2, "w", encoding="utf-8") as tsv_file:
+            tsv_file.write("\n".join(image.metadata.asl_context[:7]))
             tsv_file.close()
 
         input_validation_dictionary = {
@@ -123,7 +134,7 @@ def test_load_asl_bids_filter_validate_inputs(test_data) -> None:
                 incorrect_content_aslcontext_1,
                 incorrect_content_aslcontext_2,
                 1.0,
-                image.metadata["asl_context"],
+                image.metadata.asl_context,
             ],
         }
 
@@ -160,22 +171,21 @@ def test_load_asl_bids_filter_mock_data(test_data) -> None:
         numpy.testing.assert_array_equal(
             image.image[:, :, :, 0], load_bids_filter.outputs["m0"].image
         )
-        assert load_bids_filter.outputs["m0"].metadata["asl_context"] == ["m0scan"]
-        assert load_bids_filter.outputs["m0"].metadata["RepetitionTimePreparation"] == [
-            10.0
-        ]
+        m0: BaseImageContainer = load_bids_filter.outputs["m0"]
+        assert m0.metadata.asl_context == ["m0scan"]
+        assert m0.metadata.repetition_time_preparation == [10.0]
         numpy.testing.assert_array_equal(
             image.image[:, :, :, 1::2], load_bids_filter.outputs["control"].image
         )
-        assert load_bids_filter.outputs["control"].metadata["asl_context"] == [
+        assert load_bids_filter.outputs["control"].metadata.asl_context == [
             "control",
             "control",
             "control",
             "control",
         ]
-        assert load_bids_filter.outputs["control"].metadata[
-            "RepetitionTimePreparation"
-        ] == [
+        assert load_bids_filter.outputs[
+            "control"
+        ].metadata.repetition_time_preparation == [
             5.0,
             5.0,
             5.0,
@@ -184,15 +194,15 @@ def test_load_asl_bids_filter_mock_data(test_data) -> None:
         numpy.testing.assert_array_equal(
             image.image[:, :, :, 2::2], load_bids_filter.outputs["label"].image
         )
-        assert load_bids_filter.outputs["label"].metadata["asl_context"] == [
+        assert load_bids_filter.outputs["label"].metadata.asl_context == [
             "label",
             "label",
             "label",
             "label",
         ]
-        assert load_bids_filter.outputs["label"].metadata[
-            "RepetitionTimePreparation"
-        ] == [
+        assert load_bids_filter.outputs[
+            "label"
+        ].metadata.repetition_time_preparation == [
             5.0,
             5.0,
             5.0,

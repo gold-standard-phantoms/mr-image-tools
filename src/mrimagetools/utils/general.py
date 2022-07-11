@@ -1,8 +1,9 @@
 """ General utilities """
 import os
-from typing import Any, Dict, Mapping, Optional, Tuple, Union
+from typing import Any, Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 import numpy as np
+from nibabel.cifti2.cifti2 import re
 from numpy.random import default_rng
 
 
@@ -90,3 +91,40 @@ def generate_random_numbers(
         return np.zeros(shape)
 
     return out
+
+
+def camel_to_snake(name: str) -> str:
+    """Converts a CamelCase string to snake_case"""
+    if not isinstance(name, str):
+        raise ValueError("Must be a string")
+    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    snake_case = re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
+    if not isinstance(snake_case, str):
+        raise ValueError("Must be a string")
+    return snake_case
+
+
+T = TypeVar("T")
+
+InputType = Union[T, Dict[str, T], Tuple[T], List[T]]
+
+
+def camel_to_snake_case_keys_any(input_value: InputType) -> InputType:
+    """Converts a dictionary where the keys are CamelCase into snake_case"""
+    if isinstance(input_value, Dict):
+        return_dict = {}
+        for key, value in input_value.items():
+            return_dict[camel_to_snake(key)] = camel_to_snake_case_keys_any(value)
+        return return_dict
+    if isinstance(input_value, tuple):
+        return (camel_to_snake_case_keys_any(v) for v in input_value)
+    if isinstance(input_value, list):
+        return [camel_to_snake_case_keys_any(v) for v in input_value]
+    return input_value
+
+
+def camel_to_snake_case_keys(input_value: Dict[str, Any]) -> Dict[str, Any]:
+    return_dict = {}
+    for key, value in input_value.items():
+        return_dict[camel_to_snake(key)] = camel_to_snake_case_keys_any(value)
+    return return_dict

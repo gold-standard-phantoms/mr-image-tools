@@ -10,6 +10,7 @@ import pytest
 from nibabel.nifti1 import Nifti1Image
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.combine_time_series_filter import CombineTimeSeriesFilter
 
@@ -40,7 +41,9 @@ def fixture_image_containers() -> dict:
                 affine=np.eye(4),
                 header=dummy_nifti.header,
             ),
-            metadata={"to_list": i, "to_singleton": 10, "even": i},
+            metadata=ImageMetadata(
+                repetition_time_preparation=i, m0=10, post_label_delay=i
+            ),
         )
         if i % 2 == 0
         else NiftiImageContainer(
@@ -49,12 +52,14 @@ def fixture_image_containers() -> dict:
                 affine=np.eye(4),
                 header=dummy_nifti.header,
             ),
-            metadata={"to_list": i, "to_singleton": 10, "odd": 1.5},
+            metadata=ImageMetadata(
+                repetition_time_preparation=i, m0=10, label_efficiency=1.5
+            ),
         )
         for i in range(num_image_containers)
     }
     # Have a metadata field that only reside in a single image container
-    image_containers["image_0000000009"].metadata["foo"] = "bar"
+    image_containers["image_0000000009"].metadata.quantity = "foobar"
     return image_containers
 
 
@@ -67,13 +72,13 @@ def test_combine_time_series_filter_good_input(
     a_filter.add_inputs(image_containers)
     a_filter.run()
     # Check the meta-data has been created correctly
-    assert a_filter.outputs["image"].metadata == {
-        "to_list": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        "to_singleton": 10,
-        "even": [0, None, 2, None, 4, None, 6, None, 8, None],
-        "foo": "bar",
-        "odd": 1.5,
-    }
+    assert a_filter.outputs["image"].metadata == ImageMetadata(
+        repetition_time_preparation=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        m0=10,
+        post_label_delay=[0, None, 2, None, 4, None, 6, None, 8, None],
+        quantity="foobar",
+        label_efficiency=1.5,
+    )
 
     # Test the image has been created correctly - checking voxel values
     container = a_filter.outputs["image"]
@@ -97,7 +102,7 @@ def test_combine_time_series_filter_repeat_index(
     We should get a FilterInputValidationError error"""
     image_containers["image_7"] = NiftiImageContainer(
         nifti_img=nib.Nifti1Image(dataobj=np.ones((2, 3, 4)) * 7, affine=np.eye(4)),
-        metadata={"to_list": 7, "to_singleton": 10},
+        metadata=ImageMetadata(repetition_time_preparation=7, m0=10),
     )
 
     a_filter = CombineTimeSeriesFilter()
@@ -149,14 +154,18 @@ def test_combine_time_series_filter_with_complex_images() -> None:
             nifti_img=nib.Nifti1Image(
                 dataobj=np.ones((1, 1, 1)) * (i + 1j), affine=np.eye(4)
             ),
-            metadata={"to_list": i, "to_singleton": 10, "even": i},
+            metadata=ImageMetadata(
+                repetition_time_preparation=i, m0=10, post_label_delay=i
+            ),
         )
         if i % 2 == 0
         else NiftiImageContainer(
             nifti_img=nib.Nifti1Image(
                 dataobj=np.ones((1, 1, 1)) * (i + 1j), affine=np.eye(4)
             ),
-            metadata={"to_list": i, "to_singleton": 10, "odd": 1.5},
+            metadata=ImageMetadata(
+                repetition_time_preparation=i, m0=10, label_efficiency=1.5
+            ),
         )
         for i in range(num_image_containers)
     }

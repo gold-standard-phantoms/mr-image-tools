@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter
 from mrimagetools.validators.fields import NiftiDataTypeField, UnitField
 from mrimagetools.validators.parameter_model import (
@@ -161,17 +162,17 @@ class GroundTruthParser(BaseFilter):
             # METADATA
             # If we have a segmentation label, round and squash the
             # data to uint16 and update the NIFTI header
-            metadata: Dict[str, Any] = {}
+            metadata: ImageMetadata = ImageMetadata()
             if quantity.cast_to is not None:
                 header["datatype"] = quantity.cast_to.type_code
 
                 image_data = np.around(image_data).astype(quantity.cast_to)
-                metadata[self.KEY_DATA_TYPE] = quantity
+                metadata.data_type = quantity.cast_to
 
-            metadata[self.KEY_QUANTITY] = quantity.name
+            metadata.quantity = quantity.name
 
             if quantity.units is not None:
-                metadata[self.KEY_UNITS] = quantity.units
+                metadata.units = quantity.units
 
             # IMAGE
             nifti_image_type = self.parsed_inputs.image.nifti_type

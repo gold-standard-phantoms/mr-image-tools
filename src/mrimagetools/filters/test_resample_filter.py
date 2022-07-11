@@ -8,6 +8,7 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer, NumpyImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.affine_matrix_filter import AffineMatrixFilter
 from mrimagetools.filters.resample_filter import ResampleFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
@@ -275,11 +276,11 @@ def test_resample_filter_metadata() -> None:
     """Tests the metadata output of the resample filter"""
     test_image = TEST_NIFTI_ONES.clone()
     # add some meta data
-    test_image.metadata = {
-        "key1": 1,
-        "key2": "two",
-        "key3": [2, 4, 5],
-    }
+    test_image.metadata = ImageMetadata(
+        label_duration=1,
+        series_description="two",
+        repetition_time=[2, 4, 5],
+    )
     test_image.nifti_image.header.set_xyzt_units(xyz="mm", t="sec")
     resample_affine = 2 * np.eye(4)
     resample_filter = ResampleFilter()
@@ -289,14 +290,16 @@ def test_resample_filter_metadata() -> None:
     resample_filter.run()
 
     valid_dict = {
-        "key1": 1,
-        "key2": "two",
-        "key3": [2, 4, 5],
+        "label_duration": 1,
+        "series_description": "two",
+        "repetition_time": [2, 4, 5],
         "voxel_size": list(
             nib.affines.voxel_sizes(resample_filter.outputs["image"].affine)
         ),
     }
-    assert resample_filter.outputs["image"].metadata == valid_dict
+    assert (
+        resample_filter.outputs["image"].metadata.dict(exclude_unset=True) == valid_dict
+    )
     assert resample_filter.outputs["image"].nifti_image.header.get_xyzt_units() == (
         "mm",
         "sec",

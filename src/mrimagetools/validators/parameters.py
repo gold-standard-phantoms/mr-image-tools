@@ -189,13 +189,15 @@ def greater_than_validator(start) -> Validator:
     return Validator(validate, f"Value(s) must be greater than {start}")
 
 
-def from_list_validator(options: list, case_insensitive: bool = False) -> Validator:
+def from_list_validator(
+    options: Union[list, tuple], case_insensitive: bool = False
+) -> Validator:
     """
     Validates that a given value is from a list.
     :param option: the list of options, one of which the value must match
     :param case_insensitive: perform a case-insensitive matching
     """
-    if not isinstance(options, list):
+    if not isinstance(options, (list, tuple)):
         raise TypeError(f"Input must be a list, is {options}")
     if case_insensitive:
         lowercase_options = [x.lower() if isinstance(x, str) else x for x in options]
@@ -246,10 +248,10 @@ def list_of_type_validator(a_type: Union[type, Tuple[type, ...]]) -> Validator:
     )
 
 
-def non_empty_list_validator() -> Validator:
-    """Validates that a value is a list and is non-empty"""
+def non_empty_list_or_tuple_validator() -> Validator:
+    """Validates that a value is a list or tuple and is non-empty"""
     return Validator(
-        lambda value: isinstance(value, list) and len(value) > 0,
+        lambda value: isinstance(value, (list, tuple)) and len(value) > 0,
         "Value must be a non-empty list",
     )
 

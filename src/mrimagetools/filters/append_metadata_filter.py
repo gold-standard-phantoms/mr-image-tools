@@ -1,6 +1,9 @@
 """ AppendMetadataFilter """
 
+from typing import Dict, Union
+
 from mrimagetools.containers.image import BaseImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameters import (
     Parameter,
@@ -48,16 +51,23 @@ class AppendMetadataFilter(BaseFilter):
         """appends the input image with the supplied metadata"""
         # copy the reference to the input image to outputs
         self.outputs[self.KEY_IMAGE] = self.inputs[self.KEY_IMAGE]
+        input_metadata: Union[Dict, ImageMetadata] = self.inputs[self.KEY_METADATA]
         # merge the input metadata with the existing metadata
-        self.outputs[self.KEY_IMAGE].metadata = {
-            **self.outputs[self.KEY_IMAGE].metadata,
-            **self.inputs[self.KEY_METADATA],
-        }
+        self.outputs[self.KEY_IMAGE].metadata = ImageMetadata(
+            **{
+                **self.outputs[self.KEY_IMAGE].metadata.dict(exclude_none=True),
+                **(
+                    input_metadata
+                    if isinstance(input_metadata, Dict)
+                    else input_metadata.dict(exclude_none=True)
+                ),
+            }
+        )
 
     def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
         'image' must be derived from BaseImageContainer
-        'metadata' must be a dict
+        'metadata' must be an ImageMetadata or a dictionary
         """
 
         input_validator = ParameterValidator(
@@ -65,7 +75,9 @@ class AppendMetadataFilter(BaseFilter):
                 self.KEY_IMAGE: Parameter(
                     validators=isinstance_validator(BaseImageContainer)
                 ),
-                self.KEY_METADATA: Parameter(validators=isinstance_validator(dict)),
+                self.KEY_METADATA: Parameter(
+                    validators=isinstance_validator((ImageMetadata, dict))
+                ),
             }
         )
 

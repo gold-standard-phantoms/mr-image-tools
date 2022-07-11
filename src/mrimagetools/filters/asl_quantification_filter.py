@@ -5,8 +5,10 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 from mrimagetools.containers.image import BaseImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.filters.gkm_filter import GkmFilter
+from mrimagetools.validators.fields import UnitField
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
@@ -106,7 +108,7 @@ class AslQuantificationFilter(BaseFilter):
 
     KEY_CONTROL = "control"
     KEY_LABEL = "label"
-    KEY_MODEL = "model"
+    KEY_MODEL = "gkm_model"
     KEY_M0 = GkmFilter.KEY_M0
     KEY_PERFUSION_RATE = GkmFilter.KEY_PERFUSION_RATE
     KEY_LABEL_TYPE = GkmFilter.KEY_LABEL_TYPE
@@ -164,23 +166,23 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
         """Calculates the perfusion rate based on the inputs"""
 
         # create output image
-        self.outputs[self.KEY_PERFUSION_RATE] = self.inputs[self.KEY_CONTROL].clone()
+        output_image: BaseImageContainer = self.inputs[self.KEY_CONTROL].clone()
+        self.outputs[self.KEY_PERFUSION_RATE] = output_image
         # amend the metadata
-        self.outputs[self.KEY_PERFUSION_RATE].metadata.pop("RepetitionTime", None)
-        self.outputs[self.KEY_PERFUSION_RATE].metadata.pop(
-            "RepetitionTimePreparation", None
-        )
-        self.outputs[self.KEY_PERFUSION_RATE].metadata.pop("EchoTime", None)
-        self.outputs[self.KEY_PERFUSION_RATE].metadata.pop("M0Type", None)
-        self.outputs[self.KEY_PERFUSION_RATE].metadata.pop("FlipAngle", None)
-        self.outputs[self.KEY_PERFUSION_RATE].metadata["asl_context"] = "cbf"
-        self.outputs[self.KEY_PERFUSION_RATE].metadata["Units"] = "ml/100g/min"
-        self.outputs[self.KEY_PERFUSION_RATE].metadata["ImageType"] = [
+        output_image.metadata.repetition_time = None
+        output_image.metadata.repetition_time_preparation = None
+        output_image.metadata.echo_time = None
+        output_image.metadata.m0_type = None
+        output_image.metadata.excitation_flip_angle = None
+
+        output_image.metadata.asl_context = "cbf"
+        output_image.metadata.units = UnitField("ml/100g/min")
+        output_image.metadata.image_type = (
             "DERIVED",
             "PRIMARY",
             "PERFUSION",
             "RCBF",
-        ]
+        )
 
         if self.inputs[self.KEY_MODEL] == self.WHITEPAPER:
             # single subtraction quantification
@@ -224,9 +226,9 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
                     label_efficiency=self.inputs[self.KEY_LABEL_EFFICIENCY],
                     t1_arterial_blood=self.inputs[self.KEY_T1_ARTERIAL_BLOOD],
                 )
-            self.outputs[self.KEY_PERFUSION_RATE].metadata[
-                "EstimationAlgorithm"
-            ] = self.ESTIMATION_ALGORITHM[self.WHITEPAPER]
+            output_image.metadata.estimation_algorithm = self.ESTIMATION_ALGORITHM[
+                self.WHITEPAPER
+            ]
         elif self.inputs[self.KEY_MODEL] == self.FULL:
             # fit multi PLD data to the General Kinetic Model
             # AslQuantificationFilter.asl_quant_lsq_gkm requires `t1_tissue` and
@@ -234,10 +236,10 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
             # first create arrays of these if they are not
             shape = self.inputs[self.KEY_M0].shape
             t1_tissue = GkmFilter.check_and_make_image_from_value(
-                self.inputs[self.KEY_T1_TISSUE], shape, {}, None
+                self.inputs[self.KEY_T1_TISSUE], shape, ImageMetadata(), None
             )
             lambda_blood_brain = GkmFilter.check_and_make_image_from_value(
-                self.inputs[self.KEY_LAMBDA_BLOOD_BRAIN], shape, {}, None
+                self.inputs[self.KEY_LAMBDA_BLOOD_BRAIN], shape, ImageMetadata(), None
             )
             # The input `post_label_delay` is values of PLD's corresponding to
             # each multiphase index. The actual PLD array needs to be built
@@ -264,10 +266,10 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
                 self.KEY_PERFUSION_RATE
             ]
 
-            self.outputs[self.KEY_PERFUSION_RATE].metadata[
-                "EstimationAlgorithm"
-            ] = self.ESTIMATION_ALGORITHM[self.FULL]
-            self.outputs[self.KEY_PERFUSION_RATE].metadata.pop("MultiphaseIndex", None)
+            output_image.metadata.estimation_algorithm = self.ESTIMATION_ALGORITHM[
+                self.FULL
+            ]
+            output_image.metadata.multiphase_index = None
             # when using the full model there are additional outputs
             for key in [
                 self.KEY_PERFUSION_RATE_ERR,
@@ -277,16 +279,16 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
             ]:
                 self.outputs[key] = self.outputs[self.KEY_PERFUSION_RATE].clone()
                 self.outputs[key].image = results[key]
-                self.outputs[key].metadata["asl_context"] = self.FIT_IMAGE_NAME[
+                self.outputs[key].metadata.asl_context = self.FIT_IMAGE_NAME[
                     key
                 ].lower()
-                self.outputs[key].metadata["Units"] = self.FIT_IMAGE_UNITS[key]
-                self.outputs[key].metadata["ImageType"] = [
+                self.outputs[key].metadata.units = self.FIT_IMAGE_UNITS[key]
+                self.outputs[key].metadata.image_type = (
                     "DERIVED",
                     "PRIMARY",
                     "PERFUSION",
                     self.FIT_IMAGE_NAME[key].upper(),
-                ]
+                )
 
     def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria

@@ -11,7 +11,7 @@ from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture() -> dict:
+def data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     b_values = [1]
     b_vectors = [[1, 1, 1]]  # what if 0 values in b_vector
@@ -61,7 +61,7 @@ def test_data_fixture() -> dict:
 
 
 @pytest.fixture(name="test_data_s0_null")
-def test_data_s0_null_fixture() -> dict:
+def data_s0_null_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     b_values = [1]
     b_vectors = [[1, 1, 1]]  # what if 0 values in b_vector
@@ -111,7 +111,7 @@ def test_data_s0_null_fixture() -> dict:
 
 
 @pytest.fixture(name="test_data_no_s0")
-def test_data_no_s0_fixture() -> dict:
+def data_no_s0_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     b_values = [1]
     b_vectors = [[1, 1, 1]]  # what if 0 values in b_vector
@@ -154,7 +154,7 @@ def test_data_no_s0_fixture() -> dict:
 
 
 @pytest.fixture(name="test_data_complex")
-def test_data_complex() -> dict:
+def data_complex() -> dict:
     """Returns a dictionary with data for testing"""
     b_values = [1, 2]
     b_vectors = [[1, 1, 1], [1, 2, 3]]  # what if 0 values in b_vector
@@ -297,13 +297,15 @@ def test_value(test_data) -> None:
         dwi_signal_filter.outputs["dwi"].image, test_data["dwi"]
     )
     # check metadata #TODO update metadata
-    assert dwi_signal_filter.outputs["attenuation"].metadata == {
+    assert dwi_signal_filter.outputs["attenuation"].metadata.dict(
+        exclude_none=True
+    ) == {
         "image_flavor": "DWI",
         "b_values": test_data["b_values"],
         "b_vectors": test_data["b_vectors"],
     }
 
-    assert dwi_signal_filter.outputs["dwi"].metadata == {
+    assert dwi_signal_filter.outputs["dwi"].metadata.dict(exclude_none=True) == {
         "image_flavor": "DWI",
         "b_values": test_data["b_values"],
         "b_vectors": test_data["b_vectors"],

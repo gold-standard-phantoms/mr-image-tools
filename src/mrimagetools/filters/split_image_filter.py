@@ -7,7 +7,7 @@ from mrimagetools.validators.parameters import (
     ParameterValidator,
     for_each_validator,
     isinstance_validator,
-    non_empty_list_validator,
+    non_empty_list_or_tuple_validator,
     range_exclusive_validator,
     range_inclusive_validator,
 )
@@ -142,7 +142,7 @@ class SplitImageFilter(BaseFilter):
             parameters={
                 self.KEY_INDICES: Parameter(
                     validators=[
-                        non_empty_list_validator(),
+                        non_empty_list_or_tuple_validator(),
                         for_each_validator(
                             isinstance_validator(int),
                         ),

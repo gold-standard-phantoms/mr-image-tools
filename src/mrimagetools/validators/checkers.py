@@ -6,6 +6,7 @@ import pint
 def is_a_unit(unit: str) -> bool:
     """Uses 'pint' to determine whether the given string is
     a valid representation of an SI unit. For example:
+    - ml/100g/min
     - meters
     - m
     - mm**2*s-1
@@ -15,9 +16,11 @@ def is_a_unit(unit: str) -> bool:
 
     if not isinstance(unit, str):
         return False
+    # allow the empty unit
+    if not unit:
+        return True
     try:
-        ureg = pint.UnitRegistry()
-        ureg.parse_units(unit)
+        pint.Quantity(unit)
     except Exception:  # pylint: disable=broad-except
         return False
     return True

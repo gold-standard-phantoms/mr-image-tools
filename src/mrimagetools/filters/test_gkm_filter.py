@@ -9,8 +9,9 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import BaseImageContainer, NumpyImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
-from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.filters.basefilter import BaseFilter
 from mrimagetools.filters.gkm_filter import GkmFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
@@ -405,7 +406,7 @@ def test_gkm_filter_pasl(pasl_input) -> None:
     gkm_filter.run()
 
     # check the m0 is added to the metadata, as all values of m0 for the image are the same
-    gkm_filter.outputs["delta_m"].metadata["m0"] = 1.0
+    gkm_filter.outputs["delta_m"].metadata.m0 = 1.0
     # 'delta_m' should be all zero
     numpy.testing.assert_array_equal(
         gkm_filter.outputs["delta_m"].image,
@@ -520,94 +521,88 @@ def test_gkm_timecourse(
 def test_gkm_filter_metadata_casl(casl_input) -> None:
     """Test the metadata output from GkmFilter"""
     gkm_filter = GkmFilter()
-    casl_input["perfusion_rate"].metadata = {
-        "units": "ml/100g/min",
-        "quantity": "perfusion_rate",
-    }
+    casl_input["perfusion_rate"].metadata.units = "ml/100g/min"
+    casl_input["perfusion_rate"].metadata.quantity = "perfusion_rate"
     gkm_filter = add_multiple_inputs_to_filter(gkm_filter, casl_input)
     gkm_filter.run()
 
-    assert gkm_filter.outputs["delta_m"].metadata == {
-        "label_type": casl_input["label_type"].lower(),
-        "label_duration": casl_input["label_duration"],
-        "post_label_delay": casl_input["signal_time"] - casl_input["label_duration"],
-        "label_efficiency": casl_input["label_efficiency"],
-        "lambda_blood_brain": casl_input["lambda_blood_brain"],
-        "t1_arterial_blood": casl_input["t1_arterial_blood"],
-        "image_flavour": "PERFUSION",
-        "m0": 1.0,
-        "gkm_model": "full",
-    }
+    assert gkm_filter.outputs["delta_m"].metadata == ImageMetadata(
+        label_type=casl_input["label_type"].lower(),
+        label_duration=casl_input["label_duration"],
+        post_label_delay=casl_input["signal_time"] - casl_input["label_duration"],
+        label_efficiency=casl_input["label_efficiency"],
+        lambda_blood_brain=casl_input["lambda_blood_brain"],
+        t1_arterial_blood=casl_input["t1_arterial_blood"],
+        image_flavor="PERFUSION",
+        m0=1.0,
+        gkm_model="full",
+    )
 
 
 def test_gkm_filter_metadata_pasl(pasl_input) -> None:
     """Test the metadata output from GkmFilter"""
     gkm_filter = GkmFilter()
-    pasl_input["perfusion_rate"].metadata = {
-        "units": "ml/100g/min",
-        "quantity": "perfusion_rate",
-    }
+    pasl_input["perfusion_rate"].metadata.units = "ml/100g/min"
+    pasl_input["perfusion_rate"].metadata.quantity = "perfusion_rate"
     gkm_filter = add_multiple_inputs_to_filter(gkm_filter, pasl_input)
     gkm_filter.run()
 
-    assert gkm_filter.outputs["delta_m"].metadata == {
-        "label_type": pasl_input["label_type"].lower(),
-        "bolus_cut_off_flag": True,
-        "bolus_cut_off_delay_time": pasl_input["label_duration"],
-        "post_label_delay": pasl_input["signal_time"] - pasl_input["label_duration"],
-        "label_efficiency": pasl_input["label_efficiency"],
-        "lambda_blood_brain": pasl_input["lambda_blood_brain"],
-        "t1_arterial_blood": pasl_input["t1_arterial_blood"],
-        "image_flavour": "PERFUSION",
-        "m0": 1.0,
-        "gkm_model": "full",
-    }
+    assert gkm_filter.outputs["delta_m"].metadata == ImageMetadata(
+        label_type=pasl_input["label_type"].lower(),
+        bolus_cut_off_flag=True,
+        bolus_cut_off_delay_time=pasl_input["label_duration"],
+        post_label_delay=pasl_input["signal_time"] - pasl_input["label_duration"],
+        label_efficiency=pasl_input["label_efficiency"],
+        lambda_blood_brain=pasl_input["lambda_blood_brain"],
+        t1_arterial_blood=pasl_input["t1_arterial_blood"],
+        image_flavor="PERFUSION",
+        m0=1.0,
+        gkm_model="full",
+    )
 
 
 def test_gkm_filter_m0_float(casl_input) -> None:
     """Test the GkmFilter when m0 is supplied as a number and not an image"""
     # set m0 to a float
     casl_input["m0"] = 100.0
-    casl_input["perfusion_rate"].metadata = {
-        "units": "ml/100g/min",
-        "quantity": "perfusion_rate",
-    }
+    casl_input["perfusion_rate"].metadata.units = "ml/100g/min"
+    casl_input["perfusion_rate"].metadata.quantity = "perfusion_rate"
     gkm_filter = GkmFilter()
     gkm_filter = add_multiple_inputs_to_filter(gkm_filter, casl_input)
     gkm_filter.run()
-    assert gkm_filter.outputs["delta_m"].metadata == {
-        "label_type": casl_input["label_type"].lower(),
-        "label_duration": casl_input["label_duration"],
-        "post_label_delay": casl_input["signal_time"] - casl_input["label_duration"],
-        "label_efficiency": casl_input["label_efficiency"],
-        "lambda_blood_brain": casl_input["lambda_blood_brain"],
-        "t1_arterial_blood": casl_input["t1_arterial_blood"],
-        "image_flavour": "PERFUSION",
-        "m0": 100.0,
-        "gkm_model": "full",
-    }
+    assert gkm_filter.outputs["delta_m"].metadata == ImageMetadata(
+        label_type=casl_input["label_type"].lower(),
+        label_duration=casl_input["label_duration"],
+        post_label_delay=casl_input["signal_time"] - casl_input["label_duration"],
+        label_efficiency=casl_input["label_efficiency"],
+        lambda_blood_brain=casl_input["lambda_blood_brain"],
+        t1_arterial_blood=casl_input["t1_arterial_blood"],
+        image_flavor="PERFUSION",
+        m0=100.0,
+        gkm_model="full",
+    )
 
 
 def test_check_and_make_image_from_value() -> None:
     """Test the check_and_make_image_from_value static method"""
 
     arg: Union[float, BaseImageContainer] = 1.0
-    metadata: dict = {}
-    key_name = "key_1"
+    metadata: ImageMetadata = ImageMetadata()
+    key_name = "echo_time"
     shape = (3, 3, 3)
 
     out = GkmFilter.check_and_make_image_from_value(arg, shape, metadata, key_name)
 
-    assert metadata == {"key_1": 1.0}
+    assert metadata.dict(exclude_none=True) == {"echo_time": 1.0}
     numpy.testing.assert_array_equal(out, np.ones((3, 3, 3)))
 
     arg = NumpyImageContainer(np.ones((3, 3, 3)) * 4.56)
-    key_name = "key_2"
+    key_name = "m0"
     out = GkmFilter.check_and_make_image_from_value(arg, shape, metadata, key_name)
 
-    assert metadata == {
-        "key_1": 1.0,
-        "key_2": 4.56,
+    assert metadata.dict(exclude_none=True) == {
+        "echo_time": 1.0,
+        "m0": 4.56,
     }
     numpy.testing.assert_array_equal(out, 4.56 * np.ones((3, 3, 3)))
 
@@ -615,9 +610,9 @@ def test_check_and_make_image_from_value() -> None:
     arg.image = np.random.normal(0, 1, shape)
     key_name = "key_3"
     out = GkmFilter.check_and_make_image_from_value(arg, shape, metadata, key_name)
-    assert metadata == {
-        "key_1": 1.0,
-        "key_2": 4.56,
+    assert metadata.dict(exclude_none=True) == {
+        "echo_time": 1.0,
+        "m0": 4.56,
     }
     np.random.seed(12345)
     numpy.testing.assert_array_equal(out, np.random.normal(0, 1, shape))
@@ -670,7 +665,7 @@ def test_gkm_filter_wp_casl(casl_input) -> None:
         delta_m, gkm_filter.outputs["delta_m"].image
     )
 
-    assert gkm_filter.outputs["delta_m"].metadata["gkm_model"] == "whitepaper"
+    assert gkm_filter.outputs["delta_m"].metadata.gkm_model == "whitepaper"
 
     # check that quantification is correct
     quantified_f = AslQuantificationFilter.asl_quant_wp_casl(
@@ -714,7 +709,7 @@ def test_gkm_filter_wp_pasl(pasl_input) -> None:
         delta_m, gkm_filter.outputs["delta_m"].image
     )
 
-    assert gkm_filter.outputs["delta_m"].metadata["gkm_model"] == "whitepaper"
+    assert gkm_filter.outputs["delta_m"].metadata.gkm_model == "whitepaper"
 
     # check that quantification is correct
     quantified_f = AslQuantificationFilter.asl_quant_wp_pasl(

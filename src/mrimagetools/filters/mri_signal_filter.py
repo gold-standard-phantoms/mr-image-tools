@@ -5,6 +5,11 @@ from typing import Any, Dict, Type, TypeVar
 import numpy as np
 
 from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer
+from mrimagetools.containers.image_metadata import (
+    AcqContrastType,
+    ImageMetadata,
+    MrAcqType,
+)
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.utils.typing import T
 from mrimagetools.validators.parameters import (
@@ -58,8 +63,8 @@ class MriSignalFilter(BaseFilter):
     :type 'inversion_flip_angle': float, optional
     :param 'inversion_time': The inversion time in seconds. Only used when
         ``'acq_contrast'`` is ``"ir"``. Defaults to 1.0.
-    :param 'image_flavour': sets the metadata ``'image_flavour'`` in the output image to this.
-    :type 'image_flavour': str
+    :param 'image_flavor': sets the metadata ``'image_flavor'`` in the output image to this.
+    :type 'image_flavor': str
 
     **Outputs**
 
@@ -79,16 +84,16 @@ class MriSignalFilter(BaseFilter):
     * ``'acq_contrast'``
     * ``'echo time'``
     * ``'excitation_flip_angle'``
-    * ``'image_flavour'``
+    * ``'image_flavor'``
     * ``'inversion_time'``
     * ``'inversion_flip_angle'``
     * ``'mr_acq_type'` = "3D"
 
     Metadata entries for ``'units'`` and ``'quantity'`` will be removed.
 
-    ``'image_flavour'`` is obtained (in order of precedence):
+    ``'image_flavor'`` is obtained (in order of precedence):
 
-    #. If present, from the input ``'image_flavour'``
+    #. If present, from the input ``'image_flavor'``
     #. If present, derived from the metadata in the input ``'mag_enc'``
     #. "OTHER"
 
@@ -140,7 +145,7 @@ class MriSignalFilter(BaseFilter):
     KEY_INVERSION_FLIP_ANGLE = "inversion_flip_angle"
     KEY_INVERSION_TIME = "inversion_time"
     KEY_IMAGE = "image"
-    KEY_IMAGE_FLAVOUR = "image_flavour"
+    KEY_image_flavor = "image_flavor"
     KEY_ACQ_TYPE = "mr_acq_type"
     KEY_BACKGROUND_SUPPRESSION = "background_suppression"
 
@@ -167,23 +172,28 @@ class MriSignalFilter(BaseFilter):
         t2: np.ndarray = self.inputs[self.KEY_T2].image
         m0: np.ndarray = self.inputs[self.KEY_M0].image
 
-        metadata: Dict[str, Any] = {}
+        metadata: ImageMetadata = ImageMetadata()
         mag_enc: np.ndarray
         if self.inputs.get(self.KEY_MAG_ENC) is not None:
             mag_enc = self.inputs[self.KEY_MAG_ENC].image
-            metadata = {**metadata, **self.inputs[self.KEY_MAG_ENC].metadata}
+            metadata = ImageMetadata(
+                **{
+                    **metadata.dict(exclude_none=True),
+                    **self.inputs[self.KEY_MAG_ENC].metadata.dict(exclude_none=True),
+                }
+            )
         else:
             mag_enc = np.zeros(t1.shape)
 
-        # mag_enc might not have "image_flavour" set
-        if metadata.get("image_flavour") is None:
-            metadata["image_flavour"] = "OTHER"
+        # mag_enc might not have "image_flavor" set
+        if metadata.image_flavor is None:
+            metadata.image_flavor = "OTHER"
 
-        # if present override image_flavour with the input
-        if self.inputs.get(self.KEY_IMAGE_FLAVOUR) is not None:
-            metadata["image_flavour"] = self.inputs.get(self.KEY_IMAGE_FLAVOUR)
+        # if present override image_flavor with the input
+        if self.inputs.get(self.KEY_image_flavor) is not None:
+            metadata.image_flavor = self.inputs.get(self.KEY_image_flavor)
 
-        acq_contrast: str = self.inputs[self.KEY_ACQ_CONTRAST]
+        acq_contrast: AcqContrastType = self.inputs[self.KEY_ACQ_CONTRAST]
         echo_time: float = self.inputs[self.KEY_ECHO_TIME]
         repetition_time: float = self.inputs[self.KEY_REPETITION_TIME]
 
@@ -200,12 +210,12 @@ class MriSignalFilter(BaseFilter):
         )
 
         # add common fields to metadata
-        metadata[self.KEY_ACQ_CONTRAST] = acq_contrast
-        metadata[self.KEY_ECHO_TIME] = echo_time
-        metadata[self.KEY_REPETITION_TIME] = repetition_time
-        metadata[
-            self.KEY_ACQ_TYPE
-        ] = "3D"  # 2D not currently supported so everything is 3D
+        metadata.acq_contrast = acq_contrast
+        metadata.echo_time = echo_time
+        metadata.repetition_time = repetition_time
+        metadata.mr_acquisition_type = (
+            "3D"  # 2D not currently supported so everything is 3D
+        )
 
         # Gradient Echo Contrast. Equation is from p246 in the book MRI from Picture to Proton,
         # second edition, 2006, McRobbie et. al.
@@ -247,7 +257,7 @@ class MriSignalFilter(BaseFilter):
                 )
                 * exp_t2_star
             )
-            metadata[self.KEY_EXCITATION_FLIP_ANGLE] = self.inputs.get(
+            metadata.excitation_flip_angle = self.inputs.get(
                 self.KEY_EXCITATION_FLIP_ANGLE
             )
 
@@ -269,7 +279,7 @@ class MriSignalFilter(BaseFilter):
                 + mag_enc
             ) * exp_te_t2
             # for spin echo the flip angle is assumed to be 90°
-            metadata[self.KEY_EXCITATION_FLIP_ANGLE] = 90.0
+            metadata.excitation_flip_angle = 90.0
 
         # Inversion Recovery contrast.  Equation is from equation 7 in
         # http://www.paul-tofts-phd.org.uk/talks/ismrm2009_rt.pdf
@@ -309,23 +319,25 @@ class MriSignalFilter(BaseFilter):
                 * exp_te_t2
             )
             # add ir specific metadata
-            metadata[self.KEY_EXCITATION_FLIP_ANGLE] = self.inputs.get(
+            metadata.excitation_flip_angle = self.inputs.get(
                 self.KEY_EXCITATION_FLIP_ANGLE
             )
-            metadata[self.KEY_INVERSION_FLIP_ANGLE] = self.inputs.get(
+            metadata.inversion_flip_angle = self.inputs.get(
                 self.KEY_INVERSION_FLIP_ANGLE
             )
-            metadata[self.KEY_INVERSION_TIME] = inversion_time
+            metadata.inversion_time = inversion_time
 
         self.outputs[self.KEY_IMAGE] = self.inputs[self.KEY_M0].clone()
         self.outputs[self.KEY_IMAGE].image = mri_signal
         # merge the metadata field with the constructed one (we don't want to merge)
-        self.outputs[self.KEY_IMAGE].metadata = {
-            **self.outputs[self.KEY_IMAGE].metadata,
-            **metadata,
-        }
-        self.outputs[self.KEY_IMAGE].metadata.pop("units", None)
-        self.outputs[self.KEY_IMAGE].metadata.pop("quantity", None)
+        self.outputs[self.KEY_IMAGE].metadata = ImageMetadata(
+            **{
+                **self.outputs[self.KEY_IMAGE].metadata.dict(exclude_none=True),
+                **metadata.dict(exclude_none=True),
+            }
+        )
+        self.outputs[self.KEY_IMAGE].metadata.units = None
+        self.outputs[self.KEY_IMAGE].metadata.quantity = None
         # pdb.set_trace()
 
     def _validate_inputs(self) -> None:
@@ -415,7 +427,7 @@ class MriSignalFilter(BaseFilter):
                     ],
                     optional=True,
                 ),
-                self.KEY_IMAGE_FLAVOUR: Parameter(
+                self.KEY_image_flavor: Parameter(
                     validators=[
                         isinstance_validator(str),
                     ],

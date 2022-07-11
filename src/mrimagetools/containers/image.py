@@ -4,11 +4,13 @@ be instantiated with either NIFTI files or using numpy arrays """
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import List, Tuple, Type, Union
+from typing import List, Optional, Tuple, Type, Union
 
 import nibabel as nib
 import numpy as np
 import numpy.typing as npt
+
+from mrimagetools.containers.image_metadata import ImageMetadata
 
 UNITS_UNKNOWN = "unknown"
 UNITS_METERS = "meter"
@@ -55,8 +57,8 @@ class BaseImageContainer(ABC):
     def __init__(
         self,
         data_domain: str = SPATIAL_DOMAIN,
-        image_type=None,
-        metadata=None,
+        image_type: Optional[str] = None,
+        metadata: Optional[ImageMetadata] = None,
         **kwargs,
     ):
         if data_domain not in [SPATIAL_DOMAIN, INVERSE_DOMAIN]:
@@ -99,11 +101,11 @@ class BaseImageContainer(ABC):
         self.image_type = image_type
 
         if metadata is None:
-            metadata = {}
+            metadata = ImageMetadata()
 
-        if not isinstance(metadata, dict):
-            raise TypeError(f"metadata should be a dict, not {metadata}")
-        self._metadata = metadata
+        if not isinstance(metadata, ImageMetadata):
+            raise TypeError(f"metadata should be a ImageMetadata class, not {metadata}")
+        self.metadata: ImageMetadata = metadata
 
         # Check that the space and time units are set. If not, set the defaults
         if self.space_units == UNITS_UNKNOWN:
@@ -116,20 +118,6 @@ class BaseImageContainer(ABC):
             raise TypeError(
                 f"BaseImageContainer received unexpected arguments {kwargs}"
             )
-
-    @property
-    def metadata(self) -> dict:
-        """Get the metadata"""
-        return self._metadata
-
-    @metadata.setter
-    def metadata(self, value: dict) -> None:
-        """metadata setter
-        :param value: a dictionary. Will overwrite previous metadata
-        """
-        if not isinstance(value, dict):
-            raise TypeError(f"New metadata must be a dict, not {value}")
-        self._metadata = value
 
     def clone(self) -> "BaseImageContainer":
         """Makes a deep copy of all member variables in a new ImageContainer"""
@@ -293,7 +281,7 @@ class NumpyImageContainer(BaseImageContainer):
             nifti_img=nib.Nifti2Image(dataobj=self.image, affine=self._affine),
             data_domain=self.data_domain,
             image_type=self.image_type,
-            metadata=self.metadata,
+            metadata=deepcopy(self.metadata),
         )
         # Use the image setter as it sets the dtype in the header
         new_image_container.image = np.copy(self.image)
@@ -445,7 +433,7 @@ class NiftiImageContainer(BaseImageContainer):
             affine=self.affine,
             data_domain=self.data_domain,
             image_type=self.image_type,
-            metadata=self.metadata,
+            metadata=deepcopy(self.metadata),
         )
         # Set the units first
         new_image_container.space_units = self.space_units
@@ -463,7 +451,7 @@ class NiftiImageContainer(BaseImageContainer):
     def header(self) -> Union[nib.Nifti1Header, nib.Nifti2Header]:
         """Returns the NIFTI header if initialised from a NIFTI file,
         othewise returns None"""
-        return self.nifti_image.header  # type: ignore
+        return self.nifti_image.header
 
     @property
     def affine(self) -> np.ndarray:

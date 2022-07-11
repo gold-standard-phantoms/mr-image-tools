@@ -6,12 +6,13 @@ import numpy.testing
 import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.split_image_filter import SplitImageFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 
 @pytest.fixture(name="test_data")
-def test_data_fixture() -> dict:
+def data_fixture() -> dict:
     """Returns a dictionary with data for testing"""
     data = {
         f"image_{n+1}d": NiftiImageContainer(
@@ -19,13 +20,13 @@ def test_data_fixture() -> dict:
                 np.stack([i * np.ones(([8] * n)) for i in range(10)], axis=n),
                 affine=np.eye(4),
             ),
-            metadata={"field_1": "one", "field_2": 2},
+            metadata=ImageMetadata(series_description="", magnetic_field_strength=3.0),
         )
         for n in range(1, 4)
     }
     data["image_1d"] = NiftiImageContainer(
         nib.Nifti1Image(np.arange(10), np.eye(4)),
-        metadata={"field_1": "one", "field_2": 2},
+        metadata=ImageMetadata(series_description="one", magnetic_field_strength=3.0),
     )
     return data
 
@@ -86,14 +87,14 @@ def test_split_image_filter_mock_data_1d(test_data) -> None:
         split_image_filter.outputs["image_1"].image, [3, 4, 5, 6, 7, 8, 9]
     )
 
-    assert split_image_filter.outputs["image_0"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
-    assert split_image_filter.outputs["image_1"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
+    assert split_image_filter.outputs["image_0"].metadata == ImageMetadata(
+        series_description="one",
+        magnetic_field_strength=3.0,
+    )
+    assert split_image_filter.outputs["image_1"].metadata == ImageMetadata(
+        series_description="one",
+        magnetic_field_strength=3.0,
+    )
 
 
 def test_split_image_filter_mock_data_2d(test_data) -> None:
@@ -116,14 +117,14 @@ def test_split_image_filter_mock_data_2d(test_data) -> None:
         split_image_filter.outputs["image_1"].image, test_data["image_2d"].image[:, 3:]
     )
 
-    assert split_image_filter.outputs["image_0"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
-    assert split_image_filter.outputs["image_1"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
+    assert split_image_filter.outputs["image_0"].metadata == ImageMetadata(
+        series_description="",
+        magnetic_field_strength=3.0,
+    )
+    assert split_image_filter.outputs["image_1"].metadata == ImageMetadata(
+        series_description="",
+        magnetic_field_strength=3.0,
+    )
 
 
 def test_split_image_filter_mock_data_3d(test_data) -> None:
@@ -153,18 +154,11 @@ def test_split_image_filter_mock_data_3d(test_data) -> None:
         test_data["image_3d"].image[:, :, 6:],
     )
 
-    assert split_image_filter.outputs["image_0"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
-    assert split_image_filter.outputs["image_1"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
-    assert split_image_filter.outputs["image_2"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
+    for output_label in ("image_0", "image_1", "image_2"):
+        assert split_image_filter.outputs[output_label].metadata == ImageMetadata(
+            series_description="",
+            magnetic_field_strength=3.0,
+        )
 
 
 def test_split_image_filter_mock_data_4d(test_data) -> None:
@@ -194,18 +188,18 @@ def test_split_image_filter_mock_data_4d(test_data) -> None:
         test_data["image_4d"].image[:, :, :, 6:],
     )
 
-    assert split_image_filter.outputs["image_0"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
-    assert split_image_filter.outputs["image_1"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
-    assert split_image_filter.outputs["image_2"].metadata == {
-        "field_1": "one",
-        "field_2": 2,
-    }
+    assert split_image_filter.outputs["image_0"].metadata == ImageMetadata(
+        series_description="",
+        magnetic_field_strength=3.0,
+    )
+    assert split_image_filter.outputs["image_1"].metadata == ImageMetadata(
+        series_description="",
+        magnetic_field_strength=3.0,
+    )
+    assert split_image_filter.outputs["image_2"].metadata == ImageMetadata(
+        series_description="",
+        magnetic_field_strength=3.0,
+    )
 
 
 def test_split_image_filter_mock_data_4d_unsorted_indices(test_data) -> None:

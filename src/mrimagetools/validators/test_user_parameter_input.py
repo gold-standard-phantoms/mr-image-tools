@@ -290,7 +290,6 @@ def test_autogenerate_array_params() -> None:
     good_input["image_series"][0]["series_parameters"][
         "asl_context"
     ] = "m0scan m0scan control label control label control label"
-    number_volumes = 8
     good_input["image_series"][0]["series_parameters"]["echo_time"] = [0.01] * 8
     good_input["image_series"][0]["series_parameters"]["repetition_time"] = [5] * 8
 

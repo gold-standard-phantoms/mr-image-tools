@@ -2,16 +2,13 @@
 # pylint: disable=duplicate-code
 
 import logging
-from copy import deepcopy
 
 import nibabel as nib
 import numpy as np
 import numpy.testing
-import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.acquire_mri_image_filter import AcquireMriImageFilter
-from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 
 logger = logging.getLogger(__name__)
@@ -47,7 +44,7 @@ INPUT_DICT = {
     "excitation_flip_angle": (False, 0.1, "str", TEST_NIFTI_ONES),
     "inversion_flip_angle": (True, 0.1, "str", TEST_NIFTI_ONES),
     "inversion_time": (True, 0.1, "str", TEST_NIFTI_ONES),
-    "image_flavour": (True, "ge", 1, TEST_NIFTI_ONES),
+    "image_flavor": (True, "ge", 1, TEST_NIFTI_ONES),
     "target_shape": (True, (32, 32, 32), 0.1, "str", TEST_NIFTI_ONES),
     "rotation": (True, (5.0, 34.1, 82.56), 0.1, "str", TEST_NIFTI_ONES),
     "rotation_origin": (True, (5.0, 0.0, 0.0), 0.1, "str", TEST_NIFTI_ONES),
@@ -78,7 +75,7 @@ def test_acquire_mri_image_filter_mocked_filter_run() -> None:
         "excitation_flip_angle": 90.0,
         "inversion_flip_angle": 0.0,
         "inversion_time": 0.0,
-        "image_flavour": "ge",
+        "image_flavor": "ge",
         "target_shape": (32, 32, 32),
         "rotation": (0.0, 0.0, 0.0),
         "rotation_origin": (0.0, 0.0, 0.0),

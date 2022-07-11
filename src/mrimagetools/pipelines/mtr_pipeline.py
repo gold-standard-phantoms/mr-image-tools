@@ -1,5 +1,6 @@
 """Calculate Magnetisation Transfer Ratio Pipeline"""
 import os
+from typing import Optional
 
 import nibabel as nib
 
@@ -11,7 +12,9 @@ from mrimagetools.utils.general import splitext
 
 
 def mtr_pipeline(
-    sat_nifti_filename: str, nosat_nifti_filename: str = None, output_dir: str = None
+    sat_nifti_filename: str,
+    nosat_nifti_filename: Optional[str] = None,
+    output_dir: Optional[str] = None,
 ) -> dict:
     """Loads in saturated and non saturated images, calculates the magnetisation
     transfer ratio image, optionally saves this image to disk in BIDS format.
@@ -90,7 +93,9 @@ def mtr_pipeline(
         )
 
         BidsOutputFilter.save_json(
-            mtr_quantification_filter.outputs[MtrQuantificationFilter.KEY_MTR].metadata,
+            mtr_quantification_filter.outputs[
+                MtrQuantificationFilter.KEY_MTR
+            ].metadata.dict(exclude_none=True),
             mtr_json_filename,
         )
         output_filenames = {"nifti": mtr_nifti_filename, "json": mtr_json_filename}
