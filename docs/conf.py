@@ -36,6 +36,7 @@ extensions = [
     "sphinx_rtd_theme",
     "sphinxcontrib.bibtex",
     "sphinx_autodoc_typehints",
+    "sphinxcontrib.autodoc_pydantic",
 ]
 
 # This value contains a list of modules to be mocked up.
