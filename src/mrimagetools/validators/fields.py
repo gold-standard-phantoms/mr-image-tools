@@ -68,6 +68,12 @@ NiftiDataType = Literal[
     "complex256",
     "RGBA",
 ]
+(
+    """A NIFTI data type. Corresponds with:
+https://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/"""
+    """nifti1fields_pages/datatype.html"""
+)
+
 NIFTI_DATATYPES: Final[Tuple[NiftiDataType, ...]] = typing.get_args(NiftiDataType)
 # nifti datatypes (adapted from nibabel.nifti1._dtdefs)
 NIFTI_DATATYPE_MAP: Final[Dict[NiftiDataType, int]] = {
@@ -94,7 +100,7 @@ NIFTI_DATATYPE_MAP: Final[Dict[NiftiDataType, int]] = {
 
 
 class NiftiDataTypeField(str):
-    """A nifti data type. Must be one of NiftiDataType."""
+    """A nifti data type. Must be one of :attr:`NiftiDataType`."""
 
     @classmethod
     def __get_validators__(cls):
@@ -121,5 +127,5 @@ class NiftiDataTypeField(str):
 
     @property
     def type_code(self) -> int:
-        """Return the associate NIFTI data type code"""
+        """Return the associated NIFTI data type code"""
         return NIFTI_DATATYPE_MAP[self]  # type: ignore
