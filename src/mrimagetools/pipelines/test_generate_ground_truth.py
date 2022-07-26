@@ -1,3 +1,4 @@
+"""Test for generate_ground_truth.py"""
 import json
 import os
 from copy import deepcopy
@@ -70,7 +71,7 @@ def test_generate_hrgt(validation_data: dict) -> None:
     """Test generate_hrgt function"""
     with TemporaryDirectory() as temp_dir:
         json_filename = os.path.join(temp_dir, "hrgt_params.json")
-        with open(json_filename, "w") as json_file:
+        with open(json_filename, "w", encoding="utf-8") as json_file:
             json.dump(validation_data["hrgt_params"], json_file, indent=4)
 
         nifti_filename = os.path.join(temp_dir, "seg_mask.nii.gz")
@@ -79,7 +80,9 @@ def test_generate_hrgt(validation_data: dict) -> None:
         results = generate_hrgt(json_filename, nifti_filename, temp_dir)
 
         saved_nifti: nib.Nifti1Image = nib.load(os.path.join(temp_dir, "hrgt.nii.gz"))
-        with open(os.path.join(temp_dir, "hrgt.json"), "r") as json_file:
+        with open(
+            os.path.join(temp_dir, "hrgt.json"), "r", encoding="utf-8"
+        ) as json_file:
             saved_json = json.load(json_file)
 
         # validate the json with the ground truth schema
@@ -93,7 +96,7 @@ def test_generate_hrgt_float_seg_mask(validation_data: dict) -> None:
     """Test generate_hrgt function with float seg_mask data"""
     with TemporaryDirectory() as temp_dir:
         json_filename = os.path.join(temp_dir, "hrgt_params.json")
-        with open(json_filename, "w") as json_file:
+        with open(json_filename, "w", encoding="utf-8") as json_file:
             json.dump(validation_data["hrgt_params"], json_file, indent=4)
 
         nifti_filename = os.path.join(temp_dir, "seg_mask.nii.gz")
@@ -104,7 +107,9 @@ def test_generate_hrgt_float_seg_mask(validation_data: dict) -> None:
         results = generate_hrgt(json_filename, nifti_filename, temp_dir)
 
         saved_nifti: nib.Nifti1Image = nib.load(os.path.join(temp_dir, "hrgt.nii.gz"))
-        with open(os.path.join(temp_dir, "hrgt.json"), "r") as json_file:
+        with open(
+            os.path.join(temp_dir, "hrgt.json"), "r", encoding="utf-8"
+        ) as json_file:
             saved_json = json.load(json_file)
 
         # validate the json with the ground truth schema

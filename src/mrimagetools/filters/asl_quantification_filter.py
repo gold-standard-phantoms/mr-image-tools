@@ -453,7 +453,8 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
         (pseudo)continuous ASL :cite:p:`Alsop2014`.
 
         .. math::
-            &f = \frac{6000 \cdot\ \lambda \cdot (\text{SI}_{\text{control}} - \text{SI}_{\text{label}}) \cdot
+            &f = \frac{6000 \cdot\ \lambda \cdot (\text{SI}_{\text{control}} -
+            \text{SI}_{\text{label}}) \cdot
             e^{\frac{\text{PLD}}{T_{1,b}}}}{2 \cdot \alpha \cdot T_{1,b} \cdot \text{SI}_{\text{M0}}
             \cdot (1-e^{-\frac{\tau}{T_{1,b}}})}\\
             \text{where,}\\

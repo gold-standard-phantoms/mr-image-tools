@@ -82,6 +82,7 @@ def test_load_bids_filter_mock_data(test_data) -> None:
 
 
 def test_load_bids_filter_empty() -> None:
+    """test empty filter running"""
     load_bids_filter = LoadBidsFilter()
     with pytest.raises(FilterInputValidationError):
         load_bids_filter.run()

@@ -10,7 +10,6 @@ import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer, NumpyImageContainer
 from mrimagetools.filters.add_noise_filter import AddNoiseFilter
-from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.fourier_filter import FftFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
 

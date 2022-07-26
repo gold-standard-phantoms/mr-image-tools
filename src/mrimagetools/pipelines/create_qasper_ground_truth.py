@@ -59,7 +59,7 @@ def generate_qasper(output_dir: Union[None, str] = None) -> dict:
     with TemporaryDirectory() as temp_dir:
         json_filename = os.path.join(temp_dir, "params.json")
         seg_mask_filename = os.path.join(temp_dir, "qasper_seg_mask.nii.gz")
-        with open(json_filename, "w") as json_file:
+        with open(json_filename, "w", encoding="utf-8") as json_file:
             json.dump(combine_mask_params, json_file, indent=4)
 
         seg_mask = combine_fuzzy_masks(json_filename, seg_mask_filename)
@@ -109,7 +109,7 @@ def generate_qasper(output_dir: Union[None, str] = None) -> dict:
         }
 
         hrgt_json_filename = os.path.join(temp_dir, "hrgt_params.json")
-        with open(hrgt_json_filename, "w") as json_file:
+        with open(hrgt_json_filename, "w", encoding="utf-8") as json_file:
             json.dump(hrgt_params, json_file, indent=4)
 
         qasper_hrgt = generate_hrgt(hrgt_json_filename, seg_mask_filename)
@@ -182,7 +182,7 @@ def generate_qasper(output_dir: Union[None, str] = None) -> dict:
         )
 
         json_filename = os.path.join(output_dir, "qasper_hrgt.json")
-        with open(json_filename, "w") as json_file:
+        with open(json_filename, "w", encoding="utf-8") as json_file:
             json.dump(qasper_hrgt["image_info"], json_file, indent=4)
 
     return qasper_hrgt

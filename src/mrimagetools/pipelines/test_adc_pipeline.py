@@ -13,7 +13,7 @@ from mrimagetools.cli import main as cli
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.load_bids_filter import LoadBidsFilter
 
-# pylint: disable=unused-import (importing the fixture)
+# pylint: disable=unused-import
 from mrimagetools.filters.test_adc_quantification_filter import data_fixture
 from mrimagetools.pipelines.adc_pipeline import adc_pipeline
 
@@ -36,11 +36,11 @@ def pipeline_test_data_fixture(test_data, tmp_path) -> dict:
     bval_filename = base_filename + ".bval"
     bvec_filename = base_filename + ".bvec"
 
-    with open(bval_filename, "wt") as bval_file:
+    with open(bval_filename, "wt", encoding="utf-8") as bval_file:
         tsv_writer = csv.writer(bval_file, delimiter=" ")
         tsv_writer.writerow(test_data["b_values"])
 
-    with open(bvec_filename, "wt") as bvec_file:
+    with open(bvec_filename, "wt", encoding="utf-8") as bvec_file:
         tsv_writer = csv.writer(bvec_file, delimiter=" ")
         [
             tsv_writer.writerow(
@@ -70,7 +70,7 @@ def test_adc_pipeline_mock_data(pipeline_test_data, tmp_path, test_data) -> None
 
     out = adc_pipeline(pipeline_test_data["dwi"]["filename"])
 
-    assert out["filenames"] == {}
+    assert not out["filenames"]
     for i in range(len(test_data["b_values"]) - 1):
         numpy.testing.assert_array_almost_equal(
             out["image"].image[:, :, :, i], test_data["adc"]

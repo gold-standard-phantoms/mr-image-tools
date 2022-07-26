@@ -148,6 +148,7 @@ def test_combine_time_series_filter_non_image(
 
 
 def test_combine_time_series_filter_with_complex_images() -> None:
+    """Test the combine time series filter with more advanced images"""
     num_image_containers = 10
     image_containers = {
         f"image_{''.join(['0' for _ in range(i)]) + str(i)}": NiftiImageContainer(

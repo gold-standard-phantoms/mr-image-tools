@@ -16,6 +16,7 @@ from mrimagetools.utils.resampling import rot_z_mat
 
 
 def test_generate_point_function() -> None:
+    """test the point generation function"""
     x = np.arange(-10.0, 10.0, 0.1)
     y = np.arange(-10.0, 10.0, 0.1)
     z = np.arange(-10.0, 10.0, 0.1)
@@ -23,7 +24,7 @@ def test_generate_point_function() -> None:
 
     rng = default_rng(0)
 
-    for i in range(10):
+    for _ in range(10):
         loc = rng.uniform(np.amin(x), np.amax(x), (3,))
         out = generate_point_function(xx, yy, zz, loc)
         idx = (np.abs(xx - loc[0])).argmin()
@@ -110,6 +111,7 @@ def test_generate_gaussian_function() -> None:
 
 
 def test_generate_circular_function_array_with_gaussian() -> None:
+    """test generation function with gaussian"""
     x = np.arange(-10.0, 10.0, 0.1)
     y = np.arange(-10.0, 10.0, 0.1)
     z = np.arange(-10.0, 10.0, 0.1)
@@ -130,6 +132,7 @@ def test_generate_circular_function_array_with_gaussian() -> None:
 
 
 def test_generate_circular_function_array_with_point() -> None:
+    """test generation function with point"""
     x = np.arange(-10.0, 10.0, 0.1)
     y = np.arange(-10.0, 10.0, 0.1)
     z = np.arange(-10.0, 10.0, 0.1)
@@ -153,7 +156,7 @@ def test_generate_circular_function_array_with_point() -> None:
     test_array = np.zeros(np.broadcast(xx, yy, zz).shape)
     loc = np.array([5.0, 0.0, 0.0, 1.0])
 
-    for i in range(8):
+    for _ in range(8):
         test_array += generate_point_function(xx, yy, zz, loc[:3])
         loc = rot_z_mat(45) @ loc
 

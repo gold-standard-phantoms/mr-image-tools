@@ -87,7 +87,7 @@ def generate_random_numbers(
             raise ValueError(f"Distribution {distribution} is not supported")
     else:
         if shape is None:
-            raise ValueError(f"Distribution AND shape have not been specified")
+            raise ValueError("Distribution AND shape have not been specified")
         return np.zeros(shape)
 
     return out
@@ -124,6 +124,7 @@ def camel_to_snake_case_keys_any(input_value: InputType) -> InputType:
 
 
 def camel_to_snake_case_keys(input_value: Dict[str, Any]) -> Dict[str, Any]:
+    """function that transform a key from a camel case to snake case"""
     return_dict = {}
     for key, value in input_value.items():
         return_dict[camel_to_snake(key)] = camel_to_snake_case_keys_any(value)

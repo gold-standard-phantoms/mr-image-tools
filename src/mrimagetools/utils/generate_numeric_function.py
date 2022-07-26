@@ -85,7 +85,7 @@ def generate_gaussian_function(
     :raises ValueError: If fwhm is not 1D and of length 3
     :raises ValueError: If any entry in fwhm is < 0.0
 
-    :return: An array with shape the result of broadcasting ``xx``, ``yy``, and ``zz``, 
+    :return: An array with shape the result of broadcasting ``xx``, ``yy``, and ``zz``,
       values given by the 3D gaussian function.
     :rtype: np.ndarray
 
@@ -216,7 +216,7 @@ def generate_circular_function_array(
     # create the output array, fill with zeroes
     out = np.zeros(np.broadcast(xx, yy, zz).shape)
 
-    for i in range(array_size):
+    for _ in range(array_size):
         func_params["loc"] = func_origin_homogeneous[:3]
         # add the function to out
         out += func(xx=xx, yy=yy, zz=zz, **func_params)

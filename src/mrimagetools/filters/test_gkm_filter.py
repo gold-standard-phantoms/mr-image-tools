@@ -655,6 +655,7 @@ def wp_pasl_function(input_data: dict) -> np.ndarray:
 
 
 def test_gkm_filter_wp_casl(casl_input) -> None:
+    """test the whitepaper model with casl"""
     gkm_filter = GkmFilter()
     gkm_filter.add_inputs(casl_input)
     gkm_filter.add_input("model", "whitepaper")
@@ -699,6 +700,7 @@ def test_gkm_filter_wp_casl(casl_input) -> None:
 
 
 def test_gkm_filter_wp_pasl(pasl_input) -> None:
+    """test the whitepaper model with pasl"""
     gkm_filter = GkmFilter()
     gkm_filter.add_inputs(pasl_input)
     gkm_filter.add_input("model", "whitepaper")

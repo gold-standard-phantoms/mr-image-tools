@@ -543,7 +543,7 @@ def validate_input_params(input_params: dict) -> dict:
 
     validated_input_params = deepcopy(input_params)
     # For every image series
-    for n, image_series in enumerate(validated_input_params["image_series"]):
+    for _, image_series in enumerate(validated_input_params["image_series"]):
         # Perform the parameter validation based on the 'series_type'
         # (and insert defaults)
         if "series_parameters" not in image_series:
@@ -581,7 +581,7 @@ def validate_input_params(input_params: dict) -> dict:
             # run the post validator
             ASL_POST_VALIDATOR.validate(series_params)
             # if "background_suppression" is True then defaults required, so make a blank dict
-            if image_series["series_parameters"].get(BACKGROUND_SUPPRESSION) == True:
+            if image_series["series_parameters"].get(BACKGROUND_SUPPRESSION) is True:
                 image_series["series_parameters"][
                     BACKGROUND_SUPPRESSION
                 ] = DEFAULT_BS_PARAMS
@@ -712,20 +712,20 @@ def generate_parameter_distribution(param: dict, length=1) -> list:
                 f"Parameter {param} must have key 'distribution' with value"
                 f"'gaussian' or 'uniform'. Value is {param.get('distribution')}"
             )
-        else:
-            # validate the dictionary
-            param = DISTRIBUTION_VALIDATOR[param["distribution"]].validate(
-                param, ValidationError
+
+        # validate the dictionary
+        param = DISTRIBUTION_VALIDATOR[param["distribution"]].validate(
+            param, ValidationError
+        )
+        # generate the values
+        return (
+            generate_random_numbers(
+                param,
+                (length,),
+                param["seed"],
             )
-            # generate the values
-            return (
-                generate_random_numbers(
-                    param,
-                    (length,),
-                    param["seed"],
-                )
-                .round(decimals=4)
-                .tolist()
-            )
+            .round(decimals=4)
+            .tolist()
+        )
     else:
         return param

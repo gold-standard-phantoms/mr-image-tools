@@ -146,7 +146,8 @@ class GkmFilter(BaseFilter):
         &\alpha=\text{labelling efficiency} \\
         &\tau=\text{label duration} \\
         &\Delta t=\text{initial transit delay, ATT} \\
-        &M_{0,b} = \text{equilibrium magnetisation of arterial blood} = \frac{M_{0,\text{tissue}}}{\lambda} \\
+        &M_{0,b} = \text{equilibrium magnetisation of arterial blood} =
+        \frac{M_{0,\text{tissue}}}{\lambda} \\
         & f = \text{the perfusion rate, CBF}\\
         &\lambda = \text{blood brain partition coefficient}\\
         &T_{1,b} = \text{longitudinal relaxation time of arterial blood}\\
@@ -564,7 +565,7 @@ class GkmFilter(BaseFilter):
         t1_tissue: np.ndarray,
         label_type: str,
     ) -> np.ndarray:
-        """Calculates the difference in magnetisation between the control
+        r"""Calculates the difference in magnetisation between the control
         and label condition (:math:`\Delta M`) using the full solutions to the
         General Kinetic Model :cite:p:`Buxton1998`.
 
@@ -748,7 +749,7 @@ class GkmFilter(BaseFilter):
         t1_arterial_blood: float,
         label_type: str,
     ) -> np.ndarray:
-        """Calculates the difference in magnetisation between the control
+        r"""Calculates the difference in magnetisation between the control
         and label condition (:math:`\Delta M`) using the single
         subtraction simplification from the  ASL Whitepaper consensus paper
         :cite:p:`Alsop2014`.

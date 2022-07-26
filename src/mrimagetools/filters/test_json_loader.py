@@ -73,7 +73,7 @@ def test_json_loader_input_validation_schema_mismatch() -> None:
             "string": "foobar",
         }
         temp_file = os.path.join(temp_dir, "file.json")
-        with open(temp_file, "w") as file:
+        with open(temp_file, "w", encoding="utf-8") as file:
             json.dump(input_dict, file)
 
         json_loader_filter.add_input("filename", temp_file)
@@ -105,7 +105,7 @@ def test_json_loader_input_validation_correct_functionality() -> None:
             "string": "foobar",
         }
         temp_file = os.path.join(temp_dir, "file.json")
-        with open(temp_file, "w") as file:
+        with open(temp_file, "w", encoding="utf-8") as file:
             json.dump(input_dict, file)
 
         json_loader_filter.add_input("filename", temp_file)
@@ -140,7 +140,7 @@ def test_json_loader_filter_root_object() -> None:
             "string": "foobar",
         }
         temp_file = os.path.join(temp_dir, "file.json")
-        with open(temp_file, "w") as file:
+        with open(temp_file, "w", encoding="utf-8") as file:
             json.dump(input_dict, file)
         json_loader_filter = JsonLoaderFilter()
         json_loader_filter.add_input("filename", temp_file)

@@ -2,7 +2,6 @@
 from typing import List, Optional, Union
 
 import numpy as np
-import numpy.typing as npt
 from scipy.optimize import OptimizeResult, minimize
 
 from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer

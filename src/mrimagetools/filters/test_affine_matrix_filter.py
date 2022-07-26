@@ -169,8 +169,8 @@ def test_affine_matrix_filter_default_data() -> None:
         "affine": np.eye(4),
         "affine_last": np.eye(4),
     }
-    for key in params:
-        affine_filter.add_input(key, params[key])
+    for key, value in params.items():
+        affine_filter.add_input(key, value)
     affine_filter.run()
     numpy.testing.assert_array_equal(affine_filter.outputs["affine"], np.eye(4))
 
@@ -186,8 +186,8 @@ def test_affine_matrix_filter_default_data() -> None:
             )
         ),
     }
-    for key in params:
-        affine_filter.add_input(key, params[key])
+    for key, value in params.items():
+        affine_filter.add_input(key, value)
     affine_filter.run()
     numpy.testing.assert_array_equal(affine_filter.outputs["affine"], params["affine"])
 
@@ -203,8 +203,8 @@ def test_affine_matrix_filter_default_data() -> None:
             )
         ),
     }
-    for key in params:
-        affine_filter.add_input(key, params[key])
+    for key, value in params.items():
+        affine_filter.add_input(key, value)
     affine_filter.run()
     numpy.testing.assert_array_equal(
         affine_filter.outputs["affine"], params["affine_last"]

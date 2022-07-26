@@ -1,6 +1,6 @@
 """ PhaseMagnitudeFilter tests """
 
-from typing import Any, Tuple
+from typing import Tuple
 
 import nibabel as nib
 import numpy as np

@@ -22,6 +22,7 @@ TEST_VOLUME_DIMS = [4, 4, 4]
 
 @pytest.fixture(name="image_data")
 def image_data_fixture() -> np.ndarray:
+    """basic image data fixture"""
     control_image = np.ones(TEST_VOLUME_DIMS)
     label_image = np.ones(TEST_VOLUME_DIMS) * (1 - 0.001)
     m0_image = np.ones(TEST_VOLUME_DIMS)
@@ -168,6 +169,7 @@ def pcasl_data_missing_params_fixture(tmp_path, image_data) -> Dict[str, Any]:
 
 
 def test_quantification_parameters_schema() -> None:
+    """test the schema"""
     schema = SCHEMAS["asl_quantification"]
 
     # try a valid schema

@@ -69,16 +69,16 @@ def test_generate_random_numbers() -> None:
     # test normal distributions
     spec = {"distribution": "gaussian", "mean": 1000.0, "sd": 10.0}
     for shape in [None, shape_1d, shape_2d, shape_3d]:
-        rg = default_rng(seed=seed)
-        x = rg.normal(1000, 10.0, size=shape)
+        rng = default_rng(seed=seed)
+        x = rng.normal(1000, 10.0, size=shape)
         y = generate_random_numbers(spec, shape=shape, seed=seed)
         numpy.testing.assert_equal(x, y)
 
     # test uniform distributions
     spec = {"distribution": "uniform", "max": 150.0, "min": 50.0}
     for shape in [None, shape_1d, shape_2d, shape_3d]:
-        rg = default_rng(seed=seed)
-        x = rg.uniform(50.0, 150.0, size=shape)
+        rng = default_rng(seed=seed)
+        x = rng.uniform(50.0, 150.0, size=shape)
         y = generate_random_numbers(spec, shape=shape, seed=seed)
         numpy.testing.assert_equal(x, y)
 

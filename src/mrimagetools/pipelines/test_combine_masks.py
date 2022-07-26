@@ -71,7 +71,7 @@ def test_combine_masks_mock_data(validation_data: dict) -> None:
         # put the filenames into the dictionary then save as a json
         validation_data["test_params"]["mask_files"] = nifti_filenames
         json_filename = os.path.join(temp_dir, "params.json")
-        with open(json_filename, "w") as json_file:
+        with open(json_filename, "w", encoding="utf-8") as json_file:
             json.dump(validation_data["test_params"], json_file, indent=4)
 
         output_filename = os.path.join(temp_dir, "combined_mask.nii.gz")

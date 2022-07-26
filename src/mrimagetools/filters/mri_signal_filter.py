@@ -1,15 +1,11 @@
 """ MRI Signal Filter """
 
-from typing import Any, Dict, Type, TypeVar
+from typing import Any, Dict, Type
 
 import numpy as np
 
 from mrimagetools.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer
-from mrimagetools.containers.image_metadata import (
-    AcqContrastType,
-    ImageMetadata,
-    MrAcqType,
-)
+from mrimagetools.containers.image_metadata import AcqContrastType, ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.utils.typing import T
 from mrimagetools.validators.parameters import (

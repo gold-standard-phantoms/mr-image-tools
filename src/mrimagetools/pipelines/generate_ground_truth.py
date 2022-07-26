@@ -75,7 +75,7 @@ def generate_hrgt(
     # save the files
     if output_dir is not None:
         json_filename = os.path.join(output_dir, "hrgt.json")
-        with open(json_filename, "w") as json_file:
+        with open(json_filename, "w", encoding="utf-8") as json_file:
             json.dump(create_volume_filter.outputs["image_info"], json_file, indent=4)
 
         nifti_filename = os.path.join(output_dir, "hrgt.nii.gz")

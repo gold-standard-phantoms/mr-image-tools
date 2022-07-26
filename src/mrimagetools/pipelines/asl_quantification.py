@@ -9,7 +9,6 @@ from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.load_asl_bids_filter import LoadAslBidsFilter
 from mrimagetools.utils.general import splitext
-from mrimagetools.validators.schemas.index import SCHEMAS
 
 PASL_DEFAULT_PARAMS = {
     "gkm_model": "whitepaper",

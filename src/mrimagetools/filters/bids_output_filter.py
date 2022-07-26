@@ -52,13 +52,11 @@ from mrimagetools.validators.user_parameter_input import (
     ASL,
     ASL_CONTEXT,
     GROUND_TRUTH,
-    M0SCAN,
     MODALITY,
     STRUCTURAL,
     SUPPORTED_ASL_CONTEXTS,
     SUPPORTED_IMAGE_TYPES,
     SUPPORTED_STRUCT_MODALITY_LABELS,
-    SupportedImageTypes,
 )
 
 logger = logging.getLogger(__name__)
@@ -971,7 +969,7 @@ This dataset comprises of the following image series:
         # check the path exists
         if not os.path.exists(os.path.dirname(filename)):
             raise ValueError("base folder of filename doesn't exist")
-        with open(filename, "w") as json_file:
+        with open(filename, "w", encoding="utf-8") as json_file:
             json.dump(data, json_file, indent=4)
 
     @staticmethod

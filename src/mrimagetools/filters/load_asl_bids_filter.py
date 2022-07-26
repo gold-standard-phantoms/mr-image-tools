@@ -206,7 +206,9 @@ class LoadAslBidsFilter(BaseFilter):
                 raise FilterInputValidationError(f"Input {key} does not exist")
 
         # check that the contents of the aslcontext file are valid
-        with open(self.inputs[self.KEY_ASLCONTEXT_FILENAME], "r") as tsv_file:
+        with open(
+            self.inputs[self.KEY_ASLCONTEXT_FILENAME], "r", encoding="utf-8"
+        ) as tsv_file:
             loaded_tsv = tsv_file.readlines()
             tsv_file.close()
 

@@ -22,16 +22,16 @@ def input_validation_dict_fixture() -> dict:
     """Returns an object of tuples containing test data for input validation of the
     GroundTruthLoaderFilter"""
 
-    seg_data_4D = np.stack([i * np.ones((2, 2, 3), dtype=np.uint16) for i in range(4)])
-    seg_data_4D_5vals = np.stack(
+    seg_data_4d = np.stack([i * np.ones((2, 2, 3), dtype=np.uint16) for i in range(4)])
+    seg_data_4d_5vals = np.stack(
         [i * np.ones((2, 2, 3), dtype=np.uint16) for i in range(5)]
     )
-    seg_data_5D = np.stack([i * np.ones((1, 4, 4, 4)) for i in range(4)])
-    seg_mask_4D = NiftiImageContainer(nib.Nifti2Image(seg_data_4D, np.eye(4)))
-    seg_mask_4D_float = NiftiImageContainer(
-        nib.Nifti2Image(seg_data_4D.astype(np.float32), np.eye(4))
+    seg_data_5d = np.stack([i * np.ones((1, 4, 4, 4)) for i in range(4)])
+    seg_mask_4d = NiftiImageContainer(nib.Nifti2Image(seg_data_4d, np.eye(4)))
+    seg_mask_4d_float = NiftiImageContainer(
+        nib.Nifti2Image(seg_data_4d.astype(np.float32), np.eye(4))
     )
-    seg_mask_5D = NiftiImageContainer(nib.Nifti2Image(seg_data_5D, np.eye(4)))
+    seg_mask_5d = NiftiImageContainer(nib.Nifti2Image(seg_data_5d, np.eye(4)))
     label_values = [0, 1, 2, 3]
     label_names = ["reg0", "reg1", "reg2", "reg3"]
     quantities = {
@@ -46,7 +46,7 @@ def input_validation_dict_fixture() -> dict:
     units = ["unit1", "unit2"]
 
     return {
-        "seg_mask": seg_mask_4D,
+        "seg_mask": seg_mask_4d,
         "label_values": label_values,
         "label_names": label_names,
         "units": units,
@@ -54,11 +54,11 @@ def input_validation_dict_fixture() -> dict:
         "input_validation_dict": {
             "seg_mask": [
                 False,
-                seg_mask_4D,
-                seg_mask_5D,
-                seg_mask_4D_float,
-                seg_data_4D,
-                seg_data_4D_5vals,
+                seg_mask_4d,
+                seg_mask_5d,
+                seg_mask_4d_float,
+                seg_data_4d,
+                seg_data_4d_5vals,
                 1.0,
                 "str",
             ],

@@ -147,7 +147,6 @@ class TransformResampleImageFilter(BaseFilter):
         resample_filter.run()
 
         self.outputs[self.KEY_IMAGE] = resample_filter.outputs[ResampleFilter.KEY_IMAGE]
-        # TODO: change this after ASLDRO-96: ImageContainer agnostic processing is complete
 
         if isinstance(self.inputs[self.KEY_IMAGE], NumpyImageContainer):
             self.outputs[self.KEY_IMAGE].affine = target_affine_no_motion

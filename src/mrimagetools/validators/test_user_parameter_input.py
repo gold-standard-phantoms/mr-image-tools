@@ -212,36 +212,36 @@ def test_generate_parameter_distribution_gaussian() -> None:
     """Check that a ValidationError is raised if the parameters for the
     distribution validator are incorrect"""
     # good input
-    input = {
+    test_input = {
         "distribution": "gaussian",
         "mean": 4.5,
         "sd": 2.5,
         "seed": 12345,
     }
-    out = generate_parameter_distribution(input, 8)
+    out = generate_parameter_distribution(test_input, 8)
     assert len(out) == 8
     assert isinstance(out, list)
 
     # remove 'distribution'
-    d = deepcopy(input)
+    d = deepcopy(test_input)
     d.pop("distribution")
     with pytest.raises(ValidationError):
         generate_parameter_distribution(d, 8)
 
     # remove 'mean'
-    d = deepcopy(input)
+    d = deepcopy(test_input)
     d.pop("mean")
     with pytest.raises(ValidationError):
         generate_parameter_distribution(d, 8)
 
     # remove 'sd'
-    d = deepcopy(input)
+    d = deepcopy(test_input)
     d.pop("sd")
     with pytest.raises(ValidationError):
         generate_parameter_distribution(d, 8)
 
     # remove 'seed', there shouldn't be an error
-    d = deepcopy(input)
+    d = deepcopy(test_input)
     d.pop("seed")
     generate_parameter_distribution(d, 8)
 
@@ -250,36 +250,36 @@ def test_generate_parameter_distribution_uniform() -> None:
     """Check that a ValidationError is raised if the parameters for the
     distribution validator are incorrect"""
     # good input
-    input = {
+    test_input = {
         "distribution": "uniform",
         "min": 2.5,
         "max": 4.5,
         "seed": 12345,
     }
-    out = generate_parameter_distribution(input, 8)
+    out = generate_parameter_distribution(test_input, 8)
     assert len(out) == 8
     assert isinstance(out, list)
 
     # remove 'distribution'
-    d = deepcopy(input)
+    d = deepcopy(test_input)
     d.pop("distribution")
     with pytest.raises(ValidationError):
         generate_parameter_distribution(d, 8)
 
     # remove 'min'
-    d = deepcopy(input)
+    d = deepcopy(test_input)
     d.pop("min")
     with pytest.raises(ValidationError):
         generate_parameter_distribution(d, 8)
 
     # remove 'max'
-    d = deepcopy(input)
+    d = deepcopy(test_input)
     d.pop("max")
     with pytest.raises(ValidationError):
         generate_parameter_distribution(d, 8)
 
     # remove 'seed', there shouldn't be an error
-    d = deepcopy(input)
+    d = deepcopy(test_input)
     d.pop("seed")
     generate_parameter_distribution(d, 8)
 
@@ -476,6 +476,7 @@ def input_params() -> None:
 
 @pytest.fixture(name="expected_parsed_input")
 def fixture_expected_parsed_input() -> None:
+    """create fixture for test"""
     return {
         "global_configuration": {
             "ground_truth": {
@@ -725,7 +726,7 @@ def test_user_parameter_input_background_suppression() -> None:
     # check False "background_suppression" does nothing
     p["image_series"][0]["series_parameters"]["background_suppression"] = False
     d = validate_input_params(p)
-    assert d["image_series"][0]["series_parameters"]["background_suppression"] == False
+    assert d["image_series"][0]["series_parameters"]["background_suppression"] is False
 
     # check inversion times supplied
     p["image_series"][0]["series_parameters"]["background_suppression"] = {

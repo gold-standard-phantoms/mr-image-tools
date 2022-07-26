@@ -51,8 +51,6 @@ class LoadBidsFilter(FilterBlock):
 
         Returns AppendMetadataFilter
         """
-        # Todo: this really should be in _validate but this isn't called when
-        # there are no inputs - this needs to be corrected in ASLDRO
         if self.inputs == {}:
             raise FilterInputValidationError("The input 'nifti_filename' is required")
 

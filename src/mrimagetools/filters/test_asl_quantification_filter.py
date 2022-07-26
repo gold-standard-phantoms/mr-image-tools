@@ -56,6 +56,7 @@ TEST_METADATA: Final[ImageMetadata] = ImageMetadata(
 
 @pytest.fixture(name="test_data_wp")
 def data_wp_fixture() -> dict:
+    """Generates test data using whitepaper model"""
     label_3d = NiftiImageContainer(
         nib.Nifti2Image(0.99 * np.ones(TEST_DIM_3D), affine=np.eye(4)),
         metadata=TEST_METADATA,
@@ -150,6 +151,7 @@ def fixture_multiphase() -> dict:
 
 @pytest.fixture(name="test_data_full")
 def data_full_fixture(multiphase_data) -> dict:
+    """generates full data for test"""
     dim_4d_2 = (2, 2, 2, 9)
     metadata = deepcopy(TEST_METADATA)
     metadata.post_label_delay = multiphase_data["post_label_delay"]

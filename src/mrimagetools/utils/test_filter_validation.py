@@ -51,6 +51,7 @@ class ProductFilter(BaseFilter):
 
 
 def test_validate_filter_inputs_function() -> None:
+    """test the inputs validation filter"""
     validation_data = {
         "input1": [False, 10.0, 20, "str"],
         "input2": [False, 20.0, 20, "str"],

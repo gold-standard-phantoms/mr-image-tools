@@ -49,7 +49,7 @@ class JsonLoaderFilter(BaseFilter):
     def _run(self) -> None:
         """Load the input `filename`. Create the relevant
         outputs."""
-        with open(self.inputs[self.KEY_FILENAME]) as file:
+        with open(self.inputs[self.KEY_FILENAME], encoding="utf-8") as file:
             # if root_object_filename put the contents in there
             if self.inputs.get(self.KEY_ROOT_OBJECT_NAME, None) is not None:
                 self.outputs[self.inputs[self.KEY_ROOT_OBJECT_NAME]] = json.load(file)
@@ -85,7 +85,7 @@ class JsonLoaderFilter(BaseFilter):
             )
 
         if "schema" in self.inputs:
-            with open(self.inputs[self.KEY_FILENAME]) as file:
+            with open(self.inputs[self.KEY_FILENAME], encoding="utf-8") as file:
                 try:
                     jsonschema.validate(json.load(file), self.inputs["schema"])
                 except jsonschema.ValidationError as error:

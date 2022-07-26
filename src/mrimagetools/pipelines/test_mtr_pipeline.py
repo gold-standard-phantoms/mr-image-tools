@@ -55,7 +55,7 @@ def test_mtr_pipeline_mock_data_separate(
         pipeline_test_data["image_nosat"]["filename"][0],
     )
 
-    assert out["filenames"] == {}
+    assert not out["filenames"]
     numpy.testing.assert_array_almost_equal(
         out["image"].image, test_data["image_mtr"].image
     )

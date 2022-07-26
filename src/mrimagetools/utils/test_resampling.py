@@ -211,6 +211,7 @@ def test_transform_resample_image_mock_data() -> None:
 
 
 def create_test_image() -> Tuple[nib.Nifti2Image, Tuple[float, float, float]]:
+    """create a test image function"""
     grid = np.mgrid[0:128, 0:128]
     circle = (
         np.sum((grid - np.array([32, 32])[:, np.newaxis, np.newaxis]) ** 2, axis=0)

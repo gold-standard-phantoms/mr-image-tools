@@ -9,15 +9,10 @@ from mrimagetools.containers.image import (
     COMPLEX_IMAGE_TYPE,
     INVERSE_DOMAIN,
     SPATIAL_DOMAIN,
-    NiftiImageContainer,
     NumpyImageContainer,
 )
-from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.fourier_filter import FftFilter, IfftFilter
-from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
-from mrimagetools.filters.json_loader import JsonLoaderFilter
-from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
 
 TEST_VOLUME_DIMENSIONS = (32, 32, 32)
 

@@ -1,8 +1,6 @@
 """Pipeline to combine fuzzy masks into a single segmentation mask"""
 
-import json
 import logging
-import os
 
 import nibabel as nib
 

@@ -1,6 +1,5 @@
 """Calculate Apparent Diffusion Coefficient Pipeline"""
 
-import csv
 import os
 
 import nibabel as nib
