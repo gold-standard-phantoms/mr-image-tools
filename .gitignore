@@ -49,25 +49,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-local_settings.py
-*.sqlite3
-media/
-src/static/
-cloud/asl/migrations
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
 # Sphinx documentation
 docs/_build/
 
@@ -77,14 +58,8 @@ docs/**/*.pdf
 # PyBuilder
 target/
 
-# IPython Notebook
-.ipynb_checkpoints
-
 # pyenv
 .python-version
-
-# celery beat schedule file
-celerybeat-schedule
 
 # dotenv
 .env
@@ -92,9 +67,6 @@ celerybeat-schedule
 # virtualenv
 venv/
 ENV/
-
-# Spyder project settings
-.spyderproject
 
 # Rope project settings
 .ropeproject
@@ -114,12 +86,3 @@ coverage_html_report
 
 #Output
 output/
-
-# vim config
-.vim/
-
-#jupyter notebook working directory
-working/
-
-#mypy
-mypy.ini
