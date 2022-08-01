@@ -1,6 +1,7 @@
 """ General utilities """
 import os
-from typing import Any, Dict, List, Mapping, Optional, Tuple, TypeVar, Union
+from enum import Enum, auto
+from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 from nibabel.cifti2.cifti2 import re
@@ -104,28 +105,65 @@ def camel_to_snake(name: str) -> str:
     return snake_case
 
 
-T = TypeVar("T")
+def snake_to_camel(name: str) -> str:
+    """Converts a snake_case string to (upper) CamelCase"""
+    return "".join(word.title() for word in name.replace("__", "_").split("_"))
+
+
+T = TypeVar("T")  # pylint: disable=invalid-name
 
 InputType = Union[T, Dict[str, T], Tuple[T], List[T]]
 
 
-def camel_to_snake_case_keys_any(input_value: InputType) -> InputType:
-    """Converts a dictionary where the keys are CamelCase into snake_case"""
+class SnakeCamelConvertType(Enum):
+    """Describes a conversion between types"""
+
+    SNAKE_TO_CAMEL = auto()
+    CAMEL_TO_SNAKE = auto()
+
+
+def key_value_converter(
+    convert_type: SnakeCamelConvertType,
+) -> Tuple[Callable[[str], str], Callable[[InputType], InputType]]:
+    """Get functions for converting keys and values as per the conversion schema."""
+    if convert_type == SnakeCamelConvertType.CAMEL_TO_SNAKE:
+        return (
+            camel_to_snake,
+            lambda value: camel_to_snake_case_keys_recursive(value, convert_type),
+        )
+    if convert_type == SnakeCamelConvertType.SNAKE_TO_CAMEL:
+        return (
+            snake_to_camel,
+            lambda value: camel_to_snake_case_keys_recursive(value, convert_type),
+        )
+    raise ValueError("Convert type {convert_type} cannot be processed")
+
+
+def camel_to_snake_case_keys_recursive(
+    input_value: InputType, convert_type: SnakeCamelConvertType
+) -> InputType:
+    """Converts a dict recursively, to ensure that all keys are in correct case"""
+    key_conv, value_conv = key_value_converter(convert_type)
     if isinstance(input_value, Dict):
         return_dict = {}
         for key, value in input_value.items():
-            return_dict[camel_to_snake(key)] = camel_to_snake_case_keys_any(value)
+            return_dict[key_conv(key)] = value_conv(value)
         return return_dict
     if isinstance(input_value, tuple):
-        return (camel_to_snake_case_keys_any(v) for v in input_value)
+        return tuple(value_conv(v) for v in input_value)
     if isinstance(input_value, list):
-        return [camel_to_snake_case_keys_any(v) for v in input_value]
+        return [value_conv(v) for v in input_value]
     return input_value
 
 
-def camel_to_snake_case_keys(input_value: Dict[str, Any]) -> Dict[str, Any]:
-    """function that transform a key from a camel case to snake case"""
+def camel_to_snake_case_keys_converter(
+    input_value: Dict[str, Any],
+    convert_type: SnakeCamelConvertType = SnakeCamelConvertType.CAMEL_TO_SNAKE,
+) -> Dict[str, Any]:
+    """Converts a dictionary where the keys are CamelCase
+    into snake_case and vice-versa"""
+    key_conv, value_conv = key_value_converter(convert_type)
     return_dict = {}
     for key, value in input_value.items():
-        return_dict[camel_to_snake(key)] = camel_to_snake_case_keys_any(value)
+        return_dict[key_conv(key)] = value_conv(value)
     return return_dict

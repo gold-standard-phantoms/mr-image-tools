@@ -9,9 +9,12 @@ import pytest
 from numpy.random import default_rng
 
 from mrimagetools.utils.general import (
-    camel_to_snake_case_keys,
+    SnakeCamelConvertType,
+    camel_to_snake,
+    camel_to_snake_case_keys_converter,
     generate_random_numbers,
     map_dict,
+    snake_to_camel,
 )
 
 
@@ -101,6 +104,17 @@ def test_generate_random_numbers() -> None:
         generate_random_numbers(spec)
 
 
+def test_camel_to_snake_func() -> None:
+    """Test the string camel to snake case functionality"""
+    assert camel_to_snake("LabelingDuration") == "labeling_duration"
+
+
+def test_snake_to_camel() -> None:
+    """Test the string camel to snake case functionality"""
+    # Shouldn't change
+    assert snake_to_camel("labeling_duration") == "LabelingDuration"
+
+
 def test_camel_to_snake_case_keys() -> None:
     """Check the camel to snake case converter"""
     input_dict: Final[Dict[str, Any]] = {
@@ -113,7 +127,7 @@ def test_camel_to_snake_case_keys() -> None:
         "snake_case": 3,
     }
 
-    assert camel_to_snake_case_keys(input_dict) == {
+    assert camel_to_snake_case_keys_converter(input_dict) == {
         "camel_case": "CamelCase",
         "another_dict": {
             "foo_bar1": 1,
@@ -121,4 +135,60 @@ def test_camel_to_snake_case_keys() -> None:
             "final_nesting_here": {"camel": 3, "not_a_camel": 4},
         },
         "snake_case": 3,
+    }
+
+
+def test_snake_to_camel_case_keys() -> None:
+    """Check the snake to camel case converter"""
+
+    assert camel_to_snake_case_keys_converter(
+        {
+            "camel_case": "CamelCase",
+            "another_dict": {
+                "foo_bar1": 1,
+                "foo_bar2": 2,
+                "final_nesting_here": {"camel": 3, "not_a_camel": 4},
+            },
+            "snake_case": 3,
+        },
+        SnakeCamelConvertType.SNAKE_TO_CAMEL,
+    ) == {
+        "CamelCase": "CamelCase",
+        "AnotherDict": {
+            "FooBar1": 1,
+            "FooBar2": 2,
+            "FinalNestingHere": {"Camel": 3, "NotACamel": 4},
+        },
+        "SnakeCase": 3,
+    }
+
+
+def test_camel_to_snake_only_keys() -> None:
+    """Ensures that only keys (not values) are converted from camel to snake case"""
+    assert camel_to_snake_case_keys_converter(
+        {
+            "CamelDict": {"FooBar": "FooBar"},
+            "CamelList": ["UpperOne", "lower_one"],
+            "CamelTuple": ("FooBar", "UpperThree", "foo_baz"),
+        }
+    ) == {
+        "camel_dict": {"foo_bar": "FooBar"},
+        "camel_list": ["UpperOne", "lower_one"],
+        "camel_tuple": ("FooBar", "UpperThree", "foo_baz"),
+    }
+
+
+def test_snake_to_camel_only_keys() -> None:
+    """Ensures that only keys (not values) are converted from snake to camel case"""
+    assert camel_to_snake_case_keys_converter(
+        {
+            "camel_dict": {"foo_bar": "FooBar"},
+            "camel_list": ["UpperOne", "lower_one"],
+            "camel_tuple": ("FooBar", "UpperThree", "foo_baz"),
+        },
+        convert_type=SnakeCamelConvertType.SNAKE_TO_CAMEL,
+    ) == {
+        "CamelDict": {"FooBar": "FooBar"},
+        "CamelList": ["UpperOne", "lower_one"],
+        "CamelTuple": ("FooBar", "UpperThree", "foo_baz"),
     }

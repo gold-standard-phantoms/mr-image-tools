@@ -2,7 +2,13 @@
 from copy import copy
 from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple, Union
 
-from mrimagetools.utils.general import camel_to_snake_case_keys
+from pydantic import BaseModel
+
+from mrimagetools.containers.bids_metadata import BidsMetadata
+from mrimagetools.utils.general import (
+    SnakeCamelConvertType,
+    camel_to_snake_case_keys_converter,
+)
 from mrimagetools.validators.fields import NiftiDataTypeField, UnitField
 from mrimagetools.validators.parameter_model import ParameterModel
 
@@ -289,19 +295,53 @@ class ImageMetadata(ParameterModel):
         "QuantificationModel": "gkm_model",
         "BloodBrainPartitionCoefficient": "lambda_blood_brain",
     }
-    _BIDS_VALUE_CONVERSION: Dict[str, Callable[[Any], Any]] = {
-        "ArterialSpinLabelingType": lambda x: x.lower()
+
+    class Converter(BaseModel):
+        """Defines functions to convert metadata from image to BIDS and vice-versa"""
+
+        image_to_bids: Callable
+        bids_to_image: Callable
+
+    _BIDS_VALUE_CONVERSION: Dict[str, Converter] = {
+        "ArterialSpinLabelingType": Converter(
+            bids_to_image=str.lower, image_to_bids=str.upper
+        )
     }
 
     @classmethod
     def from_bids(cls, bids: Dict[str, Any]) -> "ImageMetadata":
         """Converts a BIDS-like dictionary to ImageMetadata"""
         semi_converted = copy(bids)
+
+        # Run any value conversion
         for key, convert_func in cls._BIDS_VALUE_CONVERSION.items():
             if key in semi_converted:
-                semi_converted[key] = convert_func(semi_converted[key])
+                semi_converted[key] = convert_func.bids_to_image(semi_converted[key])
+
+        # Convert keys from BIDS
         for old_key, new_key in cls._BIDS_KEY_CONVERSION.items():
             if old_key in semi_converted:
-                bids_value = semi_converted.pop(old_key)
-                semi_converted[new_key] = bids_value
-        return ImageMetadata(**camel_to_snake_case_keys(semi_converted))
+                semi_converted[new_key] = semi_converted.pop(old_key)
+        return ImageMetadata(**camel_to_snake_case_keys_converter(semi_converted))
+
+    def to_bids(self) -> BidsMetadata:
+        """Converts ImageMetadata to a BIDS metadata dictionary"""
+        to_convert = self.dict(exclude_none=True)
+        converted = {}
+
+        # Run any value conversion
+        for key, convert_func in self._BIDS_VALUE_CONVERSION.items():
+            if key in to_convert:
+                to_convert[key] = convert_func.image_to_bids(to_convert[key])
+
+        # Convert keys to BIDS
+        for new_key, old_key in self._BIDS_KEY_CONVERSION.items():
+            if old_key in to_convert:
+                converted[new_key] = to_convert.pop(old_key)
+
+        return BidsMetadata(
+            **converted,
+            **camel_to_snake_case_keys_converter(
+                to_convert, SnakeCamelConvertType.SNAKE_TO_CAMEL
+            )
+        )
