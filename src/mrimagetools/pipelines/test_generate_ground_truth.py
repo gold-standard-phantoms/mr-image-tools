@@ -80,9 +80,7 @@ def test_generate_hrgt(validation_data: dict) -> None:
         results = generate_hrgt(json_filename, nifti_filename, temp_dir)
 
         saved_nifti: nib.Nifti1Image = nib.load(os.path.join(temp_dir, "hrgt.nii.gz"))
-        with open(
-            os.path.join(temp_dir, "hrgt.json"), "r", encoding="utf-8"
-        ) as json_file:
+        with open(os.path.join(temp_dir, "hrgt.json"), encoding="utf-8") as json_file:
             saved_json = json.load(json_file)
 
         # validate the json with the ground truth schema
@@ -107,9 +105,7 @@ def test_generate_hrgt_float_seg_mask(validation_data: dict) -> None:
         results = generate_hrgt(json_filename, nifti_filename, temp_dir)
 
         saved_nifti: nib.Nifti1Image = nib.load(os.path.join(temp_dir, "hrgt.nii.gz"))
-        with open(
-            os.path.join(temp_dir, "hrgt.json"), "r", encoding="utf-8"
-        ) as json_file:
+        with open(os.path.join(temp_dir, "hrgt.json"), encoding="utf-8") as json_file:
             saved_json = json.load(json_file)
 
         # validate the json with the ground truth schema

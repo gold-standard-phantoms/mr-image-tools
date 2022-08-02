@@ -159,7 +159,7 @@ def test_combine_fuzzy_masks_filter_mock_data_list(validation_data: dict) -> Non
 def test_combine_fuzzy_masks_filter_priority_conflict() -> None:
     """test for priority conflicts"""
 
-    test_data = np.array((1.0))
+    test_data = np.array(1.0)
 
     test_masks = [
         NiftiImageContainer(nib.Nifti1Image(test_data, np.eye(4))) for i in range(20)

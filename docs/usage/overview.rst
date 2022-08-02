@@ -23,6 +23,6 @@ How To Contribute
 ~~~~~~~~~~~~~~~~~~
 
 Got a great idea for something to implement in MRImageTools, or maybe you have just
-found a bug? Create an issue at 
+found a bug? Create an issue at
 https://github.com/gold-standard-phantoms/mrimagetools/issues to get in touch with
 the development team and we'll take it from there.

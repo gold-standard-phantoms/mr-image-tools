@@ -90,13 +90,13 @@ class LoadAslBidsFilter(BaseFilter):
         image = nib.load(self.inputs[self.KEY_IMAGE_FILENAME])
         # load in the sidecar
         with open(
-            self.inputs[self.KEY_SIDECAR_FILENAME], "r", encoding="utf-8"
+            self.inputs[self.KEY_SIDECAR_FILENAME], encoding="utf-8"
         ) as json_file:
             sidecar = json.load(json_file)
             json_file.close()
         # load in the aslcontext tsv
         with open(
-            self.inputs[self.KEY_ASLCONTEXT_FILENAME], "r", encoding="utf-8"
+            self.inputs[self.KEY_ASLCONTEXT_FILENAME], encoding="utf-8"
         ) as tsv_file:
             loaded_tsv = tsv_file.readlines()
             tsv_file.close()
@@ -188,13 +188,13 @@ class LoadAslBidsFilter(BaseFilter):
             )
 
         # 'sidecar_filename' should be a .json
-        if not self.inputs[self.KEY_SIDECAR_FILENAME].endswith((".json")):
+        if not self.inputs[self.KEY_SIDECAR_FILENAME].endswith(".json"):
             raise FilterInputValidationError(
                 "LoadAslBidsFilter input 'sidecar_filename' must be a .json"
             )
 
         # 'aslcontex_filename' should be a .tsv
-        if not self.inputs[self.KEY_ASLCONTEXT_FILENAME].endswith((".tsv")):
+        if not self.inputs[self.KEY_ASLCONTEXT_FILENAME].endswith(".tsv"):
             raise FilterInputValidationError(
                 "LoadAslBidsFilter input 'aslcontex_filename' must be a .tsv"
             )
@@ -207,7 +207,7 @@ class LoadAslBidsFilter(BaseFilter):
 
         # check that the contents of the aslcontext file are valid
         with open(
-            self.inputs[self.KEY_ASLCONTEXT_FILENAME], "r", encoding="utf-8"
+            self.inputs[self.KEY_ASLCONTEXT_FILENAME], encoding="utf-8"
         ) as tsv_file:
             loaded_tsv = tsv_file.readlines()
             tsv_file.close()

@@ -1,11 +1,10 @@
 """tests for filter_validation.py"""
 
-from typing import Dict
+from typing import Dict, Final
 
 import numpy as np
 import pytest
 from pydantic import StrictFloat
-from typing_extensions import Final
 
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.utils.filter_validation import (

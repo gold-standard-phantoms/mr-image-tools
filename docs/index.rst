@@ -12,7 +12,7 @@ Welcome to MRImageTool's documentation
    usage/development
    usage/references
    api
-   
+
 
 
 Indices and tables

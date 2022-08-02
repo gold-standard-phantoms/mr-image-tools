@@ -302,7 +302,7 @@ def test_bids_output_filter_mock_data_structural(structural_input) -> None:
         assert loaded_nifti.header == TEST_NIFTI_CON_ONES.header
 
         with open(
-            bids_output_filter.outputs["filename"][1], "r", encoding="utf-8"
+            bids_output_filter.outputs["filename"][1], encoding="utf-8"
         ) as json_file:
             loaded_json = json.load(json_file)
         assert loaded_json == bids_output_filter.outputs["sidecar"]
@@ -409,13 +409,13 @@ def test_bids_output_filter_mock_data_asl(asl_input) -> None:
         assert loaded_nifti.header == TEST_NIFTI_CON_ONES.header
 
         with open(
-            bids_output_filter.outputs["filename"][1], "r", encoding="utf-8"
+            bids_output_filter.outputs["filename"][1], encoding="utf-8"
         ) as json_file:
             loaded_json = json.load(json_file)
         assert loaded_json == bids_output_filter.outputs["sidecar"]
 
         with open(
-            bids_output_filter.outputs["filename"][2], "r", encoding="utf-8"
+            bids_output_filter.outputs["filename"][2], encoding="utf-8"
         ) as tsv_file:
             loaded_tsv = tsv_file.readlines()
             tsv_file.close()
@@ -660,7 +660,7 @@ def test_bids_output_filter_m0scan(
         assert loaded_nifti.header == TEST_NIFTI_CON_ONES.header
 
         with open(
-            bids_output_filter.outputs["filename"][1], "r", encoding="utf-8"
+            bids_output_filter.outputs["filename"][1], encoding="utf-8"
         ) as json_file:
             loaded_json = json.load(json_file)
         assert loaded_json == bids_output_filter.outputs["sidecar"]
@@ -728,7 +728,7 @@ def test_bids_output_filter_mock_data_ground_truth(asldro_version) -> None:
         assert loaded_nifti.header == TEST_NIFTI_CON_ONES.header
 
         with open(
-            bids_output_filter.outputs["filename"][1], "r", encoding="utf-8"
+            bids_output_filter.outputs["filename"][1], encoding="utf-8"
         ) as json_file:
             loaded_json = json.load(json_file)
         assert loaded_json == bids_output_filter.outputs["sidecar"]
@@ -812,7 +812,7 @@ def test_bids_output_filter_mock_data_ground_truth_seg_label(asldro_version) -> 
         assert loaded_nifti.header == TEST_NIFTI_CON_ONES.header
 
         with open(
-            bids_output_filter.outputs["filename"][1], "r", encoding="utf-8"
+            bids_output_filter.outputs["filename"][1], encoding="utf-8"
         ) as json_file:
             loaded_json = json.load(json_file)
         assert loaded_json == bids_output_filter.outputs["sidecar"]
@@ -1062,9 +1062,7 @@ def test_bids_output_filter_readme() -> None:
         bids_output_filter.add_input("output_directory", temp_dir)
         bids_output_filter.run()
 
-        with open(
-            os.path.join(temp_dir, "README"), "r", encoding="utf-8"
-        ) as readme_file:
+        with open(os.path.join(temp_dir, "README"), encoding="utf-8") as readme_file:
             actual = readme_file.read()
             readme_file.close()
         expected = README_CANNED_TEXT + "1. T1w: description 1\n"
@@ -1088,9 +1086,7 @@ def test_bids_output_filter_readme() -> None:
         bids_output_filter.add_input("output_directory", temp_dir)
         bids_output_filter.run()
 
-        with open(
-            os.path.join(temp_dir, "README"), "r", encoding="utf-8"
-        ) as readme_file:
+        with open(os.path.join(temp_dir, "README"), encoding="utf-8") as readme_file:
             actual = readme_file.read()
             readme_file.close()
         expected = expected + "2. T2w: description 2\n"
@@ -1105,7 +1101,7 @@ def test_bids_output_filter_bidsignore() -> None:
         bids_output_filter.add_input("output_directory", temp_dir)
         bids_output_filter.run()
 
-        with open(os.path.join(temp_dir, ".bidsignore"), "r", encoding="utf-8") as file:
+        with open(os.path.join(temp_dir, ".bidsignore"), encoding="utf-8") as file:
             actual = file.read()
             file.close()
 

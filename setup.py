@@ -2,12 +2,12 @@
 import os
 import re
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 with open(os.path.join("requirements", "base.txt")) as f:
     requirements = f.read().splitlines()
 
-with open("README.md", "r") as fh:
+with open("README.md") as fh:
     long_description = fh.read()
 
 
@@ -20,7 +20,7 @@ def read(rel_path) -> str:
     here = os.path.abspath(os.path.dirname(__file__))
     # intentionally *not* adding an encoding option to open, See:
     #   https://github.com/pypa/virtualenv/issues/201#issuecomment-3145690
-    with open(os.path.join(here, rel_path), "r") as file_obj:
+    with open(os.path.join(here, rel_path)) as file_obj:
         return file_obj.read()
 
 

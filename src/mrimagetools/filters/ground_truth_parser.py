@@ -76,10 +76,8 @@ class GroundTruthInput(ParameterModel):
         image_shape = values["image"].image.shape
         if image_shape[4] != len(quantity_names):
             raise ValueError(
-                (
-                    f"The number of images in the ground truth ({image_shape[4]}) "
-                    f"does not match the number of defined quantities: {quantity_names}"
-                )
+                f"The number of images in the ground truth ({image_shape[4]}) "
+                f"does not match the number of defined quantities: {quantity_names}"
             )
 
         return values

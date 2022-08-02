@@ -17,7 +17,7 @@ def data_fixture() -> dict:
     data = {
         f"image_{n+1}d": NiftiImageContainer(
             nib.Nifti1Image(
-                np.stack([i * np.ones(([8] * n)) for i in range(10)], axis=n),
+                np.stack([i * np.ones([8] * n) for i in range(10)], axis=n),
                 affine=np.eye(4),
             ),
             metadata=ImageMetadata(series_description="", magnetic_field_strength=3.0),

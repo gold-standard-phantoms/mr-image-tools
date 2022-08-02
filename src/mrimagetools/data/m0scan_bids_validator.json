@@ -1,9 +1,9 @@
 {
   "type": "object",
   "properties": {
-    "IntendedFor": { 
-        "type": "string", 
-        "minLength": 1 
+    "IntendedFor": {
+        "type": "string",
+        "minLength": 1
       },
     "EchoTime": {
       "type": "number",

@@ -97,4 +97,3 @@ MRImageTools:
     $ pip install mrimagetools
 
 MRImageTools is now installed. Go to the :doc:`Documentation Overview </index>`.
-
