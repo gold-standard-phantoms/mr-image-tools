@@ -83,7 +83,7 @@ class MriSignalFilter(BaseFilter):
     * ``'image_flavor'``
     * ``'inversion_time'``
     * ``'inversion_flip_angle'``
-    * ``'mr_acq_type'` = "3D"
+    * ``'mr_acquisition_type'` = "3D"
 
     Metadata entries for ``'units'`` and ``'quantity'`` will be removed.
 
@@ -142,7 +142,7 @@ class MriSignalFilter(BaseFilter):
     KEY_INVERSION_TIME = "inversion_time"
     KEY_IMAGE = "image"
     KEY_image_flavor = "image_flavor"
-    KEY_ACQ_TYPE = "mr_acq_type"
+    KEY_ACQ_TYPE = "mr_acquisition_type"
     KEY_BACKGROUND_SUPPRESSION = "background_suppression"
 
     # Value constants

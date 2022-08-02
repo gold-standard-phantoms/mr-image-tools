@@ -387,7 +387,7 @@ class BidsOutputFilter(BaseFilter):
 
                 # if the data is multiphase then the sidecar needs some editing to ensure
                 # post label delay is correctly dealt with
-                if isinstance(json_sidecar["PostLabelingDelay"], list):
+                if isinstance(json_sidecar["PostLabelingDelay"], (list, tuple)):
                     if len(json_sidecar["PostLabelingDelay"]) > 1:
                         unique_mpindex = np.unique(json_sidecar["MultiphaseIndex"])
                         new_pld_array = []
