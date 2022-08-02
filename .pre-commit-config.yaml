@@ -18,17 +18,3 @@ repos:
   hooks:
     - id: isort
       args: ["--profile", "black", "src"]
-- repo: local
-  hooks:
-    - id: pylint
-      name: pylint
-      entry: pylint
-      language: system
-      verbose: true # show the output, as this will never fail
-      types: [python]
-      args:
-        [
-          "--exit-zero", # allow pylint to 'fail' - we just want info
-          "--rcfile=.pylintrc", # Link to your config file
-          "src",
-        ]
