@@ -43,6 +43,8 @@ class GroundTruthConfig(ParameterModel):
     calculated_quantities: List[CalculatedQuantity] = Field(default_factory=list)
     # Any parameters - defaults to an empty dict
     parameters: Dict[str, Any] = Field(default_factory=dict)
+    # Any segmentation_labels - defaults to an empty dict
+    segmentation_labels: Dict[str, Dict[str, int]] = Field(default_factory=dict)
 
     @validator("quantities", "calculated_quantities")
     def quantity_names_are_unique(cls, value: List[Quantity]) -> List[Quantity]:
@@ -52,6 +54,23 @@ class GroundTruthConfig(ParameterModel):
         # to check all unique list elements
         if not len(set(names)) == len(names):
             raise ValueError(f"Quantity names must be unique but {names} was supplied")
+        return value
+
+    @validator("segmentation_labels")
+    def segmentation_label_checks(
+        cls, value: Dict[str, Dict[str, int]]
+    ) -> Dict[str, Dict[str, int]]:
+        """checks that segmentaion_labels has no negative values and no duplicate"""
+        for key, dictionary in value.items():
+            # checks no negative values
+            for key, item in dictionary.items():
+                if item < 0:
+                    raise ValueError("Segmentation label must be >= 0")
+            # checks no duplicate values
+            check_duplicate = list(dictionary.values())
+            any(check_duplicate.count(x) > 1 for x in check_duplicate)
+            if any(check_duplicate.count(x) > 1 for x in check_duplicate):
+                raise ValueError("Duplicate label values detected")
         return value
 
 
@@ -94,6 +113,20 @@ class GroundTruthInput(ParameterModel):
                 "Quantity and calculatd quantity names must be unique "
                 f"but {quantity_names} was supplied"
             )
+        return values
+
+    @root_validator(skip_on_failure=True)
+    def corresponding_entries_segmentation_labels(cls, values: dict) -> dict:
+        """check that that each entry corresponds to a quantity in quantities or
+        calculated_quantities"""
+        quantity_names = [quantity.name for quantity in values["config"].quantities] + [
+            quantity.name for quantity in values["config"].calculated_quantities
+        ]
+        for key, dictionary in values["config"].segmentation_labels.items():
+            if key not in quantity_names:
+                raise ValueError(
+                    "no corresponding entry in quantities or calculated_quantities"
+                )
         return values
 
 
@@ -185,6 +218,9 @@ class GroundTruthParser(BaseFilter):
 
             self.outputs[quantity.name] = new_image_container
         self.outputs["parameters"] = self.parsed_inputs.config.parameters
+        self.outputs[
+            "segmentation_labels"
+        ] = self.parsed_inputs.config.segmentation_labels
 
     def _validate_inputs(self) -> None:
         GroundTruthInput(**self.inputs)
