@@ -24,28 +24,22 @@ class DwiSignalFilter(BaseFilter):
     :param 'adc': Apparent coefficient for each voxel, along
         the 4th dimension is the 3 direction x, y, z. So the 4th
         dimension contains ADC_x, ADC_y, ADC_z all in 3D.
-    :type 'adc': BaseImageContainer
     :param 'b_values': List of b-values, must be positive float
-    :type 'b_values' : List[float]
-    :param 'b_vectors' : List of b-vectors, one for each b-values if
+    :param 'b_vectors': List of b-vectors, one for each b-values if
         it is not normalized then the actual b_values will be processed
-    :type 'b_vectors': List[List[float, float, float]]
     :param 's0': Image with no diffusion weighting applied. must be
         3D with the three dimension of equal shape to the first three
         dimension of adc
-    :type 's0': BaseImageContainer
 
     **Outputs**
 
     :param 'attenuation': Output image, must have the same affine
         as 'adc'. It containes the attenuation coefficient of each voxel
         the 4th dimension should be of the same length as 'b_values'
-    :type 'attenuation': BaseImageContainer
     :param 'dwi': Output image, must have the same affine
         as 'adc'. It containes fully encoded MRI signal of each voxel
         the 4th dimension should be of the same length as 'b_values'
         if s0 was NOT provided then 'dwi' = 'attenuation'
-    :type 'dwi': BaseImageContainer
 
     **Metadata**
     :class:`DwiSignalFilter.outputs["attenuation"].metadata` will be derived

@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- DWI signal filter.
+- DWI pipeline
+- DWI signal filter
 - Nifti data type field validation
 - Unit field validation
 - Pydantic-based validation/data sanitising
