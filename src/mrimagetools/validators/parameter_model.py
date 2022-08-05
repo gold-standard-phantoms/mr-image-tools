@@ -35,7 +35,7 @@ class ModelMixin(Representation):
             else:
                 super().__init__(**data)
         except ValidationError as error:
-            raise FilterInputValidationError from error
+            raise FilterInputValidationError(str(error)) from error
 
     class Config(BaseConfig):
         """Configuration options for pydantic"""
