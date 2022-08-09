@@ -1,6 +1,6 @@
 """Ground truth parser"""
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Final, List, Optional, Tuple
 
 import numpy as np
 
@@ -61,9 +61,9 @@ class GroundTruthConfig(ParameterModel):
         cls, value: Dict[str, Dict[str, int]]
     ) -> Dict[str, Dict[str, int]]:
         """checks that segmentaion_labels has no negative values and no duplicate"""
-        for key, dictionary in value.items():
+        for _, dictionary in value.items():
             # checks no negative values
-            for key, item in dictionary.items():
+            for _, item in dictionary.items():
                 if item < 0:
                     raise ValueError("Segmentation label must be >= 0")
             # checks no duplicate values
@@ -79,6 +79,10 @@ class GroundTruthInput(ParameterModel):
 
     image: NiftiImageContainer
     config: GroundTruthConfig
+
+    # Any required quantities. These should be supplied in the `config.quantities` or
+    # `self.calculated_quantities` field
+    required_quantities: Optional[Tuple[str, ...]]
 
     @validator("image")
     def image_must_be_5d(cls, value: NiftiImageContainer) -> NiftiImageContainer:
@@ -122,10 +126,28 @@ class GroundTruthInput(ParameterModel):
         quantity_names = [quantity.name for quantity in values["config"].quantities] + [
             quantity.name for quantity in values["config"].calculated_quantities
         ]
-        for key, dictionary in values["config"].segmentation_labels.items():
+        for key, _ in values["config"].segmentation_labels.items():
             if key not in quantity_names:
                 raise ValueError(
                     "no corresponding entry in quantities or calculated_quantities"
+                )
+        return values
+
+    @root_validator(skip_on_failure=True)
+    def check_all_required_quatities_exist(cls, values: dict) -> dict:
+        """Check that all `required_quantities` exist in either `config.quantities`
+        or `config.calculated_quantities`"""
+        quantity_names = [quantity.name for quantity in values["config"].quantities] + [
+            quantity.name for quantity in values["config"].calculated_quantities
+        ]
+        required_quantities: Optional[Tuple[str, ...]] = values["required_quantities"]
+        if required_quantities is None:
+            return values
+        for quantity in required_quantities:
+            if quantity not in quantity_names:
+                raise ValueError(
+                    f"Required quantity '{quantity}' has not been supplied in "
+                    f"{required_quantities}"
                 )
         return values
 
@@ -140,6 +162,11 @@ class GroundTruthOutput(ParameterModel):
 class GroundTruthParser(BaseFilter):
     r"""A filter that parses a 5D ImageContainer and an associated JSON dictionary
     with information about the ground truth, and produces a set of output images.
+
+    It is possible to enforce that certain quantities are loaded by this filter (a
+    FilterInputValidationError will be raised if not), by using the following
+    instantiation syntax:
+    `GroundTruthParser(required_quantities=['t1', 't2', 'adc'])`
 
     **Inputs**
 
@@ -162,13 +189,16 @@ class GroundTruthParser(BaseFilter):
     KEY_QUANTITY = "quantity"
     KEY_DATA_TYPE = "data_type"
 
-    def __init__(self) -> None:
+    def __init__(self, required_quantities: Optional[Tuple[str, ...]] = None) -> None:
         super().__init__(name="Ground Truth Parser")
+        self.required_quantities: Final[Optional[Tuple[str, ...]]] = required_quantities
         self.parsed_inputs: GroundTruthInput
         self.parsed_outputs: GroundTruthOutput
 
     def _run(self) -> None:
-        self.parsed_inputs = GroundTruthInput(**self.inputs)
+        self.parsed_inputs = GroundTruthInput(
+            **self.inputs, required_quantities=self.required_quantities
+        )
 
         # Create a new header for each of the new nifti image containers
         # and initialise the values that are shared between all of them
@@ -180,12 +210,14 @@ class GroundTruthParser(BaseFilter):
         shared_header["dim"][5] = 1  # tidy the 5th dimensions size
 
         # For each new image, based on the "quantities"
-        for i, quantity in enumerate(self.parsed_inputs.config.quantities):
+        for quantity_index, quantity in enumerate(self.parsed_inputs.config.quantities):
             # HEADER
             # Create a copy of the shared header - we might want to modify this further
             header = deepcopy(shared_header)
             # Grab the relevant image data
-            image_data: np.ndarray = self.parsed_inputs.image.image[:, :, :, :, i]
+            image_data: np.ndarray = self.parsed_inputs.image.image[
+                :, :, :, :, quantity_index
+            ]
             if header["dim"][0] == 3:
                 # squeeze the 4th dimension if there is only one time-step
                 image_data = np.squeeze(image_data, axis=3)
@@ -223,4 +255,4 @@ class GroundTruthParser(BaseFilter):
         ] = self.parsed_inputs.config.segmentation_labels
 
     def _validate_inputs(self) -> None:
-        GroundTruthInput(**self.inputs)
+        GroundTruthInput(**self.inputs, required_quantities=self.required_quantities)

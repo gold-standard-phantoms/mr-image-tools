@@ -1,6 +1,6 @@
 """Tests from GroundTruthParser"""
 from copy import deepcopy
-from typing import Final
+from typing import Final, List
 
 import numpy as np
 import pytest
@@ -9,6 +9,10 @@ from nibabel import Nifti1Image
 from mrimagetools.containers.image import NiftiImageContainer, NumpyImageContainer
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.ground_truth_parser import GroundTruthParser, Quantity
+from mrimagetools.utils.filter_validation import (
+    FilterValidationModel,
+    FilterValidationModelParameter,
+)
 from mrimagetools.validators.fields import NiftiDataTypeField, UnitField
 
 
@@ -290,3 +294,54 @@ def test_corresponding_entries_segmentation_label(valid_dict_input: dict):
     )
     with pytest.raises(FilterInputValidationError):
         parser.run()
+
+
+def test_missing_required_quantities(valid_dict_input: dict):
+    """Test that if any of the `required_quantities` are missing, a validation
+    error is raised"""
+    parser = GroundTruthParser()
+    parser.add_input("image", valid_dict_input["image"])
+    config: Final[dict] = {
+        "quantities": [
+            {"name": "t1", "units": "s", "cast_to": "float64"},
+            {
+                "name": "adc",
+                "units": "mm**2/s",
+                "cast_to": "float64",
+            },
+            {"name": "t2", "units": "s", "cast_to": "float64"},
+        ],
+        "calculated_quantities": [
+            {
+                "name": "calc",
+                "units": "mm",
+                "cast_to": "float64",
+                "expression": "t1*1",
+            },
+        ],
+    }
+    parser.add_input("config", deepcopy(config))
+
+    # Generate the invalid_configs based on removed one of the required_quantities
+    # each time
+    invalid_configs: List[dict] = []
+    for quantity_type in ("quantities", "calculated_quantities"):
+        for index, _ in enumerate(config[quantity_type]):
+            conf = deepcopy(config)
+            conf[quantity_type].pop(index)
+            invalid_configs.append(conf)
+
+    FilterValidationModel(
+        filter_type=GroundTruthParser,
+        filter_arguments={"required_quantities": ("t1", "t2", "adc", "calc")},
+        parameters={
+            "image": FilterValidationModelParameter(
+                is_optional=False, valid_values=[valid_dict_input["image"]]
+            ),
+            "config": FilterValidationModelParameter(
+                is_optional=False,
+                valid_values=[deepcopy(config)],
+                invalid_values=invalid_configs,
+            ),
+        },
+    )
