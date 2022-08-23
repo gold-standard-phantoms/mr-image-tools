@@ -1,8 +1,9 @@
 """Ground truth parser"""
 from copy import deepcopy
-from typing import Any, Dict, Final, List, Optional, Tuple
+from typing import Dict, Final, List, Optional, Tuple, Type
 
 import numpy as np
+from pydantic import BaseModel
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.containers.image_metadata import ImageMetadata
@@ -10,6 +11,7 @@ from mrimagetools.filters.basefilter import BaseFilter
 from mrimagetools.validators.fields import NiftiDataTypeField, UnitField
 from mrimagetools.validators.parameter_model import (
     Field,
+    GenericParameterModel,
     ParameterModel,
     root_validator,
     validator,
@@ -32,7 +34,7 @@ class CalculatedQuantity(Quantity):
     expression: str  # The expression used to calculate the quantity.
 
 
-class GroundTruthConfig(ParameterModel):
+class GroundTruthConfig(GenericParameterModel):
     """The main configuration of the ground truth image data containing.
     Information about the ground truth quantities and any quantities
     that need to be calculated"""
@@ -41,8 +43,8 @@ class GroundTruthConfig(ParameterModel):
     quantities: List[Quantity]
     # Any calculated quantities - defaults to an empty list
     calculated_quantities: List[CalculatedQuantity] = Field(default_factory=list)
-    # Any parameters - defaults to an empty dict
-    parameters: Dict[str, Any] = Field(default_factory=dict)
+    # Any parameters
+    parameters: dict = Field(default_factory=dict)
     # Any segmentation_labels - defaults to an empty dict
     segmentation_labels: Dict[str, Dict[str, int]] = Field(default_factory=dict)
 
@@ -74,15 +76,25 @@ class GroundTruthConfig(ParameterModel):
         return value
 
 
-class GroundTruthInput(ParameterModel):
+class GroundTruthInput(GenericParameterModel):
     """All of the inputs for the GroundTruthParser"""
 
     image: NiftiImageContainer
     config: GroundTruthConfig
+    # parameter_validator
+    parameter_validator_type: Type[BaseModel]
 
     # Any required quantities. These should be supplied in the `config.quantities` or
     # `self.calculated_quantities` field
     required_quantities: Optional[Tuple[str, ...]]
+
+    @root_validator(skip_on_failure=True)
+    def check_parameters_match_model(cls, values: dict) -> dict:
+        """Check that the parameters are validated by the parameter_validator"""
+        parameter_validator_type: Type[BaseModel] = values["parameter_validator_type"]
+        parameters: dict = values["config"].parameters
+        parameter_validator_type(**parameters)
+        return values
 
     @validator("image")
     def image_must_be_5d(cls, value: NiftiImageContainer) -> NiftiImageContainer:
@@ -189,17 +201,26 @@ class GroundTruthParser(BaseFilter):
     KEY_QUANTITY = "quantity"
     KEY_DATA_TYPE = "data_type"
 
-    def __init__(self, required_quantities: Optional[Tuple[str, ...]] = None) -> None:
+    def __init__(
+        self,
+        required_quantities: Optional[Tuple[str, ...]] = None,
+        parameter_model: Type[BaseModel] = BaseModel,
+    ) -> None:
         super().__init__(name="Ground Truth Parser")
         self.required_quantities: Final[Optional[Tuple[str, ...]]] = required_quantities
         self.parsed_inputs: GroundTruthInput
         self.parsed_outputs: GroundTruthOutput
+        self.parameter_model: Type[BaseModel] = parameter_model
 
-    def _run(self) -> None:
-        self.parsed_inputs = GroundTruthInput(
-            **self.inputs, required_quantities=self.required_quantities
+    def _get_parsed_inputs(self) -> GroundTruthInput:
+        return GroundTruthInput(
+            **self.inputs,
+            required_quantities=self.required_quantities,
+            parameter_validator_type=self.parameter_model,
         )
 
+    def _run(self) -> None:
+        self.parsed_inputs = self._get_parsed_inputs()
         # Create a new header for each of the new nifti image containers
         # and initialise the values that are shared between all of them
         shared_header = deepcopy(self.parsed_inputs.image.header)
@@ -255,4 +276,4 @@ class GroundTruthParser(BaseFilter):
         ] = self.parsed_inputs.config.segmentation_labels
 
     def _validate_inputs(self) -> None:
-        GroundTruthInput(**self.inputs, required_quantities=self.required_quantities)
+        self._get_parsed_inputs()

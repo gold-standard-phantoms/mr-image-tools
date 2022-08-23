@@ -14,6 +14,7 @@ from mrimagetools.utils.filter_validation import (
     FilterValidationModelParameter,
 )
 from mrimagetools.validators.fields import NiftiDataTypeField, UnitField
+from mrimagetools.validators.parameter_model import ParameterModel
 
 
 @pytest.fixture(name="valid_dict_input")
@@ -67,7 +68,7 @@ def fixture_complex_dict_input() -> dict:
     }
 
 
-def test_basic_validation_and_run(valid_dict_input: dict):
+def test_basic_validation_and_run(valid_dict_input: dict) -> None:
     """Test the filter runs with some basic inputs. Test the output is as expected."""
     parser = GroundTruthParser()
     parser.add_input("image", valid_dict_input["image"])
@@ -90,7 +91,7 @@ def test_basic_validation_and_run(valid_dict_input: dict):
     )
 
 
-def test_complex_validation_and_run(complex_dict_input: dict):
+def test_complex_validation_and_run(complex_dict_input: dict) -> None:
     """Test the filter run with some complex input. Test the output is as expected."""
     parser = GroundTruthParser()
     parser.add_input("image", complex_dict_input["image"])
@@ -113,7 +114,7 @@ def test_complex_validation_and_run(complex_dict_input: dict):
     assert parser.outputs["inty"].image.dtype == np.uint64
 
 
-def test_basic_validation_with_parameters(valid_dict_input: dict):
+def test_basic_validation_with_parameters(valid_dict_input: dict) -> None:
     """Test the filter runs with some basic inputs and parameters"""
     parser = GroundTruthParser()
     parser.add_input("image", valid_dict_input["image"])
@@ -128,7 +129,33 @@ def test_basic_validation_with_parameters(valid_dict_input: dict):
     assert parser.parsed_inputs.config.parameters == {"foo": "bar"}
 
 
-def test_duplicate_quantity_names_validation(valid_dict_input: dict):
+def test_parameter_validation(valid_dict_input: dict) -> None:
+    """Test that we can define and use a parameter validation model"""
+
+    class ParaModel(ParameterModel):
+        """Simple model"""
+
+        a: int
+        b: str
+
+    parser = GroundTruthParser(parameter_model=ParaModel)
+    parser.add_inputs(valid_dict_input)
+    with pytest.raises(FilterInputValidationError):
+        parser.run()  # missing all required parameters
+
+    valid_dict_input["config"]["parameters"] = {"a": "bar", "b": "foo"}
+    parser = GroundTruthParser(parameter_model=ParaModel)
+    parser.add_inputs(valid_dict_input)
+    with pytest.raises(FilterInputValidationError):
+        parser.run()  # a cannot be coerced into an int
+
+    valid_dict_input["config"]["parameters"] = {"a": 1, "b": "foo"}
+    parser = GroundTruthParser(parameter_model=ParaModel)
+    parser.add_inputs(valid_dict_input)
+    parser.run()  # parameters are valid w.r.t. ParaModel
+
+
+def test_duplicate_quantity_names_validation(valid_dict_input: dict) -> None:
     """duplicate quantity names are not allowed"""
     parser = GroundTruthParser()
     parser.add_input("image", valid_dict_input["image"])
@@ -146,7 +173,7 @@ def test_duplicate_quantity_names_validation(valid_dict_input: dict):
         parser.run()
 
 
-def test_negative_segmentation_label(valid_dict_input: dict):
+def test_negative_segmentation_label(valid_dict_input: dict) -> None:
     """test an error is thrown if negative label"""
     parser = GroundTruthParser()
     parser.add_input("image", valid_dict_input["image"])
@@ -173,7 +200,7 @@ def test_negative_segmentation_label(valid_dict_input: dict):
         parser.run()
 
 
-def test_duplicate_segmentation_label(valid_dict_input: dict):
+def test_duplicate_segmentation_label(valid_dict_input: dict) -> None:
     """test an error is thrown if duplicate lavel"""
     parser = GroundTruthParser()
     parser.add_input("image", valid_dict_input["image"])
@@ -200,7 +227,7 @@ def test_duplicate_segmentation_label(valid_dict_input: dict):
         parser.run()
 
 
-def test_bad_image_type_validation():
+def test_bad_image_type_validation() -> None:
     """The `image` is not an image"""
     parser = GroundTruthParser()
     image_container = "not_an_image_container"
@@ -210,7 +237,7 @@ def test_bad_image_type_validation():
         parser.run()
 
 
-def test_missing_config_validation(valid_dict_input: dict):
+def test_missing_config_validation(valid_dict_input: dict) -> None:
     """The config is missing"""
     parser = GroundTruthParser()
     parser.add_input("image", valid_dict_input["image"])
@@ -218,7 +245,7 @@ def test_missing_config_validation(valid_dict_input: dict):
         parser.run()
 
 
-def test_bad_shape_image_validation():
+def test_bad_shape_image_validation() -> None:
     """Test a 4d image (not 5d) throws an exception"""
     parser = GroundTruthParser()
     parser.add_input("image", NumpyImageContainer(image=np.ones(shape=(2, 2))))
@@ -227,7 +254,7 @@ def test_bad_shape_image_validation():
         parser.run()
 
 
-def test_duplicate_quantity_calculated_names_validation(valid_dict_input: dict):
+def test_duplicate_quantity_calculated_names_validation(valid_dict_input: dict) -> None:
     """duplicate names between quantities and calculated quantities are not allowed"""
     parser = GroundTruthParser()
     parser.add_input("image", valid_dict_input["image"])
@@ -264,7 +291,7 @@ def test_duplicate_quantity_calculated_names_validation(valid_dict_input: dict):
     parser.run()  # should now run
 
 
-def test_corresponding_entries_segmentation_label(valid_dict_input: dict):
+def test_corresponding_entries_segmentation_label(valid_dict_input: dict) -> None:
     """test an error is raised if no entry is corresponding between the
     segmentation label and the quantity or calculated quantity"""
     parser = GroundTruthParser()
@@ -296,7 +323,7 @@ def test_corresponding_entries_segmentation_label(valid_dict_input: dict):
         parser.run()
 
 
-def test_missing_required_quantities(valid_dict_input: dict):
+def test_missing_required_quantities(valid_dict_input: dict) -> None:
     """Test that if any of the `required_quantities` are missing, a validation
     error is raised"""
     parser = GroundTruthParser()
