@@ -13,7 +13,7 @@ import pytest
 def pytest_addoption(parser) -> None:
     """Add options to pytest"""
     parser.addoption(
-        "--runslow", action="store_true", default=False, help="run slow tests"
+        "--runslow", action="store_true", default=True, help="run slow tests"
     )
 
 
