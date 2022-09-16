@@ -1,20 +1,11 @@
 """Parameter model classes and function.
 Used for parameter validation and typing in the filters"""
-from typing import Any, Callable, Dict, Type, Union
+import sys
+import types
+from typing import Any, Callable
 
-# Reexport some pydantic imports so they can be imported from this module
-# pylint: disable=unused-import
-from pydantic import (
-    BaseConfig,
-    BaseModel,
-    Extra,
-    Field,
-    ValidationError,
-    root_validator,
-    validator,
-)
+from pydantic import BaseConfig, BaseModel, Extra, ValidationError, validator
 from pydantic.generics import GenericModel
-from pydantic.typing import AnyCallable
 from pydantic.utils import Representation
 
 from mrimagetools.filters.basefilter import FilterInputValidationError
@@ -35,7 +26,18 @@ class ModelMixin(Representation):
             else:
                 super().__init__(**data)
         except ValidationError as error:
-            raise FilterInputValidationError(str(error)) from error
+            try:
+                # Remove this frame from the traceback - it's not very helpful!
+                frame = sys._getframe(1)
+                this_traceback = types.TracebackType(
+                    None, frame, frame.f_lasti, frame.f_lineno
+                )
+                raise FilterInputValidationError(error).with_traceback(
+                    this_traceback
+                ) from error
+            except AttributeError:
+                # catch the case that _getframe is not implemented
+                raise FilterInputValidationError(error) from error
 
     class Config(BaseConfig):
         """Configuration options for pydantic"""
