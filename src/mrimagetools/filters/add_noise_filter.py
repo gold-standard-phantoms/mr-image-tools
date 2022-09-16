@@ -177,12 +177,12 @@ class AddNoiseFilter(BaseFilter):
             input_image = self.inputs[self.KEY_IMAGE]
             if not isinstance(input_reference_image, BaseImageContainer):
                 raise FilterInputValidationError(
-                    f"Input 'reference_image' is not a BaseImageContainer"
+                    "Input 'reference_image' is not a BaseImageContainer"
                     f"(is {type(input_reference_image)})"
                 )
             if not input_image.shape == input_reference_image.shape:
                 raise FilterInputValidationError(
-                    f"Shape of inputs 'image' and 'reference_image' are not equal"
+                    "Shape of inputs 'image' and 'reference_image' are not equal"
                     f"Shape of 'image' is {input_image.shape}"
                     f"Shape of 'reference_image' is {input_reference_image.shape}"
                 )

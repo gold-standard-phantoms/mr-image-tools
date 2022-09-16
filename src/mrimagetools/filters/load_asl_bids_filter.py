@@ -184,7 +184,8 @@ class LoadAslBidsFilter(BaseFilter):
         # 'image_filename' should end with .nii or .nii.gz
         if not self.inputs[self.KEY_IMAGE_FILENAME].endswith((".nii", ".nii.gz")):
             raise FilterInputValidationError(
-                "LoadAslBidsFilter input 'image_filename' must be a .nii or .nii.gz file"
+                "LoadAslBidsFilter input 'image_filename' must be a .nii or .nii.gz"
+                " file"
             )
 
         # 'sidecar_filename' should be a .json

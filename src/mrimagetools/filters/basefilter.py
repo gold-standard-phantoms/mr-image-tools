@@ -68,7 +68,7 @@ class BaseFilter(ABC):
     def __str__(self) -> str:
         return self.name
 
-    def add_input(self, key: str, value) -> None:
+    def add_input(self, key: str, value: Any) -> None:
         """
         Adds an input with a given key and value.
         If the key is already in the inputs, an RuntimeError is raised
@@ -78,8 +78,8 @@ class BaseFilter(ABC):
         # Mark this filter as needing to be run
         if self.times_run > 0:
             raise FilterInputKeyError(
-                f"Trying to set key: {key}"
-                "however the filter has already been run so this is not supported (yet)."
+                f"Trying to set key: {key}however the filter has already been run so"
+                " this is not supported (yet)."
             )
 
         if key in self._i:
@@ -96,8 +96,8 @@ class BaseFilter(ABC):
         filters are not yet marked as needing to be run again)."""
         if self.times_run > 0:
             raise FilterInputKeyError(
-                f"Trying to set key: {key}"
-                "however the filter has already been run so this is not supported (yet)."
+                f"Trying to set key: {key}however the filter has already been run so"
+                " this is not supported (yet)."
             )
         if key not in self._i:
             self.needs_run = True
@@ -229,7 +229,7 @@ class BaseFilter(ABC):
                     # Check the input_key does not already exist
                     if input_key in self.inputs:
                         raise FilterInputKeyError(
-                            f"A mapping is defined: "
+                            "A mapping is defined: "
                             f"from filter \"{parent_dict['filter']}\" "
                             f'with output key "{output_key}" '
                             f'to filter "{self}" '

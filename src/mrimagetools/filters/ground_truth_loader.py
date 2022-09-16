@@ -267,8 +267,8 @@ class GroundTruthLoaderFilter(BaseFilter):
 
         if len(self.inputs["units"]) != len(self.inputs["quantities"]):
             raise FilterInputValidationError(
-                f"{self} filter requires an input 'units' which is the same length as the input "
-                "'quantities'"
+                f"{self} filter requires an input 'units' which is the same length as"
+                " the input 'quantities'"
             )
 
         for input_key in [self.KEY_IMAGE_OVERRIDE, self.KEY_PARAMETER_OVERRIDE]:
@@ -287,8 +287,8 @@ class GroundTruthLoaderFilter(BaseFilter):
                         )
                     if not isinstance(value, (int, float)):
                         raise FilterInputValidationError(
-                            f"Values in the {input_key} dictionary must be int or float. "
-                            f"The value for {key} ({value}) is not."
+                            f"Values in the {input_key} dictionary must be int or"
+                            f" float. The value for {key} ({value}) is not."
                         )
 
         if self.KEY_IMAGE_OVERRIDE in self.inputs:

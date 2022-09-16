@@ -188,7 +188,8 @@ class MathsFilter(BaseFilter):
             for key, value in image_containers.items():
                 if not np.allclose(affine, value.affine):
                     raise FilterInputValidationError(
-                        f"Affine for image {first_key} does not match affine for image {key}"
+                        f"Affine for image {first_key} does not match affine for image"
+                        f" {key}"
                     )
 
         # Check the expression/parameters are valid

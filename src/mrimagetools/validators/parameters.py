@@ -31,7 +31,7 @@ class Validator:
         self.func = func
         self.criteria_message = criteria_message
 
-    def __call__(self, value) -> bool:
+    def __call__(self, value: Any) -> bool:
         return self.func(value)
 
     def __str__(self) -> str:
@@ -272,12 +272,13 @@ def regex_validator(pattern: str, case_insensitive: bool = False) -> Validator:
         )
         if isinstance(value, str)
         else False,
-        f"Value must match pattern {pattern}{' (ignoring case)' if case_insensitive else ''}",
+        "Value must match pattern"
+        f" {pattern}{' (ignoring case)' if case_insensitive else ''}",
     )
 
 
 def reserved_string_list_validator(
-    strings: List[str], delimiter=" ", case_insensitive: bool = False
+    strings: List[str], delimiter: str = " ", case_insensitive: bool = False
 ) -> Validator:
     """
     Validates that the value is a string which is comprised only of the list of given strings,
@@ -509,7 +510,8 @@ class ParameterValidator:
         for parameter in parameters.values():
             if not isinstance(parameter, Parameter):
                 raise TypeError(
-                    "All values passed to InputParameters must be of Parameter type, {key} is not"
+                    "All values passed to InputParameters must be of Parameter type,"
+                    " {key} is not"
                 )
 
         for post_validator in post_validators:
@@ -566,8 +568,9 @@ class ParameterValidator:
                 for validator in parameter.validators:
                     if not validator(d[parameter_name]):
                         errors.append(
-                            f"Parameter {parameter_name} with value {d[parameter_name]} "
-                            f"does not meet the following criterion: {validator}"
+                            f"Parameter {parameter_name} with value"
+                            f" {d[parameter_name]} does not meet the following"
+                            f" criterion: {validator}"
                         )
 
         # Check all of the post_validators

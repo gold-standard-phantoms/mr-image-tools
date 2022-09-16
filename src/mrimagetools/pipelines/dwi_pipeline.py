@@ -77,8 +77,8 @@ def dwi_pipeline(
     input_parameters_path: str,
     output_dir: Optional[str] = None,
 ) -> DwiPipelineOutput:
-    """
-    loads in a 5D Nifti ground truth and JSON parameters file,
+    """Run the DWI pipeline.
+    Loads in a 5D Nifti ground truth and JSON parameters file,
     expects the JSON and the ground_truth_path to have the
     same name
     calculates the DWI signal for each b values, then combine
@@ -99,8 +99,7 @@ def dwi_pipeline(
         :'image':
         :'filename:
 
-    :rtype: DwiPipelineOutput
-    """
+    :rtype: DwiPipelineOutput"""
     # getting filenames
     nifti_filename = splitext(ground_truth_path)[0] + ".nii"
     json_filename = splitext(ground_truth_path)[0] + ".json"

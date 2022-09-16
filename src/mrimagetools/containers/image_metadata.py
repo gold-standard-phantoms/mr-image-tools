@@ -186,7 +186,7 @@ class ImageMetadata(ParameterModel):
     """Nominal field strength of MR magnet in Tesla. Corresponds to DICOM Tag
     0018,0087 Magnetic Field Strength."""
 
-    multiphase_index: Optional[Sequence[int]]
+    multiphase_index: Optional[Union[int, Sequence[int]]]
     """Array of the index in the multiphase loop when the volume was acquired. Only
     required if ``post_label_delay`` is a list and has length > 1"""
 

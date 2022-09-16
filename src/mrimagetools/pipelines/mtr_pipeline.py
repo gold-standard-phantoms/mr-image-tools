@@ -60,9 +60,9 @@ def mtr_pipeline(
         # the loaded image
         if not sat_loader.outputs[LoadBidsFilter.KEY_IMAGE].shape[3] == 2:
             raise ValueError(
-                "Only the saturation image has been supplied, this must contain"
-                "two volumes in the 4th dimension"
-                f"\n image shape is {sat_loader.outputs[LoadBidsFilter.KEY_IMAGE].shape[3]}"
+                "Only the saturation image has been supplied, this must containtwo"
+                " volumes in the 4th dimension\n image shape is"
+                f" {sat_loader.outputs[LoadBidsFilter.KEY_IMAGE].shape[3]}"
             )
         split_image_filter = SplitImageFilter()
         split_image_filter.add_parent_filter(sat_loader)

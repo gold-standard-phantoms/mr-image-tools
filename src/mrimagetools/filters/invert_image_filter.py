@@ -29,5 +29,6 @@ class InvertImageFilter(BaseFilter):
             self.inputs["image"], BaseImageContainer
         ):
             raise FilterInputValidationError(
-                "BaseImageContainer filter requires a `image` input derived from BaseImageContainer"
+                "BaseImageContainer filter requires a `image` input derived from"
+                " BaseImageContainer"
             )

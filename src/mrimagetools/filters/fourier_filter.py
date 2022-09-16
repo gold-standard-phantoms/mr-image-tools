@@ -53,7 +53,7 @@ class FftFilter(BaseFilter):
 
         if self.inputs[self.KEY_IMAGE].data_domain != SPATIAL_DOMAIN:
             raise FilterInputValidationError(
-                f"Input image is not in the spatial domain "
+                "Input image is not in the spatial domain "
                 f"(is {self.inputs[self.KEY_IMAGE].data_domain}"
             )
 
@@ -95,6 +95,6 @@ class IfftFilter(BaseFilter):
 
         if self.inputs[self.KEY_IMAGE].data_domain != INVERSE_DOMAIN:
             raise FilterInputValidationError(
-                f"Input image is not in the inverse domain "
+                "Input image is not in the inverse domain "
                 f"(is {self.inputs[self.KEY_IMAGE].data_domain}"
             )

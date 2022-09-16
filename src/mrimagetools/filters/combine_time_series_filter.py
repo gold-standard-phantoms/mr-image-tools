@@ -189,7 +189,7 @@ class CombineTimeSeriesFilter(BaseFilter):
             if container.image.shape != containers[0].image.shape:
                 raise FilterInputValidationError(
                     f"Input image with index {index} has shape {container.image.shape} "
-                    f"which does not match the other images with shape "
+                    "which does not match the other images with shape "
                     f"{containers[0].image.shape}"
                 )
         # Check that all input images are 3d

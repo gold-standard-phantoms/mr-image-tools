@@ -107,6 +107,6 @@ class PhaseMagnitudeFilter(BaseFilter):
         # raise an error if the input image is a phase image.
         if self.inputs[self.KEY_IMAGE].image_type == PHASE_IMAGE_TYPE:
             raise FilterInputValidationError(
-                "input 'image' has attribute 'image_type' with value 'PHASE_IMAGE_TYPE', this is"
-                "not supported"
+                "input 'image' has attribute 'image_type' with value"
+                " 'PHASE_IMAGE_TYPE', this isnot supported"
             )

@@ -195,8 +195,8 @@ class CreateVolumesFromSegMask(BaseFilter):
             np.unique(seg_mask.image) != sorted(self.inputs[self.KEY_LABEL_VALUES])
         ).all():
             raise FilterInputValidationError(
-                f"{self} filter requires the values in the input 'label_values' to match"
-                "the unique values in the input 'seg_mask'"
+                f"{self} filter requires the values in the input 'label_values' to"
+                " matchthe unique values in the input 'seg_mask'"
             )
 
         # for each key in 'quantities', the value must be a list of length 'label_values'
@@ -211,7 +211,8 @@ class CreateVolumesFromSegMask(BaseFilter):
             # check all entries are floats
             if not all(isinstance(x, float) for x in quantities[key]):
                 raise FilterInputValidationError(
-                    f"all values in list for {key} in 'quantities' must be of type float"
+                    f"all values in list for {key} in 'quantities' must be of type"
+                    " float"
                 )
             # check length of list is the same as 'label_values'
             if not len(quantities[key]) == len(self.inputs[self.KEY_LABEL_VALUES]):

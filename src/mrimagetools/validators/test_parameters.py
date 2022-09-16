@@ -401,7 +401,8 @@ def test_reserved_string_list_validator() -> None:
     )
     assert (
         str(validator)
-        == "Value must be a string combination of ['M0', 'CONTROL', 'LABEL'] separated by '_'"
+        == "Value must be a string combination of ['M0', 'CONTROL', 'LABEL'] separated"
+        " by '_'"
     )
     assert validator("M0")
     assert validator("CONTROL")
@@ -442,7 +443,8 @@ def test_for_each_validator() -> None:
 
     validator = for_each_validator(greater_than_validator(0.5))
     assert (
-        str(validator) == "Must be a list or tuple and for each value in the "
+        str(validator)
+        == "Must be a list or tuple and for each value in the "
         "list: Value(s) must be greater than 0.5"
     )
     assert validator([0.6, 0.7, 0.8])
@@ -510,7 +512,8 @@ def test_or_validator() -> None:
         ]
     )
     assert (
-        str(validator) == "Value(s) must be between 0 and 1 (inclusive) OR "
+        str(validator)
+        == "Value(s) must be between 0 and 1 (inclusive) OR "
         "Value(s) must be between 100 and 200 (exclusive)"
     )
     assert not validator(-0.001)
@@ -553,7 +556,8 @@ def test_and_validator() -> None:
     )
 
     assert (
-        str(validator) == "Value(s) must be between 0 and 10 (inclusive) AND "
+        str(validator)
+        == "Value(s) must be between 0 and 10 (inclusive) AND "
         "Value(s) must be between 5 and 15 (exclusive)"
     )
 
@@ -709,11 +713,16 @@ def test_parameter_validator_multiple_errors() -> None:
 
     with pytest.raises(
         ValidationError,
-        match=r"^Parameter a_number with value 0.9 does not meet the following criterion: "
-        r"Value\(s\) must be between 1 and 2 \(inclusive\)\. Parameter a_number with value 0.9 "
-        r"does not meet the following criterion: Value must be in \[1.5, 1.6\]\. "
-        r"Parameter b_number with value \[1, 2\] does not meet the following criterion: "
-        r"Value must be a list of type str$",
+        match=(
+            r"^Parameter a_number with value 0.9 does not meet the following"
+            r" criterion: "
+            r"Value\(s\) must be between 1 and 2 \(inclusive\)\. Parameter a_number"
+            r" with value 0.9 "
+            r"does not meet the following criterion: Value must be in \[1.5, 1.6\]\. "
+            r"Parameter b_number with value \[1, 2\] does not meet the following"
+            r" criterion: "
+            r"Value must be a list of type str$"
+        ),
     ):
         parameter_validator.validate({"a_number": 0.9, "b_number": [1, 2]})
 

@@ -142,35 +142,42 @@ def main() -> None:
     # MTR Pipeline
     mtr_quantify_parser = subparsers.add_parser(
         name="mtr-quantify",
-        description="Calculates the magnetisation transfer ratio based on"
-        "two images, one with and one without bound pool saturation.",
+        description=(
+            "Calculates the magnetisation transfer ratio based on"
+            "two images, one with and one without bound pool saturation."
+        ),
     )
     mtr_quantify_parser.add_argument(
         "sat",
         type=FileType(extensions=["nii", "nii.gz"], should_exist=True),
-        help="The path to the input image with bound pool saturation, or a"
-        "mutli-volume image with both the saturated and unsaturated images. This"
-        "should be accompanied by a corresponding *.json file in BIDS format",
+        help=(
+            "The path to the input image with bound pool saturation, or a"
+            "mutli-volume image with both the saturated and unsaturated images. This"
+            "should be accompanied by a corresponding *.json file in BIDS format"
+        ),
     )
 
     mtr_quantify_parser.add_argument(
         "--nosat",
         required=False,
         type=FileType(extensions=["nii", "nii.gz"], should_exist=True),
-        help="The path to the input image without bound pool saturation. If not"
-        "supplied then it is assumed the sat nifti is multi-volume containing"
-        "both. This should be accompanied by a corresponding *.json file in"
-        "BIDS format",
+        help=(
+            "The path to the input image without bound pool saturation. If not"
+            "supplied then it is assumed the sat nifti is multi-volume containing"
+            "both. This should be accompanied by a corresponding *.json file in"
+            "BIDS format"
+        ),
     )
 
     mtr_quantify_parser.add_argument(
         "outputdir",
         type=DirType(should_exist=True),
-        help="The directory to output to. "
-        "Must exist. Will overwrite any existing files with the same names"
-        "Magnetisation transfer ratio (MTR) maps and the accompanying JSON sidecar"
-        "will be saved with the same filename as the saturated NIFTI, with '_MTRmap'"
-        "appended",
+        help=(
+            "The directory to output to. Must exist. Will overwrite any existing files"
+            " with the same namesMagnetisation transfer ratio (MTR) maps and the"
+            " accompanying JSON sidecarwill be saved with the same filename as the"
+            " saturated NIFTI, with '_MTRmap'appended"
+        ),
     )
 
     mtr_quantify_parser.set_defaults(func=mtr_quantify)
@@ -178,28 +185,33 @@ def main() -> None:
     # ADC Quantify
     adc_quantify_parser = subparsers.add_parser(
         name="adc-quantify",
-        description="Calculates the apparent diffusion coefficient based on"
-        "a set of diffusion weighted images.",
+        description=(
+            "Calculates the apparent diffusion coefficient based on"
+            "a set of diffusion weighted images."
+        ),
     )
 
     adc_quantify_parser.add_argument(
         "dwi",
         type=FileType(extensions=["nii", "nii.gz"], should_exist=True),
-        help="The path to the 4D NIFTI file of diffusion weighted images."
-        "There should be at least two volumes, one acquired with a b-value of 0."
-        "It is assumed that there are also corresponding BIDS sidecar (*.json),"
-        "bvec (*.bvec), and bval (*.bval ) files with the same base filenames"
-        "as the NIFTI.",
+        help=(
+            "The path to the 4D NIFTI file of diffusion weighted images."
+            "There should be at least two volumes, one acquired with a b-value of 0."
+            "It is assumed that there are also corresponding BIDS sidecar (*.json),"
+            "bvec (*.bvec), and bval (*.bval ) files with the same base filenames"
+            "as the NIFTI."
+        ),
     )
 
     adc_quantify_parser.add_argument(
         "outputdir",
         type=DirType(should_exist=True),
-        help="The directory to output to. "
-        "Must exist. Will overwrite any existing files with the same names"
-        "Apparent Diffusion Coefficient (ADC) maps and the accompanying JSON sidecar"
-        "will be saved with the same filename as the input DWI NIFTI, with '_ADCmap'"
-        "appended",
+        help=(
+            "The directory to output to. Must exist. Will overwrite any existing files"
+            " with the same namesApparent Diffusion Coefficient (ADC) maps and the"
+            " accompanying JSON sidecarwill be saved with the same filename as the"
+            " input DWI NIFTI, with '_ADCmap'appended"
+        ),
     )
 
     adc_quantify_parser.set_defaults(func=adc_quantify)

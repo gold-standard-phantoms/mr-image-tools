@@ -178,8 +178,9 @@ class AdcQuantificationFilter(BaseFilter):
         for key in [self.KEY_B_VALUES, self.KEY_B_VECTORS]:
             if not len(self.inputs[key]) == num_vols:
                 raise FilterInputValidationError(
-                    f"Input {key} should have a length equal to the number of"
-                    f"dwi volumes ({num_vols}). The length of {key} is len(self.inputs[key])"
+                    f"Input {key} should have a length equal to the number ofdwi"
+                    f" volumes ({num_vols}). The length of {key} is"
+                    " len(self.inputs[key])"
                 )
 
         # check that one of the values of b_values == 0

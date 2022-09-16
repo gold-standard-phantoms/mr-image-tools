@@ -141,7 +141,7 @@ class MriSignalFilter(BaseFilter):
     KEY_INVERSION_FLIP_ANGLE = "inversion_flip_angle"
     KEY_INVERSION_TIME = "inversion_time"
     KEY_IMAGE = "image"
-    KEY_image_flavor = "image_flavor"
+    KEY_IMAGE_FLAVOR = "image_flavor"
     KEY_ACQ_TYPE = "mr_acquisition_type"
     KEY_BACKGROUND_SUPPRESSION = "background_suppression"
 
@@ -186,8 +186,8 @@ class MriSignalFilter(BaseFilter):
             metadata.image_flavor = "OTHER"
 
         # if present override image_flavor with the input
-        if self.inputs.get(self.KEY_image_flavor) is not None:
-            metadata.image_flavor = self.inputs.get(self.KEY_image_flavor)
+        if self.inputs.get(self.KEY_IMAGE_FLAVOR) is not None:
+            metadata.image_flavor = self.inputs.get(self.KEY_IMAGE_FLAVOR)
 
         acq_contrast: AcqContrastType = self.inputs[self.KEY_ACQ_CONTRAST]
         echo_time: float = self.inputs[self.KEY_ECHO_TIME]
@@ -209,8 +209,8 @@ class MriSignalFilter(BaseFilter):
         metadata.acq_contrast = acq_contrast
         metadata.echo_time = echo_time
         metadata.repetition_time = repetition_time
-        metadata.mr_acquisition_type = (
-            "3D"  # 2D not currently supported so everything is 3D
+        metadata.mr_acquisition_type = (  # 2D not currently supported so everything is 3D
+            "3D"
         )
 
         # Gradient Echo Contrast. Equation is from p246 in the book MRI from Picture to Proton,
@@ -423,7 +423,7 @@ class MriSignalFilter(BaseFilter):
                     ],
                     optional=True,
                 ),
-                self.KEY_image_flavor: Parameter(
+                self.KEY_IMAGE_FLAVOR: Parameter(
                     validators=[
                         isinstance_validator(str),
                     ],

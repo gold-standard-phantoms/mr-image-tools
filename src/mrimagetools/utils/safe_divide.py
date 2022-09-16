@@ -77,5 +77,6 @@ def safe_divide(numerator: InputType, divisor: InputType) -> InputType:
     type_numerator = type(numerator)
     type_divisor = type(divisor)
     raise TypeError(
-        f"Input type not supported by safe_divide (numerator is {type_numerator} and divisor is {type_divisor}"
+        f"Input type not supported by safe_divide (numerator is {type_numerator} and"
+        f" divisor is {type_divisor}"
     )

@@ -49,7 +49,7 @@ def get_version(rel_path) -> str:
             delim = '"' if '"' in line else "'"
             version = line.split(delim)[1]
             if not check_semver(version):
-                raise RuntimeError(f"Version: {version} is not " "in semver format")
+                raise RuntimeError(f"Version: {version} is not in semver format")
             return version
     raise RuntimeError("Unable to find version string.")
 
@@ -67,7 +67,9 @@ setup(
     project_urls={
         "Documentation": "https://mrimagetools.readthedocs.io/",
         "Code": "https://github.com/gold-standard-phantoms/mrimagetools",
-        "Issue tracker": "https://github.com/gold-standard-phantoms/mrimagetools/issues",
+        "Issue tracker": (
+            "https://github.com/gold-standard-phantoms/mrimagetools/issues"
+        ),
     },
     packages=find_packages(where="src"),
     package_dir={"": "src"},
