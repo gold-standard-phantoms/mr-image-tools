@@ -3,7 +3,7 @@ from jsonschema import validate
 
 from mrimagetools.validators.schemas.index import SCHEMAS
 
-schema = SCHEMAS["ground_truth"]
+schema = SCHEMAS["asl_ground_truth"]
 
 
 def validate_input(input_dict: dict) -> None:

@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from typing import Any, Dict, Generator, Generic, List, Tuple, Type, TypeVar
 
 import pytest
-from pydantic import root_validator
+from pydantic import Field, root_validator
 
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
-from mrimagetools.validators.parameter_model import Field, GenericParameterModel
+from mrimagetools.validators.parameter_model import GenericParameterModel
 
 DataT = TypeVar("DataT")  # a generic datatype
 FilterT = TypeVar("FilterT", bound=BaseFilter)  # A generic BaseFilter

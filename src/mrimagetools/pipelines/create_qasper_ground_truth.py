@@ -112,7 +112,11 @@ def generate_qasper(output_dir: Union[None, str] = None) -> dict:
         with open(hrgt_json_filename, "w", encoding="utf-8") as json_file:
             json.dump(hrgt_params, json_file, indent=4)
 
-        qasper_hrgt = generate_hrgt(hrgt_json_filename, seg_mask_filename)
+        qasper_hrgt = generate_hrgt(
+            hrgt_params_filename=hrgt_json_filename,
+            seg_mask_filename=seg_mask_filename,
+            schema_name="generate_asl_hrgt_params",
+        )
 
     ## Calculate spatially varying transit time maps
     arteriole_end_tt = 0.25  # transit time at the end of the arteriole

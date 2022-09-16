@@ -73,7 +73,8 @@ class JsonLoaderFilter(BaseFilter):
             )
         if not self.inputs[self.KEY_FILENAME].endswith(".json"):
             raise FilterInputValidationError(
-                "JsonLoader filter `filename` must be a .json file"
+                "JsonLoader filter `filename` must be a .json file, is"
+                f" {self.inputs[self.KEY_FILENAME]}"
             )
 
         if not (

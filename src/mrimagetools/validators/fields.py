@@ -24,7 +24,7 @@ class UnitField(str):
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
         field_schema.update(
-            pattern=r"^[A-Za-z0-9-\/*^]+$",
+            pattern=r"^[A-Za-z0-9-\/*^]*$",
             examples=[
                 "ml/100g/min",
                 "meters",
@@ -110,7 +110,7 @@ class NiftiDataTypeField(str):
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
         field_schema.update(
             # the full list of allowed types
-            examples=NIFTI_DATATYPES
+            examples=list(NIFTI_DATATYPES)
         )
 
     @classmethod

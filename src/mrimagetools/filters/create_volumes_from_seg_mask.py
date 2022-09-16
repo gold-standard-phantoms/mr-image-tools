@@ -147,7 +147,7 @@ class CreateVolumesFromSegMask(BaseFilter):
                 self.KEY_QUANTITIES: Parameter(validators=isinstance_validator(dict)),
                 self.KEY_UNITS: Parameter(
                     validators=[
-                        for_each_validator(isinstance_validator(str)),
+                        for_each_validator(isinstance_validator((str, type(None)))),
                     ]
                 ),
             },

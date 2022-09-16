@@ -62,23 +62,23 @@ class AslQuantificationFilter(BaseFilter):
     :param 't1_tissue': Longitudinal relaxation time of the tissue, seconds
         (greater than 0). Required if ``'model'=='full'``
     :type 't1_tissue': float or BaseImageContainer
-    :param 'model': defines which model to use
+    :param 'gkm_model': defines which model to use
 
         * 'whitepaper' uses the single-subtraction white paper equation
         * 'full' least square fitting to the full GKM.
 
-    :type 'model': str
+    :type 'gkm_model': str
     :param 'multiphase_index': A list the same length as the fourth dimension
         of the label image that defines which phase each image belongs to,
         and is also the corresponding index in the ``'post_label_delay'`` list.
-        Required if ``'model'=='full'``.
+        Required if ``'gkm_model'=='full'``.
 
     **Outputs**
 
     :param 'perfusion_rate': map of the calculated perfusion rate
     :type 'perfusion_rate': BaseImageContainer
 
-    If ``'model'=='full'`` the following are also output:
+    If ``'gkm_model'=='full'`` the following are also output:
 
     :param 'transit_time': The estimated transit time in seconds.
     :type 'transit_time': BaseImageContainer
@@ -94,7 +94,7 @@ class AslQuantificationFilter(BaseFilter):
     **Quantification Model**
 
     The following equations are used to calculate the perfusion rate, depending
-    on the input ``model``:
+    on the input ``gkm_model``:
 
     :'whitepaper': simplified single subtraction equations :cite:p:`Alsop2014`.
 

@@ -2,16 +2,19 @@
 import json
 import logging
 import os
-from typing import Union
+from typing import Any, Dict, List, Optional, Union
 
 import nibabel as nib
 
 from mrimagetools.filters.create_volumes_from_seg_mask import CreateVolumesFromSegMask
 from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
+from mrimagetools.filters.ground_truth_parser import GroundTruthParser
 from mrimagetools.filters.image_tools import FloatToIntImageFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.validators.schemas.index import SCHEMAS
+from mrimagetools.validators.fields import UnitField
+from mrimagetools.validators.parameter_model import ParameterModel
+from mrimagetools.validators.schemas.index import SCHEMAS, SchemaNames
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +22,7 @@ logger = logging.getLogger(__name__)
 def generate_hrgt(
     hrgt_params_filename: str,
     seg_mask_filename: str,
+    schema_name: SchemaNames,
     output_dir: Union[str, None] = None,
 ) -> dict:
     # pylint: disable=too-many-locals, too-many-statements
@@ -43,7 +47,7 @@ def generate_hrgt(
     # load hrgt_params_filename and validate hrgt_params against the schema
     json_filter = JsonLoaderFilter()
     json_filter.add_input("filename", hrgt_params_filename)
-    json_filter.add_input("schema", SCHEMAS["generate_hrgt_params"])
+    json_filter.add_input("schema", SCHEMAS[schema_name])
 
     # load seg_mask_filename
     nifti_filter = NiftiLoaderFilter()

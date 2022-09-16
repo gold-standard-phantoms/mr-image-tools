@@ -1,0 +1,34 @@
+{
+  "type": "object",
+  "required": ["quantities", "units", "segmentation", "parameters"],
+  "properties": {
+    "quantities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "units": {
+      "type": "array",
+      "items": {
+        "type": ["string", "null"]
+      }
+    },
+    "segmentation": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer"
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "required": ["magnetic_field_strength"],
+      "properties": {
+        "magnetic_field_strength": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

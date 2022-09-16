@@ -10,7 +10,7 @@ def test_hrgt_icbm_2009a_nls_3t() -> None:
     must be valid as per the schema"""
 
     with open(
-        GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["json"], encoding="utf-8"
+        GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["json_file"], encoding="utf-8"
     ) as file:
         validate_input(json.load(file))
 
@@ -20,6 +20,6 @@ def test_hrgt_icbm_2009a_nls_1_5t() -> None:
     must be valid as per the schema"""
 
     with open(
-        GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_1.5t"]["json"], encoding="utf-8"
+        GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_1.5t"]["json_file"], encoding="utf-8"
     ) as file:
         validate_input(json.load(file))

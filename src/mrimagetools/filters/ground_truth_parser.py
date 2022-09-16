@@ -3,18 +3,15 @@ from copy import deepcopy
 from typing import Dict, Final, List, Optional, Tuple, Type
 
 import numpy as np
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, root_validator, validator
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter
 from mrimagetools.validators.fields import NiftiDataTypeField, UnitField
 from mrimagetools.validators.parameter_model import (
-    Field,
     GenericParameterModel,
     ParameterModel,
-    root_validator,
-    validator,
 )
 
 
@@ -271,6 +268,8 @@ class GroundTruthParser(BaseFilter):
 
             self.outputs[quantity.name] = new_image_container
         self.outputs["parameters"] = self.parsed_inputs.config.parameters
+        # For legacy reasons, these parameters need to be in the base of the outputs
+        self.outputs = {**self.outputs, **self.parsed_inputs.config.parameters}
         self.outputs[
             "segmentation_labels"
         ] = self.parsed_inputs.config.segmentation_labels

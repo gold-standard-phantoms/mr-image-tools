@@ -239,7 +239,9 @@ class GroundTruthLoaderFilter(BaseFilter):
                     validators=for_each_validator(isinstance_validator(str))
                 ),
                 self.KEY_UNITS: Parameter(
-                    validators=for_each_validator(isinstance_validator(str))
+                    validators=for_each_validator(
+                        isinstance_validator((str, type(None)))
+                    )
                 ),
                 self.KEY_SEGMENTATION: Parameter(validators=isinstance_validator(dict)),
                 self.KEY_PARAMETERS: Parameter(validators=isinstance_validator(dict)),
@@ -306,13 +308,3 @@ class GroundTruthLoaderFilter(BaseFilter):
                 )
             except jsonschema.ValidationError as exception:
                 raise FilterInputValidationError from exception
-
-        # if 'lambda_blood_brain' is not in either the quantities array, or a key in the parameters
-        # dictionary then raise an error
-        if "lambda_blood_brain" not in self.inputs[self.KEY_QUANTITIES] + [
-            *self.inputs[self.KEY_PARAMETERS]
-        ]:
-            raise FilterInputValidationError(
-                "'lambda_blood_brain' must be present in either the input 'quantities' list or"
-                " as a key in 'parameters'"
-            )

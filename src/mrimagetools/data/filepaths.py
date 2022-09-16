@@ -8,16 +8,16 @@ REL_DATA_DIR = os.path.dirname(os.path.relpath(__file__))
 
 GROUND_TRUTH_DATA = {
     "hrgt_icbm_2009a_nls_3t": {
-        "json": os.path.join(REL_DATA_DIR, "hrgt_icbm_2009a_nls_3t.json"),
-        "nii": os.path.join(REL_DATA_DIR, "hrgt_icbm_2009a_nls_3t.nii.gz"),
+        "json_file": os.path.join(REL_DATA_DIR, "hrgt_icbm_2009a_nls_3t.json"),
+        "nii_file": os.path.join(REL_DATA_DIR, "hrgt_icbm_2009a_nls_3t.nii.gz"),
     },
     "hrgt_icbm_2009a_nls_1.5t": {
-        "json": os.path.join(REL_DATA_DIR, "hrgt_icbm_2009a_nls_1.5t.json"),
-        "nii": os.path.join(REL_DATA_DIR, "hrgt_icbm_2009a_nls_1.5t.nii.gz"),
+        "json_file": os.path.join(REL_DATA_DIR, "hrgt_icbm_2009a_nls_1.5t.json"),
+        "nii_file": os.path.join(REL_DATA_DIR, "hrgt_icbm_2009a_nls_1.5t.nii.gz"),
     },
     "qasper_3t": {
-        "json": os.path.join(REL_DATA_DIR, "qasper", "qasper_hrgt.json"),
-        "nii": os.path.join(REL_DATA_DIR, "qasper", "qasper_hrgt.nii.gz"),
+        "json_file": os.path.join(REL_DATA_DIR, "qasper", "qasper_hrgt.json"),
+        "nii_file": os.path.join(REL_DATA_DIR, "qasper", "qasper_hrgt.nii.gz"),
     },
 }
 

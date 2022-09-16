@@ -13,13 +13,13 @@
             },
             {
               "type": "object",
-              "required": ["nii", "json"],
+              "required": ["nii_file", "json_file"],
               "additionalProperties": false,
               "properties": {
-                "nii": {
+                "nii_file": {
                   "type": "string"
                 },
-                "json": {
+                "json_file": {
                   "type": "string"
                 }
               }

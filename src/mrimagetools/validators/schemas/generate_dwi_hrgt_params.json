@@ -1,0 +1,51 @@
+{
+    "type": "object",
+    "required": [
+        "label_values",
+        "label_names",
+        "quantities",
+        "units",
+        "parameters"
+    ],
+    "properties": {
+        "label_values": {
+            "type": "array",
+            "items": {
+                "type": "integer"
+            }
+        },
+        "label_names": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "quantities": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "number"
+                }
+            }
+        },
+        "units": {
+            "type": "array",
+            "items": {
+                "type": ["string","null"]
+            }
+        },
+        "parameters": {
+            "type": "object",
+            "required": [
+                "magnetic_field_strength"
+            ],
+            "properties": {
+                "magnetic_field_strength": {
+                    "type": "number"
+                }
+            },
+            "additionalProperties": true
+        }
+    }
+}

@@ -1,10 +1,10 @@
 """ General utilities """
 import os
+import re
 from enum import Enum, auto
 from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, TypeVar, Union
 
 import numpy as np
-from nibabel.cifti2.cifti2 import re
 from numpy.random import default_rng
 
 
@@ -12,7 +12,7 @@ def map_dict(
     input_dict: Mapping[str, Any],
     io_map: Mapping[str, str],
     io_map_optional: bool = False,
-) -> Dict[str, str]:
+) -> Dict[str, Any]:
     """
     Maps a dictionary onto a new dictionary by changing some/all of
     the keys.

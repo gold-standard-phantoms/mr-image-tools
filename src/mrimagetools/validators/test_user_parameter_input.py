@@ -198,7 +198,10 @@ def test_mismatch_asl_context_array_sizes() -> None:
 
         with pytest.raises(
             ValidationError,
-            match=f"{param} must be present and have the same number of entries as asl_context",
+            match=(
+                f"{param} must be present and have the same number of entries as"
+                " asl_context"
+            ),
         ):
             ASL_POST_VALIDATOR.validate(d)
 
@@ -480,8 +483,8 @@ def fixture_expected_parsed_input() -> None:
     return {
         "global_configuration": {
             "ground_truth": {
-                "nii": GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["nii"],
-                "json": GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["json"],
+                "nii_file": GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["nii_file"],
+                "json_file": GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["json_file"],
             },
             "image_override": {"m0": 5.0},
             "parameter_override": {"lambda_blood_brain": 0.85},
@@ -583,7 +586,7 @@ def test_valid_input_params(input_params: dict, expected_parsed_input: dict) -> 
     # in the HRGT data (JSON file assumed same name)
     input_params["global_configuration"]["ground_truth"] = GROUND_TRUTH_DATA[
         "hrgt_icbm_2009a_nls_3t"
-    ]["nii"]
+    ]["nii_file"]
     # Should not raise an exception
     parsed_input = validate_input_params(input_params)
 
@@ -592,8 +595,8 @@ def test_valid_input_params(input_params: dict, expected_parsed_input: dict) -> 
     # Also, try changing the ground_truth to the nifti file/json file
     # in the HRGT data
     input_params["global_configuration"]["ground_truth"] = {
-        "nii": GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["nii"],
-        "json": GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["json"],
+        "nii_file": GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["nii_file"],
+        "json_file": GROUND_TRUTH_DATA["hrgt_icbm_2009a_nls_3t"]["json_file"],
     }
     # Should not raise an exception
     parsed_input = validate_input_params(input_params)

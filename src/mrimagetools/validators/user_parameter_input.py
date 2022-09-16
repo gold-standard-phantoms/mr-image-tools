@@ -86,8 +86,9 @@ asl_context_length_validator_generator = lambda other: Validator(
     func=lambda d: ASL_CONTEXT in d
     and other in d
     and len(d[ASL_CONTEXT].split()) == len(d[other]),
-    criteria_message=f"{other} must be present and have the same "
-    f"number of entries as {ASL_CONTEXT}",
+    criteria_message=(
+        f"{other} must be present and have the same number of entries as {ASL_CONTEXT}"
+    ),
 )
 
 
@@ -619,7 +620,7 @@ def validate_input_params(input_params: dict) -> dict:
     if isinstance(ground_truth_params, dict):
         # The input is already a dict with the filename included, so don't do anything
         pass
-    elif ground_truth_params in GROUND_TRUTH_DATA.keys():
+    elif ground_truth_params in GROUND_TRUTH_DATA:
         # The input is a string - use it to look up the relevant files from the
         # included datasets
         # Replace the 'ground_truth' with the paths to the nii.gz and json files
@@ -635,12 +636,12 @@ def validate_input_params(input_params: dict) -> dict:
                 f'{". ".join(GROUND_TRUTH_DATA.keys())} or be a .nii or .nii.gz file'
             )
         validated_input_params["global_configuration"]["ground_truth"] = {
-            "nii": ground_truth_params,
-            "json": splitext(ground_truth_params)[0] + ".json",
+            "nii_file": ground_truth_params,
+            "json_file": splitext(ground_truth_params)[0] + ".json",
         }
 
     ground_truth_dict = validated_input_params["global_configuration"]["ground_truth"]
-    for filetype in ["json", "nii"]:
+    for filetype in ["json_file", "nii_file"]:
         if not (
             os.path.exists(ground_truth_dict[filetype])
             and os.path.isfile(ground_truth_dict[filetype])
@@ -727,5 +728,4 @@ def generate_parameter_distribution(param: dict, length=1) -> list:
             .round(decimals=4)
             .tolist()
         )
-    else:
-        return param
+    return param

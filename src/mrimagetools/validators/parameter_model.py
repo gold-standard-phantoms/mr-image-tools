@@ -40,12 +40,6 @@ class ModelMixin(Representation):
     class Config(BaseConfig):
         """Configuration options for pydantic"""
 
-        # Currently empty, but can contain pair, for example:
-        # BaseImageContainer : str
-        # where the left is a Type, and the right is a function for encoding (e.g. str)
-        # If a type is not in this dictionary, the __repr__ or __str__ function is called
-        json_encoders: Dict[Union[Type[Any], str], AnyCallable] = {}
-
         # Allow arbitrary, non-json-like types to be processed be the JSON schema generation
         arbitrary_types_allowed = True
         # Does not allow extra (undefined) attributes to be added to a model

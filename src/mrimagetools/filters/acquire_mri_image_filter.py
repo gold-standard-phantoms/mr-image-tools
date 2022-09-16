@@ -111,7 +111,7 @@ class AcquireMriImageFilter(FilterBlock):
     KEY_INVERSION_FLIP_ANGLE = MriSignalFilter.KEY_INVERSION_FLIP_ANGLE
     KEY_INVERSION_TIME = MriSignalFilter.KEY_INVERSION_TIME
     KEY_IMAGE = MriSignalFilter.KEY_IMAGE
-    KEY_image_flavor = MriSignalFilter.KEY_image_flavor
+    KEY_IMAGE_FLAVOR = MriSignalFilter.KEY_IMAGE_FLAVOR
 
     KEY_TARGET_SHAPE = TransformResampleImageFilter.KEY_TARGET_SHAPE
     KEY_ROTATION_ORIGIN = TransformResampleImageFilter.KEY_ROTATION_ORIGIN
@@ -156,7 +156,7 @@ class AcquireMriImageFilter(FilterBlock):
                     MriSignalFilter.KEY_MAG_ENC,
                     MriSignalFilter.KEY_INVERSION_FLIP_ANGLE,
                     MriSignalFilter.KEY_INVERSION_TIME,
-                    MriSignalFilter.KEY_image_flavor,
+                    MriSignalFilter.KEY_IMAGE_FLAVOR,
                 ]
             }
         )
@@ -276,7 +276,7 @@ class AcquireMriImageFilter(FilterBlock):
                     ],
                     optional=True,
                 ),
-                self.KEY_image_flavor: Parameter(
+                self.KEY_IMAGE_FLAVOR: Parameter(
                     validators=[
                         isinstance_validator(str),
                     ],
