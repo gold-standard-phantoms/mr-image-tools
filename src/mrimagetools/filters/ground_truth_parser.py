@@ -21,8 +21,8 @@ class Quantity(ParameterModel):
     name: str  # The quantity name e.g. 'm0'
     # The units e.g. 'mm^2*s**-1' or 'kilometers/N'.
     # Uses pythonic maths expressions
-    units: Optional[UnitField]
-    cast_to: Optional[NiftiDataTypeField]
+    units: Optional[UnitField] = None
+    cast_to: Optional[NiftiDataTypeField] = None
 
 
 class CalculatedQuantity(Quantity):
@@ -79,7 +79,7 @@ class GroundTruthInput(GenericParameterModel):
     image: NiftiImageContainer
     config: GroundTruthConfig
     # parameter_validator
-    parameter_validator_type: Type[BaseModel]
+    parameter_validator_type: Optional[Type[BaseModel]] = None
 
     # Any required quantities. These should be supplied in the `config.quantities` or
     # `self.calculated_quantities` field
@@ -88,9 +88,12 @@ class GroundTruthInput(GenericParameterModel):
     @root_validator(skip_on_failure=True)
     def check_parameters_match_model(cls, values: dict) -> dict:
         """Check that the parameters are validated by the parameter_validator"""
-        parameter_validator_type: Type[BaseModel] = values["parameter_validator_type"]
-        parameters: dict = values["config"].parameters
-        parameter_validator_type(**parameters)
+        parameter_validator_type: Optional[Type[BaseModel]] = values.get(
+            "parameter_validator_type", None
+        )
+        if parameter_validator_type is not None:
+            parameters: dict = values["config"].parameters
+            parameter_validator_type(**parameters)
         return values
 
     @validator("image")
@@ -138,7 +141,8 @@ class GroundTruthInput(GenericParameterModel):
         for key, _ in values["config"].segmentation_labels.items():
             if key not in quantity_names:
                 raise ValueError(
-                    "no corresponding entry in quantities or calculated_quantities"
+                    f"no corresponding entry for {key} in quantities or"
+                    f" calculated_quantities ({quantity_names})"
                 )
         return values
 
@@ -228,6 +232,7 @@ class GroundTruthParser(BaseFilter):
         shared_header["dim"][5] = 1  # tidy the 5th dimensions size
 
         # For each new image, based on the "quantities"
+        output_images: Dict[str, BaseImageContainer] = {}
         for quantity_index, quantity in enumerate(self.parsed_inputs.config.quantities):
             # HEADER
             # Create a copy of the shared header - we might want to modify this further
@@ -266,6 +271,7 @@ class GroundTruthParser(BaseFilter):
                 metadata=metadata,
             )
 
+            output_images[quantity.name] = new_image_container
             self.outputs[quantity.name] = new_image_container
         self.outputs["parameters"] = self.parsed_inputs.config.parameters
         # For legacy reasons, these parameters need to be in the base of the outputs
@@ -273,6 +279,9 @@ class GroundTruthParser(BaseFilter):
         self.outputs[
             "segmentation_labels"
         ] = self.parsed_inputs.config.segmentation_labels
+        self.parsed_outputs = GroundTruthOutput(
+            images=output_images, config=self.parsed_inputs.config
+        )
 
     def _validate_inputs(self) -> None:
         self._get_parsed_inputs()

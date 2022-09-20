@@ -1,5 +1,5 @@
 default:
-    image: python:3.8-bullseye
+  image: python:3.8-bullseye
 
 stages:
   - test
@@ -33,11 +33,12 @@ deploy_production:
 
 pages:
   stage: test
+  allow_failure: True
   script:
-  - cd docs
-  - pip install -r requirements.txt
-  - ./generate_docs.sh
-  - mv _build ../public
+    - cd docs
+    - pip install -r requirements.txt
+    - ./generate_docs.sh
+    - mv _build ../public
   artifacts:
     paths:
-    - public
+      - public

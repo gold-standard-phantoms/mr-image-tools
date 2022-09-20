@@ -6,7 +6,6 @@ import numpy as np
 import numpy.testing
 import pytest
 
-from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.pipelines.asl_dro_pipeline import run_full_asl_dro_pipeline
@@ -24,15 +23,15 @@ def test_run_default_pipeline() -> None:
     # check the segmentation_mask resampled ground truth
     seg_label_index = [
         idx
-        for idx, im in enumerate(droout["asldro_output"])
+        for idx, im in enumerate(droout.dro_output)
         if im.metadata.quantity == "seg_label"
     ]
-    gt_seg_label: NiftiImageContainer = droout["asldro_output"][seg_label_index[0]]
+    gt_seg_label = droout.dro_output[seg_label_index[0]]
 
     # interpolation is nearest for the default so no new values should be created, check the
     # unique values against the original ground truth
     numpy.testing.assert_array_equal(
-        np.unique(gt_seg_label.image), np.unique(droout["hrgt"]["seg_label"].image)
+        np.unique(gt_seg_label.image), np.unique(droout.hrgt.images["seg_label"].image)
     )
 
 
@@ -117,7 +116,7 @@ def test_run_asl_pipeline_whitepaper() -> None:
 
     out = run_full_asl_dro_pipeline(input_params=input_params)
 
-    asl_source: NiftiImageContainer = out["asldro_output"][0]
+    asl_source = out.dro_output[0]
     assert asl_source.metadata.gkm_model == "whitepaper"
     asl_data = {}  # empty dictionary for asl data
     asl_context = asl_source.metadata.asl_context
@@ -176,6 +175,6 @@ def test_run_asl_pipeline_whitepaper() -> None:
     # compare the quantified perfusion_rate with the ground truth to 12 d.p.
     np.testing.assert_array_almost_equal(
         asl_quantification_filter.outputs["perfusion_rate"].image,
-        out["hrgt"]["perfusion_rate"].image,
+        out.hrgt.images["perfusion_rate"].image,
         12,
     )

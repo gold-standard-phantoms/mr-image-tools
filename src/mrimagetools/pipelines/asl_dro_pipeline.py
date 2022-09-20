@@ -1,14 +1,15 @@
 """ The main ASLDRO pipeline """
+import json
 import logging
 import os
 import pprint
 import shutil
 from copy import deepcopy
 from tempfile import TemporaryDirectory
-from typing import Dict, Final, List, Literal, Optional, Sequence, Union
+from typing import Dict, List, Literal, Optional, Sequence, Union
 
 import numpy as np
-from pydantic import Field, FilePath, validator
+from pydantic import Field, validator
 from typing_extensions import Annotated, TypeAlias
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
@@ -20,9 +21,9 @@ from mrimagetools.filters.background_suppression_filter import (
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.filters.combine_time_series_filter import CombineTimeSeriesFilter
 from mrimagetools.filters.gkm_filter import GkmFilter
-from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
 from mrimagetools.filters.ground_truth_parser import (
     GroundTruthConfig,
+    GroundTruthOutput,
     GroundTruthParser,
 )
 from mrimagetools.filters.invert_image_filter import InvertImageFilter
@@ -32,10 +33,14 @@ from mrimagetools.filters.phase_magnitude_filter import PhaseMagnitudeFilter
 from mrimagetools.filters.transform_resample_image_filter import (
     TransformResampleImageFilter,
 )
+from mrimagetools.models.file import GroundTruthFiles
+from mrimagetools.pipelines.dwi_pipeline import (
+    DwiInputParameters,
+    dwi_pipeline_processing,
+)
 from mrimagetools.utils.general import map_dict, splitext
 from mrimagetools.validators.parameter_model import ParameterModel
 from mrimagetools.validators.parameters import reserved_string_list_validator
-from mrimagetools.validators.schemas.index import SCHEMAS
 from mrimagetools.validators.user_parameter_input import (
     BS_INV_PULSE_TIMES,
     BS_NUM_INV_PULSES,
@@ -51,13 +56,6 @@ logger = logging.getLogger(__name__)
 SUPPORTED_EXTENSIONS = [".zip", ".tar.gz"]
 # Used in shutil.make_archive
 EXTENSION_MAPPING = {".zip": "zip", ".tar.gz": "gztar"}
-
-
-class GroundTruthFiles(ParameterModel):
-    """Ground truth files"""
-
-    nii_file: FilePath
-    json_file: FilePath
 
 
 SnakeCaseStr: TypeAlias = Annotated[str, Field(regex="^[A-Za-z_][A-Za-z0-9_]*$")]
@@ -265,11 +263,21 @@ class AslSeriesParameters(GeneralImageSeriesParameters):
 class ImageSeries(ParameterModel):
     """An image series (equivalent of a DICOM image series)"""
 
-    series_type: Literal["asl", "structural", "ground_truth"]
+    series_type: Literal["asl", "structural", "ground_truth", "dwi"]
     series_description: Optional[str] = None
     series_parameters: Union[
-        AslSeriesParameters, StructuralSeriesParameters, GroundTruthSeriesParameters
+        AslSeriesParameters,
+        StructuralSeriesParameters,
+        GroundTruthSeriesParameters,
+        DwiInputParameters,
     ]
+
+
+class DwiImageSeries(ImageSeries):
+    """A diffusion-weighted image series"""
+
+    series_type: Literal["dwi"]
+    series_parameters: DwiInputParameters
 
 
 class AslImageSeries(ImageSeries):
@@ -353,6 +361,34 @@ def load_ground_truth(input_params: InputParameters) -> GroundTruthParser:
     return ground_truth_filter
 
 
+def dwi_pipeline(
+    image_series: DwiImageSeries,
+    ground_truth_filter: GroundTruthParser,
+    series_number: int,
+) -> BaseImageContainer:
+    """DWI pipeline
+    :param image_series: The DwiImageSeries parameters
+    :param ground_truth_filter: The GroundTruthLoaderParser with loaded ground truth
+    :param series_number: The (virtual) series number"""
+    dwi_image = dwi_pipeline_processing(
+        ground_truth_parser=ground_truth_filter,
+        input_parameters=image_series.series_parameters,
+    )
+
+    append_metadata_filter = AppendMetadataFilter()
+    append_metadata_filter.add_input("image", dwi_image)
+    append_metadata_filter.add_input(
+        AppendMetadataFilter.KEY_METADATA,
+        {
+            "series_description": image_series.series_description,
+            "series_type": image_series.series_type,
+            "series_number": series_number,
+        },
+    )
+    append_metadata_filter.run()
+    return append_metadata_filter.outputs["image"]
+
+
 def asl_pipeline(
     image_series: AslImageSeries,
     ground_truth_filter: GroundTruthParser,
@@ -363,7 +399,7 @@ def asl_pipeline(
     and noise for each dynamic.
     After the 'acquisition loop' the dynamics are concatenated into a single 4D file
     :param image_series: The AslImageSeries parameters
-    :param ground_truth_filter: The GroundTruthLoaderFilter with loaded ground truth
+    :param ground_truth_filter: The GroundTruthParser with loaded ground truth
     :param series_number: The (virtual) series number"""
     asl_params = image_series.series_parameters
     # initialise the random number generator for the image series
@@ -631,7 +667,7 @@ def structural_pipeline(
     """Structural pipeline
     Comprises MRI signal,transform and resampling and noise models
     :param image_series: The StructuralImageSeries parameters
-    :param ground_truth_filter: The GroundTruthLoaderFilter with loaded ground truth
+    :param ground_truth_filter: The GroundTruthParser with loaded ground truth
     :param series_number: The (virtual) series number"""
     struct_params: StructuralSeriesParameters = image_series.series_parameters
     # initialise the random number generator for the image series
@@ -780,9 +816,22 @@ def ground_truth_pipeline(
     return return_image_list
 
 
+class PipelineReturnVariables(ParameterModel):
+    """The parameters return by any of the DRO generation pipelines"""
+
+    hrgt: GroundTruthOutput
+    """The ground truth after modifications (outputs from the GroundTruthParser)"""
+    dro_output: List[BaseImageContainer]
+    """list of the image containers generated by the pipeline which would
+    normally be saved in BIDS format"""
+    params: InputParameters
+    """The input parameters to the pipeline"""
+
+
 def run_full_asl_dro_pipeline(
-    input_params: Optional[dict] = None, output_filename: Optional[str] = None
-) -> dict:
+    input_params: Optional[Union[dict, InputParameters]] = None,
+    output_filename: Optional[str] = None,
+) -> PipelineReturnVariables:
     # pylint: disable=too-many-locals, too-many-branches, too-many-statements
     """A function that runs the entire DRO pipeline. This
     can be extended as more functionality is included.
@@ -794,22 +843,21 @@ def run_full_asl_dro_pipeline(
     :param output_filename: The output filename. Must be an zip/tar.gz archive. If None,
       no files will be generated.
 
-    :returns: A dictionary containing
-
-      :'hrgt': the ground truth after modifications (outputs from the GroundTruthLoaderFilter)
-      :'asldro_output': list of the image containers generated by the pipeline which would normally
-        be saved in BIDS format
-
-    :rtype: dict
+    :returns: PipelineReturnVariables
     """
 
     if input_params is None:
         input_params = get_example_input_params()
 
-    # Validate parameter and update defaults
-    input_params = validate_input_params(input_params)
+    if isinstance(input_params, dict):
+        # Validate parameter and update defaults
+        input_params = validate_input_params(input_params)
 
-    input_parameters = InputParameters(**input_params)
+    input_parameters = (
+        InputParameters(**input_params)
+        if isinstance(input_params, dict)
+        else input_params
+    )
 
     if output_filename is not None:
         _, output_filename_extension = splitext(output_filename)
@@ -820,7 +868,7 @@ def run_full_asl_dro_pipeline(
 
     subject_label = input_parameters.global_configuration.subject_label
 
-    ground_truth_filter: GroundTruthParser = load_ground_truth(input_parameters)
+    ground_truth_filter = load_ground_truth(input_parameters)
 
     # create output lists to be populated in the "image_series" loop
     output_image_list: List[BaseImageContainer] = []
@@ -884,7 +932,8 @@ def run_full_asl_dro_pipeline(
             bids_output_filter.run()
             # save the DRO parameters at the root of the directory
             bids_output_filter.save_json(
-                input_params, os.path.join(temp_dir, "asldro_parameters.json")
+                json.loads(input_parameters.json(exclude_none=True)),
+                os.path.join(temp_dir, "asldro_parameters.json"),
             )
 
             if output_filename is not None:
@@ -895,11 +944,11 @@ def run_full_asl_dro_pipeline(
                     filename, EXTENSION_MAPPING[file_extension], root_dir=temp_dir
                 )
 
-    return {
-        "hrgt": ground_truth_filter.outputs,
-        "asldro_output": output_image_list,
-        "params": input_params,
-    }
+    return PipelineReturnVariables(
+        hrgt=ground_truth_filter.parsed_outputs,
+        dro_output=output_image_list,
+        params=input_parameters,
+    )
 
 
 if __name__ == "__main__":

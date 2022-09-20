@@ -10,7 +10,9 @@ import nibabel as nib
 import nilearn as nil
 import numpy as np
 
+from mrimagetools.containers.image import NumpyImageContainer
 from mrimagetools.data.filepaths import QASPER_DATA
+from mrimagetools.filters.ground_truth_parser import GroundTruthOutput
 from mrimagetools.pipelines.combine_masks import combine_fuzzy_masks
 from mrimagetools.pipelines.generate_ground_truth import generate_hrgt
 from mrimagetools.utils.generate_numeric_function import (
@@ -21,7 +23,7 @@ from mrimagetools.utils.generate_numeric_function import (
 logger = logging.getLogger(__name__)
 
 
-def generate_qasper(output_dir: Union[None, str] = None) -> dict:
+def generate_qasper(output_dir: Union[None, str] = None) -> GroundTruthOutput:
     """Generates a valid QASPER ground truth for mrimagetools. This function generates
     the QASPER ground truth that is included with mrimagetools. For more information see
     :ref:`qasper-3t-hrgt`
@@ -174,19 +176,19 @@ def generate_qasper(output_dir: Union[None, str] = None) -> dict:
     if transit_time_map.ndim < 4:
         transit_time_map = np.expand_dims(np.atleast_3d(transit_time_map), axis=3)
 
-    qasper_hrgt["image"].image[
-        :, :, :, :, list(hrgt_params["quantities"]).index("transit_time")
-    ] = transit_time_map
+    qasper_hrgt.images["transit_time"] = NumpyImageContainer(image=transit_time_map)
 
     # save
     if output_dir is not None:
-        nib.save(
-            qasper_hrgt["image"].nifti_image,
-            os.path.join(output_dir, "qasper_hrgt.nii.gz"),
-        )
+        for quantity in qasper_hrgt.config.quantities:
+            nib.save(
+                qasper_hrgt.images[quantity.name],
+                os.path.join(output_dir, "qasper_hrgt_" + quantity.name + ".nii.gz"),
+            )
 
         json_filename = os.path.join(output_dir, "qasper_hrgt.json")
+
         with open(json_filename, "w", encoding="utf-8") as json_file:
-            json.dump(qasper_hrgt["image_info"], json_file, indent=4)
+            json.dump(qasper_hrgt.config.dict(), json_file, indent=4)
 
     return qasper_hrgt

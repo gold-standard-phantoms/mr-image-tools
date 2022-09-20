@@ -1,20 +1,23 @@
 """Pipeline to generate a ground truth image and save"""
-import json
 import logging
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Union
 
 import nibabel as nib
 
 from mrimagetools.filters.create_volumes_from_seg_mask import CreateVolumesFromSegMask
-from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
-from mrimagetools.filters.ground_truth_parser import GroundTruthParser
+from mrimagetools.filters.ground_truth_parser import (
+    GroundTruthConfig,
+    GroundTruthInput,
+    GroundTruthOutput,
+    GroundTruthParser,
+    Quantity,
+)
 from mrimagetools.filters.image_tools import FloatToIntImageFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
 from mrimagetools.validators.fields import UnitField
-from mrimagetools.validators.parameter_model import ParameterModel
-from mrimagetools.validators.schemas.index import SCHEMAS, SchemaNames
+from mrimagetools.validators.schemas.index import SchemaNames, load_schemas
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +27,7 @@ def generate_hrgt(
     seg_mask_filename: str,
     schema_name: SchemaNames,
     output_dir: Union[str, None] = None,
-) -> dict:
+) -> GroundTruthOutput:
     # pylint: disable=too-many-locals, too-many-statements
     """Generates a high-resolution ground truth (hrgt) based on:
 
@@ -47,7 +50,7 @@ def generate_hrgt(
     # load hrgt_params_filename and validate hrgt_params against the schema
     json_filter = JsonLoaderFilter()
     json_filter.add_input("filename", hrgt_params_filename)
-    json_filter.add_input("schema", SCHEMAS[schema_name])
+    json_filter.add_input("schema", load_schemas()[schema_name])
 
     # load seg_mask_filename
     nifti_filter = NiftiLoaderFilter()
@@ -72,17 +75,42 @@ def generate_hrgt(
         "parameters"
     ]
 
-    ground_truth_filter = GroundTruthLoaderFilter()
-    ground_truth_filter.add_inputs(create_volume_filter.outputs["image_info"])
-    ground_truth_filter.add_input("image", create_volume_filter.outputs["image"])
-    ground_truth_filter.run()  # check that no errors occur
+    ground_truth_parser = GroundTruthParser()
+    ground_truth_parser_input = GroundTruthInput(
+        image=create_volume_filter.outputs["image"],
+        config=GroundTruthConfig(
+            quantities=[
+                Quantity(
+                    name=name, units=(UnitField(unit) if unit is not None else None)
+                )
+                for name, unit in zip(
+                    create_volume_filter.outputs["image_info"]["quantities"],
+                    create_volume_filter.outputs["image_info"]["units"],
+                )
+            ],
+            parameters=json_filter.outputs["parameters"],
+            segmentation_labels={
+                "seg_label": dict(
+                    zip(
+                        json_filter.outputs["label_names"],
+                        json_filter.outputs["label_values"],
+                    )
+                )
+            },
+        ),
+    )
+    ground_truth_parser.add_inputs(ground_truth_parser_input.dict(exclude_none=True))
+    # ground_truth_parser.add_inputs(create_volume_filter.outputs["image_info"])
+    # ground_truth_parser.add_input("image", create_volume_filter.outputs["image"])
+
+    ground_truth_parser.run()  # check that no errors occur
     # save the files
     if output_dir is not None:
         json_filename = os.path.join(output_dir, "hrgt.json")
         with open(json_filename, "w", encoding="utf-8") as json_file:
-            json.dump(create_volume_filter.outputs["image_info"], json_file, indent=4)
+            json_file.write(ground_truth_parser.parsed_outputs.config.json())
 
         nifti_filename = os.path.join(output_dir, "hrgt.nii.gz")
         nib.save(create_volume_filter.outputs["image"].nifti_image, nifti_filename)
 
-    return create_volume_filter.outputs
+    return ground_truth_parser.parsed_outputs

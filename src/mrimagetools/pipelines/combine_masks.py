@@ -8,7 +8,7 @@ from mrimagetools.containers.image import BaseImageContainer
 from mrimagetools.filters.combine_fuzzy_masks_filter import CombineFuzzyMasksFilter
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.validators.schemas.index import SCHEMAS
+from mrimagetools.validators.schemas.index import load_schemas
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ def combine_fuzzy_masks(
     # load in the params JSON file and validate against the schema
     json_filter = JsonLoaderFilter()
     json_filter.add_input("filename", params_filename)
-    json_filter.add_input("schema", SCHEMAS["combine_masks"])
+    json_filter.add_input("schema", load_schemas()["combine_masks"])
     json_filter.run()
 
     # load in the masks, put them in a list

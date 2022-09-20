@@ -2,13 +2,20 @@
 Used for parameter validation and typing in the filters"""
 import sys
 import types
-from typing import Any, Callable
+from pathlib import PosixPath
+from typing import Any, Callable, Dict, ForwardRef, Type, Union
 
-from pydantic import BaseConfig, BaseModel, Extra, ValidationError, validator
+from pydantic import BaseConfig, BaseModel, Extra, FilePath, ValidationError, validator
 from pydantic.generics import GenericModel
+from pydantic.typing import AnyCallable
 from pydantic.utils import Representation
 
 from mrimagetools.filters.basefilter import FilterInputValidationError
+
+
+def path_encoder(path: Union[PosixPath, FilePath]) -> str:
+    """Takes a PosixPath and returns the string represenation"""
+    return path.as_posix()
 
 
 class ModelMixin(Representation):
@@ -46,6 +53,13 @@ class ModelMixin(Representation):
         arbitrary_types_allowed = True
         # Does not allow extra (undefined) attributes to be added to a model
         extra = Extra.forbid
+        # Additional JSON encoders
+        json_encoders: Dict[Union[Type[Any], str, ForwardRef], AnyCallable] = {
+            PosixPath: path_encoder,
+            FilePath: path_encoder,
+        }
+        # whether to validate field default
+        validate_all = True
 
     def __repr_str__(self, join_str: str) -> str:
         """A string represenation of the model. Excludes any attributes that are None.

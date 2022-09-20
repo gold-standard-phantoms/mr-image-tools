@@ -15,7 +15,7 @@ from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.pipelines.asl_quantification import asl_quantification
-from mrimagetools.validators.schemas.index import SCHEMAS
+from mrimagetools.validators.schemas.index import load_schemas
 
 TEST_VOLUME_DIMS = [4, 4, 4]
 
@@ -170,7 +170,7 @@ def pcasl_data_missing_params_fixture(tmp_path, image_data) -> Dict[str, Any]:
 
 def test_quantification_parameters_schema() -> None:
     """test the schema"""
-    schema = SCHEMAS["asl_quantification"]
+    schema = load_schemas()["asl_quantification"]
 
     # try a valid schema
     valid_params = {

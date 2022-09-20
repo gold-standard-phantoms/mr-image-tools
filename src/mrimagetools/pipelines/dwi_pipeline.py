@@ -2,10 +2,12 @@
 
 import json
 import os
+from pathlib import Path
 from typing import Dict, Optional, Sequence
 
 import nibabel as nib
 import numpy as np
+from pydantic import FilePath
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.filters.add_complex_noise_filter import AddComplexNoiseFilter
@@ -18,6 +20,7 @@ from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
 from mrimagetools.filters.transform_resample_image_filter import (
     TransformResampleImageFilter,
 )
+from mrimagetools.models.file import GroundTruthFiles
 from mrimagetools.utils.general import splitext
 from mrimagetools.validators.parameter_model import ParameterModel
 
@@ -72,72 +75,14 @@ class DwiPipelineOutput(ParameterModel):
     directory was specified"""
 
 
-def dwi_pipeline(
-    ground_truth_path: str,
-    input_parameters_path: str,
-    output_dir: Optional[str] = None,
-) -> DwiPipelineOutput:
-    """Run the DWI pipeline.
-    Loads in a 5D Nifti ground truth and JSON parameters file,
-    expects the JSON and the ground_truth_path to have the
-    same name
-    calculates the DWI signal for each b values, then combine
-    them as a 4D Nifti file
-
-    **Inputs**
-
-    :param ground_truth_path: Path to the Nifti file
-    :type ground_truth_path: str
-    :param input_parameter_path: Path to the JSON file that holds
-        the pipeline parameters
-    :type input_parameter_path: str
-    :param output_dir: The directory to save to, defaults to None
-    :type output_dir: str, optional
-
-    :return: A DwiPipelineOutput object with the following entries:
-
-        :'image':
-        :'filename:
-
-    :rtype: DwiPipelineOutput"""
-    # getting filenames
-    nifti_filename = splitext(ground_truth_path)[0] + ".nii"
-    json_filename = splitext(ground_truth_path)[0] + ".json"
-
-    # loading nifti
-    nifti_loader = NiftiLoaderFilter()
-    nifti_loader.add_input("filename", nifti_filename)
-    nifti_loader.run()
-    ground_truth_nifti = nifti_loader.outputs["image"]
-
-    # extracting json
-    json_loader = JsonLoaderFilter()
-    json_loader.add_input("filename", json_filename)
-    json_loader.add_input("root_object_name", "metadata")
-    json_loader.run()
-    inputs_json_file = json_loader.outputs["metadata"]
-
-    # loading input parameters
-    with open(input_parameters_path, encoding="utf-8") as f_obj:
-        input_parameters = DwiInputParameters(**json.load(f_obj))
-
-    # creating filters
-    ground_truth_parser = GroundTruthParser()
+def dwi_pipeline_processing(
+    ground_truth_parser: GroundTruthParser, input_parameters: DwiInputParameters
+) -> BaseImageContainer:
     mri_signal_filter = MriSignalFilter()
     dwi_signal_filter = DwiSignalFilter()
     # transform resample creation is inside a loop later on
     # add complex noise creation is inside a loop later on
     combine_time_series_filter = CombineTimeSeriesFilter()
-
-    # running Ground Truth Parser
-    ground_truth_parser.add_inputs(
-        {
-            GroundTruthParser.KEY_CONFIG: inputs_json_file,
-            "image": ground_truth_nifti,
-        }
-    )
-
-    ground_truth_parser.run()
 
     adc_x = ground_truth_parser.outputs["adc_x"]
     adc_y = ground_truth_parser.outputs["adc_y"]
@@ -242,10 +187,79 @@ def dwi_pipeline(
         combine_time_series_filter.add_input(f"image_0{index:04}", value)
 
     combine_time_series_filter.run()
-    resulting_image = combine_time_series_filter.outputs[
+    resulting_image: BaseImageContainer = combine_time_series_filter.outputs[
         CombineTimeSeriesFilter.KEY_IMAGE
     ]
 
+    return resulting_image
+
+
+def dwi_pipeline(
+    ground_truth_path: str,
+    input_parameters_path: str,
+    output_dir: Optional[str] = None,
+) -> DwiPipelineOutput:
+    """Run the DWI pipeline.
+    Loads in a 5D Nifti ground truth and JSON parameters file,
+    expects the JSON and the ground_truth_path to have the
+    same name
+    calculates the DWI signal for each b values, then combine
+    them as a 4D Nifti file
+
+    **Inputs**
+
+    :param ground_truth_path: Path to the Nifti file
+    :type ground_truth_path: str
+    :param input_parameter_path: Path to the JSON file that holds
+        the pipeline parameters
+    :type input_parameter_path: str
+    :param output_dir: The directory to save to, defaults to None
+    :type output_dir: str, optional
+
+    :return: A DwiPipelineOutput object with the following entries:
+
+        :'image':
+        :'filename:
+
+    :rtype: DwiPipelineOutput"""
+    # getting filenames
+    nifti_filename = splitext(ground_truth_path)[0] + ".nii"
+    json_filename = splitext(ground_truth_path)[0] + ".json"
+
+    # loading input parameters
+    with open(input_parameters_path, encoding="utf-8") as f_obj:
+        input_parameters = DwiInputParameters(**json.load(f_obj))
+
+    ground_truth = GroundTruthFiles(
+        nii_file=Path(nifti_filename), json_file=Path(json_filename)
+    )
+    # loading nifti
+    nifti_loader = NiftiLoaderFilter()
+    nifti_loader.add_input("filename", ground_truth.nii_file.as_posix())
+    nifti_loader.run()
+    ground_truth_nifti = nifti_loader.outputs["image"]
+
+    # extracting json
+    json_loader = JsonLoaderFilter()
+    json_loader.add_input("filename", ground_truth.json_file.as_posix())
+    json_loader.add_input("root_object_name", "metadata")
+    json_loader.run()
+    inputs_json_file = json_loader.outputs["metadata"]
+
+    # creating filters
+    ground_truth_parser = GroundTruthParser()
+    # running Ground Truth Parser
+    ground_truth_parser.add_inputs(
+        {
+            GroundTruthParser.KEY_CONFIG: inputs_json_file,
+            "image": ground_truth_nifti,
+        }
+    )
+
+    ground_truth_parser.run()
+    resulting_image = dwi_pipeline_processing(
+        ground_truth_parser=ground_truth_parser, input_parameters=input_parameters
+    )
     # saving if a name was given
     if output_dir is not None:
         dwi_base_filename = os.path.join(
@@ -255,7 +269,7 @@ def dwi_pipeline(
         dwi_json_filename = dwi_base_filename + ".json"
 
         nib.save(
-            resulting_image.nifti_image,
+            resulting_image.as_nifti().nifti_image,
             dwi_nifti_filename,
         )
 

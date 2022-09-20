@@ -13,7 +13,7 @@ from mrimagetools.validators.parameters import (
     for_each_validator,
     isinstance_validator,
 )
-from mrimagetools.validators.schemas.index import SCHEMAS
+from mrimagetools.validators.schemas.index import load_schemas
 
 
 class GroundTruthLoaderFilter(BaseFilter):
@@ -302,9 +302,9 @@ class GroundTruthLoaderFilter(BaseFilter):
             try:
                 jsonschema.validate(
                     self.inputs[self.KEY_GROUND_TRUTH_MODULATE],
-                    SCHEMAS["input_params"]["properties"]["global_configuration"][
-                        "properties"
-                    ]["ground_truth_modulate"],
+                    load_schemas()["input_params"]["properties"][
+                        "global_configuration"
+                    ]["properties"]["ground_truth_modulate"],
                 )
             except jsonschema.ValidationError as exception:
                 raise FilterInputValidationError from exception

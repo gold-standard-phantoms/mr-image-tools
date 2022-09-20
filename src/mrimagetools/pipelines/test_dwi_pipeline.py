@@ -1,5 +1,6 @@
 """Tests for the DWI pipeline"""
 import json
+import os
 import tempfile
 from pathlib import Path
 
@@ -143,7 +144,7 @@ def test_dwi_pipeline():
             GROUND_TRUTH_INPUT,
             affine=np.eye(4),
         )
-        nib.save(image, Path(temp_dir, "input_name.nii"))
+        nib.save(image, os.path.join(temp_dir, "input_name.nii"))
         results = dwi_pipeline(str(input_name), str(input_para_name))
 
         assert results.image.image is not None

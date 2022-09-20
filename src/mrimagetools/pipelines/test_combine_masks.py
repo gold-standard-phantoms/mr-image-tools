@@ -14,7 +14,7 @@ import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.pipelines.combine_masks import combine_fuzzy_masks
-from mrimagetools.validators.schemas.index import SCHEMAS
+from mrimagetools.validators.schemas.index import load_schemas
 
 
 @pytest.fixture(name="validation_data")
@@ -45,7 +45,7 @@ def input_data_fixture() -> dict:
 
 def test_combine_masks_params_schema(validation_data: dict) -> None:
     """Check that the example test_params passes the json schema"""
-    jsonschema.validate(validation_data["test_params"], SCHEMAS["combine_masks"])
+    jsonschema.validate(validation_data["test_params"], load_schemas()["combine_masks"])
 
     # check it passes when 'threshold' is missing from 'parameters'
     d = deepcopy(validation_data["test_params"])
@@ -55,7 +55,7 @@ def test_combine_masks_params_schema(validation_data: dict) -> None:
     d = deepcopy(validation_data["test_params"])
     d["region_values"] = d["mask_files"]
     with pytest.raises(jsonschema.exceptions.ValidationError):
-        jsonschema.validate(d, SCHEMAS["combine_masks"])
+        jsonschema.validate(d, load_schemas()["combine_masks"])
 
 
 def test_combine_masks_mock_data(validation_data: dict) -> None:

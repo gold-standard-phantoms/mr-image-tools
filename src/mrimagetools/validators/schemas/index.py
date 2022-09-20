@@ -17,6 +17,7 @@ SchemaNames = Literal[
     "combine_masks",
     "generate_asl_hrgt_params",
     "generate_dwi_hrgt_params",
+    "generate_hrgt_params",
     "input_params",
 ]
 
@@ -43,6 +44,3 @@ def load_schemas() -> Dict[SchemaNames, Any]:
         schemas[schema] = value
 
     return schemas
-
-
-SCHEMAS = load_schemas()

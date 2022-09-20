@@ -14,7 +14,7 @@ from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.create_volumes_from_seg_mask import CreateVolumesFromSegMask
 from mrimagetools.filters.ground_truth_loader import GroundTruthLoaderFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
-from mrimagetools.validators.schemas.index import SCHEMAS
+from mrimagetools.validators.schemas.index import load_schemas
 
 
 @pytest.fixture(name="validation_data")
@@ -130,7 +130,7 @@ def test_create_volumes_from_seg_mask_with_mock_data(validation_data: dict) -> N
         "magnetic_field_strength": 3.0,
     }
     # validate against the ground truth schema
-    jsonschema.validate(image_info, SCHEMAS["asl_ground_truth"])
+    jsonschema.validate(image_info, load_schemas()["asl_ground_truth"])
 
     ground_truth_loader = GroundTruthLoaderFilter()
     ground_truth_loader.add_input(GroundTruthLoaderFilter.KEY_IMAGE, image)

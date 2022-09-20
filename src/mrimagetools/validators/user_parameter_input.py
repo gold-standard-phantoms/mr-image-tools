@@ -34,9 +34,7 @@ from mrimagetools.validators.parameters import (
     range_inclusive_validator,
     reserved_string_list_validator,
 )
-from mrimagetools.validators.schemas.index import SCHEMAS
-
-INPUT_PARAMETER_SCHEMA = SCHEMAS["input_params"]
+from mrimagetools.validators.schemas.index import load_schemas
 
 # String constants
 ASL_CONTEXT = "asl_context"
@@ -537,7 +535,9 @@ def validate_input_params(input_params: dict) -> dict:
     # This checks the general structure of the input, but does not validate the
     # series parameters
     try:
-        jsonschema.validate(instance=input_params, schema=INPUT_PARAMETER_SCHEMA)
+        jsonschema.validate(
+            instance=input_params, schema=load_schemas()["input_params"]
+        )
     except jsonschema.exceptions.ValidationError as ex:
         # Make the type of exception raised consistent
         raise ValidationError from ex
