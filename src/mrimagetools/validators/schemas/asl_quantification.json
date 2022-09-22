@@ -1,41 +1,47 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
+  "additionalProperties": false,
   "properties": {
-    "QuantificationModel": {
-      "type": "string",
-      "enum": ["whitepaper"]
-    },
-    "PostLabelingDelay": {
-      "type": "number",
-      "minimum": 0
-    },
-    "LabelingEfficiency": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1
+    "ArterialSpinLabelingType": {
+      "enum": [
+        "PCASL",
+        "CASL",
+        "PASL"
+      ],
+      "type": "string"
     },
     "BloodBrainPartitionCoefficient": {
-      "type": "number",
+      "maximum": 1,
       "minimum": 0,
-      "maximum": 1
-    },
-    "T1ArterialBlood": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "ArterialSpinLabelingType": {
-      "type": "string",
-      "enum": ["PCASL", "CASL", "PASL"]
-    },
-    "LabelingDuration": {
-      "type": "number",
-      "exclusiveMinimum": 0
+      "type": "number"
     },
     "BolusCutOffDelayTime": {
-      "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "type": "number"
+    },
+    "LabelingDuration": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "LabelingEfficiency": {
+      "maximum": 1,
+      "minimum": 0,
+      "type": "number"
+    },
+    "PostLabelingDelay": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "QuantificationModel": {
+      "enum": [
+        "whitepaper"
+      ],
+      "type": "string"
+    },
+    "T1ArterialBlood": {
+      "exclusiveMinimum": 0,
+      "type": "number"
     }
   },
-  "additionalProperties": false
+  "type": "object"
 }

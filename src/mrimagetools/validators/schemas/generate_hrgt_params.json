@@ -1,5 +1,51 @@
 {
-  "type": "object",
+  "properties": {
+    "label_names": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "label_values": {
+      "items": {
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "parameters": {
+      "additionalProperties": true,
+      "properties": {
+        "lambda_blood_brain": {
+          "type": "number"
+        },
+        "magnetic_field_strength": {
+          "type": "number"
+        },
+        "t1_arterial_blood": {
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "quantities": {
+      "additionalProperties": {
+        "items": {
+          "type": "number"
+        },
+        "type": "array"
+      },
+      "type": "object"
+    },
+    "units": {
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "type": "array"
+    }
+  },
   "required": [
     "label_values",
     "label_names",
@@ -7,48 +53,5 @@
     "units",
     "parameters"
   ],
-  "properties": {
-    "label_values": {
-      "type": "array",
-      "items": {
-        "type": "integer"
-      }
-    },
-    "label_names": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "quantities": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "array",
-        "items": {
-          "type": "number"
-        }
-      }
-    },
-    "units": {
-      "type": "array",
-      "items": {
-        "type": ["string", "null"]
-      }
-    },
-    "parameters": {
-      "type": "object",
-      "properties": {
-        "lambda_blood_brain": {
-          "type": "number"
-        },
-        "t1_arterial_blood": {
-          "type": "number"
-        },
-        "magnetic_field_strength": {
-          "type": "number"
-        }
-      },
-      "additionalProperties": true
-    }
-  }
+  "type": "object"
 }

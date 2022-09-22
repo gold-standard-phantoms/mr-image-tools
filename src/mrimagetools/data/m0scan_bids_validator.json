@@ -1,43 +1,57 @@
 {
-  "type": "object",
   "properties": {
-    "IntendedFor": {
-        "type": "string",
-        "minLength": 1
+    "AcquisitionVoxelSize": {
+      "items": {
+        "exclusiveMinimum": 0,
+        "type": "number"
       },
+      "type": "array"
+    },
     "EchoTime": {
-      "type": "number",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "type": "number"
     },
     "EffectiveEchoSpacing": {
-      "type": "number",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "IntendedFor": {
+      "minLength": 1,
+      "type": "string"
     },
     "PhaseEncodingDirection": {
-      "type": "string",
-      "enum": ["i", "j", "k", "i-", "j-", "k-"]
+      "enum": [
+        "i",
+        "j",
+        "k",
+        "i-",
+        "j-",
+        "k-"
+      ],
+      "type": "string"
     },
     "RepetitionTime": {
-      "type": "number",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "type": "number"
     },
     "SliceEncodingDirection": {
-      "type": "string",
-      "enum": ["i", "j", "k", "i-", "j-", "k-"]
+      "enum": [
+        "i",
+        "j",
+        "k",
+        "i-",
+        "j-",
+        "k-"
+      ],
+      "type": "string"
     },
     "SliceTiming": {
-      "type": "array",
       "items": {
-        "type": "number",
-        "minimum": 0
-      }
-    },
-    "AcquisitionVoxelSize" :{
-      "type": "array",
-      "items": {
-          "type": "number",
-          "exclusiveMinimum": 0
-      }
+        "minimum": 0,
+        "type": "number"
+      },
+      "type": "array"
     }
-  }
+  },
+  "type": "object"
 }

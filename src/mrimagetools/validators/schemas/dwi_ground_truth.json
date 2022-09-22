@@ -1,34 +1,44 @@
 {
-  "type": "object",
-  "required": ["quantities", "units", "segmentation", "parameters"],
+  "additionalProperties": false,
   "properties": {
-    "quantities": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
-    },
-    "units": {
-      "type": "array",
-      "items": {
-        "type": ["string", "null"]
-      }
-    },
-    "segmentation": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "integer"
-      }
-    },
     "parameters": {
-      "type": "object",
-      "required": ["magnetic_field_strength"],
       "properties": {
         "magnetic_field_strength": {
           "type": "number"
         }
-      }
+      },
+      "required": [
+        "magnetic_field_strength"
+      ],
+      "type": "object"
+    },
+    "quantities": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "segmentation": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "units": {
+      "items": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "type": "array"
     }
   },
-  "additionalProperties": false
+  "required": [
+    "quantities",
+    "units",
+    "segmentation",
+    "parameters"
+  ],
+  "type": "object"
 }

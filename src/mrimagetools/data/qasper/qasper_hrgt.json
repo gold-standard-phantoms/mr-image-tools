@@ -1,24 +1,48 @@
 {
+  "parameters": {
+    "magnetic_field_strength": 3.0,
+    "t1_arterial_blood": 1.8
+  },
   "quantities": [
-    { "name": "perfusion_rate", "units": "ml/100g/min" },
-    { "name": "transit_time", "units": "s" },
-    { "name": "t1", "units": "s" },
-    { "name": "t2", "units": "s" },
-    { "name": "t2_star", "units": "s" },
-    { "name": "m0", "units": "" },
-    { "name": "lambda_blood_brain", "units": "g/ml" },
-    { "name": "seg_label", "units": "" }
+    {
+      "name": "perfusion_rate",
+      "units": "ml/100g/min"
+    },
+    {
+      "name": "transit_time",
+      "units": "s"
+    },
+    {
+      "name": "t1",
+      "units": "s"
+    },
+    {
+      "name": "t2",
+      "units": "s"
+    },
+    {
+      "name": "t2_star",
+      "units": "s"
+    },
+    {
+      "name": "m0",
+      "units": ""
+    },
+    {
+      "name": "lambda_blood_brain",
+      "units": "g/ml"
+    },
+    {
+      "name": "seg_label",
+      "units": ""
+    }
   ],
   "segmentation_labels": {
     "seg_label": {
       "background": 0,
       "inlet": 1,
-      "porous": 2,
-      "outlet": 3
+      "outlet": 3,
+      "porous": 2
     }
-  },
-  "parameters": {
-    "t1_arterial_blood": 1.8,
-    "magnetic_field_strength": 3.0
   }
 }

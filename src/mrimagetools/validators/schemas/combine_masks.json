@@ -1,27 +1,31 @@
 {
-  "type": "object",
-  "required": ["mask_files", "region_values", "region_priority"],
   "properties": {
     "mask_files": {
-      "type": "array",
       "items": {
         "type": "string"
-      }
-    },
-    "region_values": {
-      "type": "array",
-      "items": {
-        "type": "integer"
-      }
+      },
+      "type": "array"
     },
     "region_priority": {
-      "type": "array",
       "items": {
         "type": "integer"
-      }
+      },
+      "type": "array"
+    },
+    "region_values": {
+      "items": {
+        "type": "integer"
+      },
+      "type": "array"
     },
     "threshold": {
       "type": "number"
     }
-  }
+  },
+  "required": [
+    "mask_files",
+    "region_values",
+    "region_priority"
+  ],
+  "type": "object"
 }

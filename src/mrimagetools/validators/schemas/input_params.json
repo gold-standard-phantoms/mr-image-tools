@@ -1,10 +1,8 @@
 {
-  "type": "object",
-  "required": ["global_configuration", "image_series"],
+  "additionalProperties": false,
   "properties": {
     "global_configuration": {
-      "type": "object",
-      "required": ["ground_truth"],
+      "additionalProperties": false,
       "properties": {
         "ground_truth": {
           "anyOf": [
@@ -12,79 +10,95 @@
               "type": "string"
             },
             {
-              "type": "object",
-              "required": ["nii_file", "json_file"],
               "additionalProperties": false,
               "properties": {
-                "nii_file": {
-                  "type": "string"
-                },
                 "json_file": {
                   "type": "string"
+                },
+                "nii_file": {
+                  "type": "string"
                 }
-              }
+              },
+              "required": [
+                "nii_file",
+                "json_file"
+              ],
+              "type": "object"
             }
           ]
         },
-        "image_override": {
-          "type": "object",
-          "patternProperties": {
-            "^[A-Za-z_][A-Za-z0-9_]*$": {
-              "type": "number"
-            }
-          }
-        },
-        "parameter_override": {
-          "type": "object",
-          "patternProperties": {
-            "^[A-Za-z_][A-Za-z0-9_]*$": {
-              "type": "number"
-            }
-          }
-        },
         "ground_truth_modulate": {
-          "type": "object",
           "patternProperties": {
             "^[A-Za-z_][A-Za-z0-9_]*$": {
-              "type": "object",
               "properties": {
-                "scale": {
-                  "type": "number"
-                },
                 "offset": {
                   "type": "number"
+                },
+                "scale": {
+                  "type": "number"
                 }
-              }
+              },
+              "type": "object"
             }
-          }
+          },
+          "type": "object"
+        },
+        "image_override": {
+          "patternProperties": {
+            "^[A-Za-z_][A-Za-z0-9_]*$": {
+              "type": "number"
+            }
+          },
+          "type": "object"
+        },
+        "parameter_override": {
+          "patternProperties": {
+            "^[A-Za-z_][A-Za-z0-9_]*$": {
+              "type": "number"
+            }
+          },
+          "type": "object"
         },
         "subject_label": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9\\-]+$"
+          "pattern": "^[A-Za-z0-9\\-]+$",
+          "type": "string"
         }
       },
-      "additionalProperties": false
+      "required": [
+        "ground_truth"
+      ],
+      "type": "object"
     },
     "image_series": {
-      "type": "array",
       "items": {
-        "type": "object",
-        "required": ["series_type"],
+        "additionalProperties": false,
         "properties": {
-          "series_type": {
-            "type": "string",
-            "enum": ["asl", "structural", "ground_truth"]
-          },
           "series_description": {
             "type": "string"
           },
           "series_parameters": {
             "type": "object"
+          },
+          "series_type": {
+            "enum": [
+              "asl",
+              "structural",
+              "ground_truth"
+            ],
+            "type": "string"
           }
         },
-        "additionalProperties": false
-      }
+        "required": [
+          "series_type"
+        ],
+        "type": "object"
+      },
+      "type": "array"
     }
   },
-  "additionalProperties": false
+  "required": [
+    "global_configuration",
+    "image_series"
+  ],
+  "type": "object"
 }

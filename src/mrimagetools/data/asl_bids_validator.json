@@ -1,65 +1,53 @@
 {
-  "type": "object",
   "properties": {
+    "AcquisitionVoxelSize": {
+      "items": {
+        "exclusiveMinimum": 0,
+        "type": "number"
+      },
+      "type": "array"
+    },
+    "BackgroundSuppression": {
+      "type": "boolean"
+    },
+    "BackgroundSuppressionNumberPulses": {
+      "minimum": 0,
+      "type": "number"
+    },
+    "BackgroundSuppressionPulseTime": {
+      "items": {
+        "type": "number"
+      },
+      "type": "array"
+    },
+    "BolusCutOffDelayTime": {
+      "Minimum": 0,
+      "type": "number"
+    },
+    "BolusCutOffFlag": {
+      "type": "boolean"
+    },
+    "BolusCutOffTechnique": {
+      "type": "string"
+    },
+    "BolusCutOffTimingSequence": {
+      "Minimum": 0,
+      "type": "number"
+    },
+    "CASLType": {
+      "enum": [
+        "single-coil",
+        "double-coil"
+      ],
+      "type": "string"
+    },
     "EchoTime": {
-      "type": "number",
-      "exclusiveMinimum": 0
+      "exclusiveMinimum": 0,
+      "type": "number"
     },
     "EffectiveEchoSpacing": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "PhaseEncodingDirection": {
-      "type": "string",
-      "enum": [
-        "i",
-        "j",
-        "k",
-        "i-",
-        "j-",
-        "k-"
-      ]
-    },
-    "RepetitionTime": {
-      "anyOf": [
-        {
-          "type": "number",
-          "exclusiveMinimum": 0
-        },
-        {
-          "type": "array",
-          "exclusiveMinimum": 0,
-          "items": {
-            "type": "number"
-          }
-        }
-      ]
-    },
-    "PulseSequenceType": {
-      "type": "string",
-      "enum": [
-        "2D_EPI",
-        "3D_GRASE",
-        "3D_spiral"
-      ]
-    },
-    "SliceEncodingDirection": {
-      "type": "string",
-      "enum": [
-        "i",
-        "j",
-        "k",
-        "i-",
-        "j-",
-        "k-"
-      ]
-    },
-    "SliceTiming": {
-      "type": "array",
-      "items": {
-        "type": "number",
-        "minimum": 0
-      }
+      "exclusiveMinimum": 0,
+      "type": "number"
     },
     "FlipAngle": {
       "anyOf": [
@@ -67,165 +55,83 @@
           "type": "number"
         },
         {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        }
-      ]
-    },
-    "LabelingType": {
-      "type": "string",
-      "enum": [
-        "PASL",
-        "CASL",
-        "PCASL"
-      ]
-    },
-    "LabelingDuration": {
-      "anyOf": [
-        {
-          "type": "number",
-          "Minimum": 0
-        },
-        {
-          "type": "array",
           "items": {
             "type": "number"
           },
-          "Minimum": 0
+          "type": "array"
         }
       ]
-    },
-    "PostLabelingDelay": {
-      "anyOf": [
-        {
-          "type": "number",
-          "Minimum": 0
-        },
-        {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "Minimum": 0
-        }
-      ]
-    },
-    "BackgroundSuppression": {
-      "type": "boolean"
-    },
-    "VascularCrushing": {
-      "type": "boolean"
-    },
-    "LabelingLocationDescription": {
-      "type": "string",
-      "_type_comment": "to be checked"
-    },
-    "LabelingOrientation": {
-      "type": "string",
-      "_type_comment": "to be checked"
     },
     "LabelingDistance": {
       "type": "number"
     },
-    "LabelingPulseMaximumGradient": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "LabelingPulseFlipAngle": {
-      "type": "number",
-      "exclusiveMinimum": 0,
-      "inclusiveMaximum": 360,
-      "_inclusiveMaximum_comment": "to be checked"
-    },
-    "LabelingSlabThickness": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "AcquisitionVoxelSize": {
-      "type": "array",
-      "items": {
-        "type": "number",
-        "exclusiveMinimum": 0
-      }
-    },
-    "BackgroundSuppressionNumberPulses": {
-      "type": "number",
-      "minimum": 0
-    },
-    "BackgroundSuppressionPulseTime": {
-      "type": "array",
-      "items": {
-        "type": "number"
-      }
-    },
-    "VascularCrushingVenc": {
+    "LabelingDuration": {
       "anyOf": [
         {
+          "Minimum": 0,
           "type": "number"
         },
         {
-          "type": "array",
+          "Minimum": 0,
           "items": {
             "type": "number"
-          }
+          },
+          "type": "array"
         }
       ]
     },
-    "PCASLType": {
-      "type": "string",
-      "enum": [
-        "balanced",
-        "unbalanced"
-      ]
+    "LabelingEfficiency": {
+      "exclusiveMinimum": 0,
+      "type": "number"
     },
-    "CASLType": {
-      "type": "string",
-      "enum": [
-        "single-coil",
-        "double-coil"
-      ]
+    "LabelingLocationDescription": {
+      "_type_comment": "to be checked",
+      "type": "string"
     },
-    "PASLType": {
+    "LabelingOrientation": {
+      "_type_comment": "to be checked",
+      "type": "string"
+    },
+    "LabelingPulseAverageB1": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "LabelingPulseAverageGradient": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "LabelingPulseDuration": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "LabelingPulseFlipAngle": {
+      "_inclusiveMaximum_comment": "to be checked",
+      "exclusiveMinimum": 0,
+      "inclusiveMaximum": 360,
+      "type": "number"
+    },
+    "LabelingPulseInterval": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "LabelingPulseMaximumGradient": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "LabelingSlabThickness": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    },
+    "LabelingType": {
+      "enum": [
+        "PASL",
+        "CASL",
+        "PCASL"
+      ],
       "type": "string"
     },
     "LookLocker": {
       "type": "boolean"
-    },
-    "LabelingPulseDuration": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "LabelingPulseInterval": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "LabelingPulseAverageB1": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "LabelingPulseAverageGradient": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "LabelingEfficiency": {
-      "type": "number",
-      "exclusiveMinimum": 0
-    },
-    "BolusCutOffFlag": {
-      "type": "boolean"
-    },
-    "BolusCutOffTimingSequence": {
-      "type": "number",
-      "Minimum": 0
-    },
-    "BolusCutOffDelayTime": {
-      "type": "number",
-      "Minimum": 0
-    },
-    "BolusCutOffTechnique": {
-      "type": "string"
     },
     "M0": {
       "type": [
@@ -234,23 +140,117 @@
         "boolean"
       ]
     },
-    "TotalAcquiredVolumes": {
-      "type": "array",
-      "items": {
-        "type": "number"
-      }
+    "Manufacturer": {
+      "type": "string"
     },
-    "VolumeTiming": {
-      "type": "array",
-      "items": {
-        "type": "number"
-      }
+    "PASLType": {
+      "type": "string"
+    },
+    "PCASLType": {
+      "enum": [
+        "balanced",
+        "unbalanced"
+      ],
+      "type": "string"
+    },
+    "PhaseEncodingDirection": {
+      "enum": [
+        "i",
+        "j",
+        "k",
+        "i-",
+        "j-",
+        "k-"
+      ],
+      "type": "string"
+    },
+    "PostLabelingDelay": {
+      "anyOf": [
+        {
+          "Minimum": 0,
+          "type": "number"
+        },
+        {
+          "Minimum": 0,
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        }
+      ]
     },
     "PulseSequenceDetails": {
       "type": "string"
     },
-    "Manufacturer": {
+    "PulseSequenceType": {
+      "enum": [
+        "2D_EPI",
+        "3D_GRASE",
+        "3D_spiral"
+      ],
       "type": "string"
+    },
+    "RepetitionTime": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "exclusiveMinimum": 0,
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        }
+      ]
+    },
+    "SliceEncodingDirection": {
+      "enum": [
+        "i",
+        "j",
+        "k",
+        "i-",
+        "j-",
+        "k-"
+      ],
+      "type": "string"
+    },
+    "SliceTiming": {
+      "items": {
+        "minimum": 0,
+        "type": "number"
+      },
+      "type": "array"
+    },
+    "TotalAcquiredVolumes": {
+      "items": {
+        "type": "number"
+      },
+      "type": "array"
+    },
+    "VascularCrushing": {
+      "type": "boolean"
+    },
+    "VascularCrushingVenc": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "items": {
+            "type": "number"
+          },
+          "type": "array"
+        }
+      ]
+    },
+    "VolumeTiming": {
+      "items": {
+        "type": "number"
+      },
+      "type": "array"
     }
-  }
+  },
+  "type": "object"
 }
