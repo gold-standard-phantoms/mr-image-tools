@@ -1,6 +1,7 @@
 """Pipeline to combine fuzzy masks into a single segmentation mask"""
 
 import logging
+from typing import Optional
 
 import nibabel as nib
 
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def combine_fuzzy_masks(
-    params_filename: str, output_filename: str = None
+    params_filename: str, output_filename: Optional[str] = None
 ) -> BaseImageContainer:
     """Combines fuzzy masks into a single segmentation mask image.
 
@@ -54,4 +55,4 @@ def combine_fuzzy_masks(
             output_filename,
         )
 
-    return combine_masks_filter.outputs[CombineFuzzyMasksFilter.KEY_SEG_MASK]
+    return combine_masks_filter.outputs[CombineFuzzyMasksFilter.KEY_SEG_MASK]  # type: ignore

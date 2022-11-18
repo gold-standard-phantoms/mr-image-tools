@@ -51,14 +51,14 @@ class AppendMetadataFilter(BaseFilter):
         """appends the input image with the supplied metadata"""
         # copy the reference to the input image to outputs
         self.outputs[self.KEY_IMAGE] = self.inputs[self.KEY_IMAGE]
-        input_metadata: Union[Dict, ImageMetadata] = self.inputs[self.KEY_METADATA]
+        input_metadata: Union[dict, ImageMetadata] = self.inputs[self.KEY_METADATA]
         # merge the input metadata with the existing metadata
         self.outputs[self.KEY_IMAGE].metadata = ImageMetadata(
             **{
                 **self.outputs[self.KEY_IMAGE].metadata.dict(exclude_none=True),
                 **(
                     input_metadata
-                    if isinstance(input_metadata, Dict)
+                    if isinstance(input_metadata, dict)
                     else input_metadata.dict(exclude_none=True)
                 ),
             }

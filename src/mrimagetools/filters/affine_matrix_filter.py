@@ -99,14 +99,14 @@ class AffineMatrixFilter(BaseFilter):
         # construct individual transformation matrices
         input_affine: np.ndarray = self.inputs[self.KEY_AFFINE]
         affine_last: np.ndarray = self.inputs[self.KEY_AFFINE_LAST]
-        rotation_angles: Tuple[float, float, float] = np.radians(
+        rotation_angles: tuple[float, float, float] = np.radians(
             self.inputs[self.KEY_ROTATION]
         )
-        rotation_origin: Tuple[float, float, float] = self.inputs[
+        rotation_origin: tuple[float, float, float] = self.inputs[
             self.KEY_ROTATION_ORIGIN
         ]
-        translation: Tuple[float, float, float] = self.inputs[self.KEY_TRANSLATION]
-        scale: Tuple[float, float, float] = self.inputs[self.KEY_SCALE]
+        translation: tuple[float, float, float] = self.inputs[self.KEY_TRANSLATION]
+        scale: tuple[float, float, float] = self.inputs[self.KEY_SCALE]
 
         scale_matrix = np.array(
             (

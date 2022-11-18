@@ -91,7 +91,7 @@ def add_noise_function(
 
 
 def calculate_snr_function(
-    image_1: np.ndarray, image_2: np.ndarray, mask: np.ndarray = None
+    image_1: np.ndarray, image_2: np.ndarray, mask: Optional[np.ndarray] = None
 ):
     """calculates the snr from two image arrays
 

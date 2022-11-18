@@ -1,8 +1,9 @@
 """ General utilities """
 import os
 import re
+from collections.abc import Mapping
 from enum import Enum, auto
-from typing import Any, Callable, Dict, List, Mapping, Optional, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, TypeVar, Union
 
 import numpy as np
 from numpy.random import default_rng
@@ -12,7 +13,7 @@ def map_dict(
     input_dict: Mapping[str, Any],
     io_map: Mapping[str, str],
     io_map_optional: bool = False,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Maps a dictionary onto a new dictionary by changing some/all of
     the keys.
@@ -43,7 +44,7 @@ def map_dict(
     }
 
 
-def splitext(path: str) -> Tuple[str, str]:
+def splitext(path: str) -> tuple[str, str]:
     """The normal os.path.splitext treats path/example.tar.gz
     as having a filepath of path/example.tar with a .gz
     extension - this fixes it"""
@@ -112,7 +113,7 @@ def snake_to_camel(name: str) -> str:
 
 T = TypeVar("T")  # pylint: disable=invalid-name
 
-InputType = Union[T, Dict[str, T], Tuple[T], List[T]]
+InputType = Union[T, dict[str, T], tuple[T], list[T]]
 
 
 class SnakeCamelConvertType(Enum):
@@ -124,7 +125,7 @@ class SnakeCamelConvertType(Enum):
 
 def key_value_converter(
     convert_type: SnakeCamelConvertType,
-) -> Tuple[Callable[[str], str], Callable[[InputType], InputType]]:
+) -> tuple[Callable[[str], str], Callable[[InputType], InputType]]:
     """Get functions for converting keys and values as per the conversion schema."""
     if convert_type == SnakeCamelConvertType.CAMEL_TO_SNAKE:
         return (
@@ -144,7 +145,7 @@ def camel_to_snake_case_keys_recursive(
 ) -> InputType:
     """Converts a dict recursively, to ensure that all keys are in correct case"""
     key_conv, value_conv = key_value_converter(convert_type)
-    if isinstance(input_value, Dict):
+    if isinstance(input_value, dict):
         return_dict = {}
         for key, value in input_value.items():
             return_dict[key_conv(key)] = value_conv(value)
@@ -157,9 +158,9 @@ def camel_to_snake_case_keys_recursive(
 
 
 def camel_to_snake_case_keys_converter(
-    input_value: Dict[str, Any],
+    input_value: dict[str, Any],
     convert_type: SnakeCamelConvertType = SnakeCamelConvertType.CAMEL_TO_SNAKE,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Converts a dictionary where the keys are CamelCase
     into snake_case and vice-versa"""
     key_conv, value_conv = key_value_converter(convert_type)

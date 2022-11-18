@@ -228,7 +228,7 @@ def asldro_version_fixture() -> str:
 
 
 @pytest.fixture(name="structural_input")
-def structural_input_fixture(asldro_version) -> Tuple[NiftiImageContainer, dict]:
+def structural_input_fixture(asldro_version) -> tuple[NiftiImageContainer, dict]:
     """Mock data and expected sidecar for structural image series"""
     image = deepcopy(TEST_NIFTI_CON_ONES)
     image.metadata = ImageMetadata(
@@ -310,7 +310,7 @@ def test_bids_output_filter_mock_data_structural(structural_input) -> None:
 
 
 @pytest.fixture(name="asl_input")
-def asl_input_fixture(asldro_version) -> Tuple[NiftiImageContainer, dict]:
+def asl_input_fixture(asldro_version) -> tuple[NiftiImageContainer, dict]:
     """creates test data for testing BIDS output of an ASL image"""
     image = deepcopy(TEST_NIFTI_CON_ONES)
     image.metadata = ImageMetadata(
@@ -627,7 +627,7 @@ def test_bids_output_filter_m0_float(asl_input) -> None:
 
 
 def test_bids_output_filter_m0scan(
-    structural_input: Tuple[NiftiImageContainer, dict]
+    structural_input: tuple[NiftiImageContainer, dict]
 ) -> None:
     """Tests the BidsOutputFilter with mock ASL data where there is a separate m0 scan"""
     with TemporaryDirectory() as temp_dir:

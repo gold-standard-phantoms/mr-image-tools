@@ -351,7 +351,7 @@ def test_missing_required_quantities(valid_dict_input: dict) -> None:
 
     # Generate the invalid_configs based on removed one of the required_quantities
     # each time
-    invalid_configs: List[dict] = []
+    invalid_configs: list[dict] = []
     for quantity_type in ("quantities", "calculated_quantities"):
         for index, _ in enumerate(config[quantity_type]):
             conf = deepcopy(config)

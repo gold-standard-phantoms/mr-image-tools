@@ -2,8 +2,9 @@
 
 import json
 import os
+from collections.abc import Sequence
 from pathlib import Path
-from typing import Dict, Optional, Sequence
+from typing import Dict, Optional
 
 import nibabel as nib
 import numpy as np
@@ -135,7 +136,7 @@ def dwi_pipeline_processing(
     dwi_signal_filter.run()
 
     dwi = dwi_signal_filter.outputs[dwi_signal_filter.KEY_DWI]
-    dwi_3d_dict: Dict[str, BaseImageContainer] = {}
+    dwi_3d_dict: dict[str, BaseImageContainer] = {}
     for b_value_index, b_value in enumerate(
         dwi_signal_filter.outputs[dwi_signal_filter.KEY_ATTENUATION].metadata.b_values
     ):
@@ -144,7 +145,7 @@ def dwi_pipeline_processing(
         )
 
     # running transform resample image filter
-    dwi_3d_dict_transformed: Dict[str, BaseImageContainer] = {}
+    dwi_3d_dict_transformed: dict[str, BaseImageContainer] = {}
     shape = np.shape(dwi.image[:, :, :, 0])
     for key, value in dwi_3d_dict.items():
         transform_resample_image_filter = TransformResampleImageFilter()
@@ -163,7 +164,7 @@ def dwi_pipeline_processing(
         ]
 
     # running the add complex noise filter
-    final_outputs_dict: Dict[str, BaseImageContainer] = {}
+    final_outputs_dict: dict[str, BaseImageContainer] = {}
     for key, value in dwi_3d_dict_transformed.items():
         add_complex_noise_filter = AddComplexNoiseFilter()
         add_complex_noise_filter.add_inputs(

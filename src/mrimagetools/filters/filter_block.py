@@ -26,7 +26,7 @@ class FilterBlock(BaseFilter):
         pass  # do nothing
 
     def run(
-        self, validate_only: bool = False, history: Optional[List["BaseFilter"]] = None
+        self, validate_only: bool = False, history: Optional[list["BaseFilter"]] = None
     ) -> None:
         """
         Calls the BaseFilter's run method to make sure all of the

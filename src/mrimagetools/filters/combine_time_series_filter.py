@@ -122,7 +122,7 @@ class CombineTimeSeriesFilter(BaseFilter):
 
         self.outputs[self.KEY_IMAGE] = output_container
 
-    def _get_input_images(self) -> List[Tuple[BaseImageContainer, int]]:
+    def _get_input_images(self) -> list[tuple[BaseImageContainer, int]]:
         """Based on the naming rule for input images:
         `image_NNNNN`, where N is any positive integer, extract all of the
         input images, in ascending index order, to a list

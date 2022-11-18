@@ -116,7 +116,7 @@ def test_missing_parameters_validation() -> None:
 
 
 def generate_arange_numpy_image_container(
-    shape: Tuple[int, ...], start: int = 0, affine: Union[np.ndarray, None] = None
+    shape: tuple[int, ...], start: int = 0, affine: Union[np.ndarray, None] = None
 ) -> NumpyImageContainer:
     """Return a numpy image container with the given shape.
     Values of the array start from 0, and increase by one each step to

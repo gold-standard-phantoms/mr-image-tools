@@ -1,6 +1,7 @@
 """Calculate Apparent Diffusion Coefficient Pipeline"""
 
 import os
+from typing import Optional
 
 import nibabel as nib
 import numpy as np
@@ -11,7 +12,7 @@ from mrimagetools.filters.load_bids_filter import LoadBidsFilter
 from mrimagetools.utils.general import splitext
 
 
-def adc_pipeline(dwi_nifti_filename: str, output_dir: str = None) -> dict:
+def adc_pipeline(dwi_nifti_filename: str, output_dir: Optional[str] = None) -> dict:
     """Loads in a DWI nifti and corresponding bval and bvec files,
     calculates the ADC map for each non-zero bvalue, optionally saves this image
     to disk in BIDS format.

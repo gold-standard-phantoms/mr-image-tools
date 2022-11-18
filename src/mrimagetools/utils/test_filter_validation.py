@@ -92,7 +92,7 @@ def test_generic_filter_validation_parameter() -> None:
 def test_validate_filter_inputs_function_with_model() -> None:
     """The the general functionality of the `FilterValidationModel`"""
     # valid inputs
-    valid_inputs: Final[Dict] = {
+    valid_inputs: Final[dict] = {
         "input1": FilterValidationModelParameter[StrictFloat](
             is_optional=False, valid_values=[10.0], invalid_values=[20, "str"]
         ),

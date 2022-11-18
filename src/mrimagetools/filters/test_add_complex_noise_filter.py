@@ -2,6 +2,7 @@
 # pylint: disable=duplicate-code
 
 from copy import deepcopy
+from typing import Optional
 
 import nibabel as nib
 import numpy as np
@@ -85,7 +86,7 @@ def add_complex_noise_function(
 
 
 def simulate_dual_image_snr_measurement_function(
-    image_container: BaseImageContainer, snr: float, mask: np.ndarray = None
+    image_container: BaseImageContainer, snr: float, mask: Optional[np.ndarray] = None
 ):
     """Calculate the SNR of the images using the subtraction method
     Firbank et. al "A comparison of two methods for measuring the signal to

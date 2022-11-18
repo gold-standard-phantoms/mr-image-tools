@@ -64,7 +64,7 @@ class FloatToIntImageFilter(BaseFilter):
         # only convert if the input image is a float
         if self.inputs[self.KEY_IMAGE].image.dtype.kind == "f":
 
-            data_type: Type[Any] = np.int16
+            data_type: type[Any] = np.int16
             # determine the best type to use
             if np.any(image.image < 0):
                 data_type = np.int16

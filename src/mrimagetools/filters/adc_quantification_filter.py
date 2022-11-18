@@ -82,7 +82,7 @@ class AdcQuantificationFilter(BaseFilter):
     def _run(self) -> None:
         """Calculates the apparent diffusion coefficient based on the inputs"""
         b_values: list = self.inputs[self.KEY_B_VALUES]
-        b_vectors: List[List[float]] = self.inputs[self.KEY_B_VECTORS]
+        b_vectors: list[list[float]] = self.inputs[self.KEY_B_VECTORS]
         dwi: BaseImageContainer = self.inputs[self.KEY_DWI]
         self.outputs[self.KEY_ADC] = dwi.clone()
 

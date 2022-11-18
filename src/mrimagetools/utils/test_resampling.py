@@ -135,12 +135,12 @@ MOCK_DATA = (
 )
 def test_transform_resample_affine(
     image: Union[nib.Nifti1Image, nib.Nifti2Image, BaseImageContainer],
-    translation: Tuple[float, float, float],
-    rotation: Tuple[float, float, float],
-    rotation_origin: Tuple[float, float, float],
-    target_shape: Tuple[int, int, int],
-    expected_target: Tuple[float, float, float, float],
-    expected_resampled: Tuple[float, float, float, float],
+    translation: tuple[float, float, float],
+    rotation: tuple[float, float, float],
+    rotation_origin: tuple[float, float, float],
+    target_shape: tuple[int, int, int],
+    expected_target: tuple[float, float, float, float],
+    expected_resampled: tuple[float, float, float, float],
 ):
     # pylint: disable=too-many-arguments
     """test the function transform_resample_affine
@@ -210,7 +210,7 @@ def test_transform_resample_image_mock_data() -> None:
     numpy.testing.assert_array_equal(resampled_affine, resampled_nifti_2.affine)
 
 
-def create_test_image() -> Tuple[nib.Nifti2Image, Tuple[float, float, float]]:
+def create_test_image() -> tuple[nib.Nifti2Image, tuple[float, float, float]]:
     """create a test image function"""
     grid = np.mgrid[0:128, 0:128]
     circle = (
@@ -237,7 +237,7 @@ def create_test_image() -> Tuple[nib.Nifti2Image, Tuple[float, float, float]]:
         ((1, 0, 0, -64), (0, 1, 0, -64), (0, 0, 1, -0.5), (0, 0, 0, 1))
     )
 
-    rotation_origin: Tuple[float, float, float] = tuple(
+    rotation_origin: tuple[float, float, float] = tuple(
         np.array(nil.image.coord_transform(75, 32, 0, source_affine)).astype(float)
     )  # type: ignore
 
@@ -304,7 +304,7 @@ def test_rot_z_mat(theta: float, expected: np.ndarray) -> None:
     atd.TRANSLATE_TEST_DATA,
 )
 def test_translate_mat(
-    vector: Tuple[float, float, float], expected: np.ndarray
+    vector: tuple[float, float, float], expected: np.ndarray
 ) -> None:
     """Tests translate_mat with some translation vectors, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.translate_mat(vector), expected, 6)
@@ -314,6 +314,6 @@ def test_translate_mat(
     "scale, expected",
     atd.SCALE_TEST_DATA,
 )
-def test_scale_mat(scale: Tuple[float, float, float], expected: np.ndarray) -> None:
+def test_scale_mat(scale: tuple[float, float, float], expected: np.ndarray) -> None:
     """Tests scale_mat with some scale factors, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.scale_mat(scale), expected, 6)

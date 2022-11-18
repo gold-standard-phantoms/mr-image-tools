@@ -42,7 +42,7 @@ def icbm_v1_nifti() -> NiftiImageContainer:
 
 # NiftiImageContainer TESTS
 
-NIFTI_HEADER: Final[Dict] = {
+NIFTI_HEADER: Final[dict] = {
     "dim_info": 57,
     "dim": [5, 128, 96, 24, 2, 5, 1, 1],
     "intent_p1": 0.0,
@@ -89,7 +89,7 @@ NIFTI_AFFINE: np.ndarray = np.array(
 
 
 @pytest.fixture
-def nifti_image_containers_a() -> List[NiftiImageContainer]:
+def nifti_image_containers_a() -> list[NiftiImageContainer]:
     """Returns a list of NiftiImageContainers. The first items uses
     a Nifti1Image. The second item uses a Nifti2Image"""
 
@@ -117,7 +117,7 @@ def nifti_image_containers_a() -> List[NiftiImageContainer]:
 
 
 def test_nifti_image_container_image(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the image is returned from a NiftiImageContainer"""
 
@@ -127,7 +127,7 @@ def test_nifti_image_container_image(
 
 
 def test_nifti_image_container_shape(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the shape is correctly returned from a NiftiImageContainer"""
 
@@ -136,7 +136,7 @@ def test_nifti_image_container_shape(
 
 
 def test_nifti_image_container_affine(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the image is returned from a NiftiImageContainer"""
 
@@ -155,7 +155,7 @@ def test_nifti_image_container_affine(
 
 
 def test_nifti_image_container_time_units(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the correct time units are returned from a NiftiImageContainer"""
 
@@ -164,7 +164,7 @@ def test_nifti_image_container_time_units(
 
 
 def test_nifti_image_container_space_units(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the correct space_units are returned from a NiftiImageContainer"""
 
@@ -173,7 +173,7 @@ def test_nifti_image_container_space_units(
 
 
 def test_nifti_image_xyzt_units_reading(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test the xyzt_units are interpreted properly"""
     for image_container in nifti_image_containers_a:
@@ -192,7 +192,7 @@ def test_nifti_image_xyzt_units_reading(
 
 
 def test_nifti_image_container_voxel_size_mm(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the correct voxel size is returned from a NiftiImageContainer"""
 
@@ -212,7 +212,7 @@ def test_nifti_image_container_voxel_size_mm(
 
 
 def test_nifti_image_container_voxel_size_mm_setter(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the correct voxel size is set on a NiftiImageContainer"""
     for image_container in nifti_image_containers_a:
@@ -227,7 +227,7 @@ def test_nifti_image_container_voxel_size_mm_setter(
 
 
 def test_nifti_image_container_time_step_seconds(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the correct time step is returned from a NiftiImageContainer"""
 
@@ -241,7 +241,7 @@ def test_nifti_image_container_time_step_seconds(
 
 
 def test_nifti_image_container_time_step_seconds_setter(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the correct time step is get on a NiftiImageContainer"""
     for image_container in nifti_image_containers_a:
@@ -253,7 +253,7 @@ def test_nifti_image_container_time_step_seconds_setter(
 
 
 def test_nifti_image_container_has_header(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test that the nifti header is returned from a NiftiImageContainer"""
 
@@ -546,7 +546,7 @@ def test_numpy_image_container_clone() -> None:
 
 
 def test_nifti_image_container_clone(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Check that the NIFTI image container is cloned correctly"""
 
@@ -576,7 +576,7 @@ def test_numpy_image_container_image_properties(
 
 
 def test_nifti_image_container_image_properties(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Test the nifti image containers image setter/getter"""
     for image_container in nifti_image_containers_a:
@@ -592,7 +592,7 @@ def test_nifti_image_container_image_properties(
 
 
 def test_nifti_image_container_image_set_different_dtype(
-    nifti_image_containers_a: List[NiftiImageContainer],
+    nifti_image_containers_a: list[NiftiImageContainer],
 ):
     """Check that setting a nifti image container's image data
     using a different dtype to the original updates the nifti header correctly"""
@@ -675,7 +675,7 @@ def test_image_container_metadata_get_set() -> None:
     assert numpy.metadata.dict(exclude_none=True) == {"series_description": "desc"}
 
 
-def test_nifti_to_numpy(nifti_image_containers_a: List[NiftiImageContainer]) -> None:
+def test_nifti_to_numpy(nifti_image_containers_a: list[NiftiImageContainer]) -> None:
     """Check the as_numpy()/as_nifti() functionality works correctly on a nifti container"""
     for image_container in nifti_image_containers_a:
         new_image_container: BaseImageContainer = image_container.as_numpy()

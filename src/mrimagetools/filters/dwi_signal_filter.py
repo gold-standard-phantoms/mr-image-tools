@@ -65,7 +65,7 @@ class DwiSignalFilter(BaseFilter):
     def _run(self) -> None:
         """Calculates the attenuation coefficient based on the inputs"""
         b_values: list = self.inputs[self.KEY_B_VALUES]
-        b_vectors: List[List[float]] = self.inputs[self.KEY_B_VECTORS]
+        b_vectors: list[list[float]] = self.inputs[self.KEY_B_VECTORS]
         adc: BaseImageContainer = self.inputs[self.KEY_ADC]
         s0: Union[BaseImageContainer, None] = self.inputs.get(self.KEY_S0, None)
 

@@ -79,7 +79,7 @@ class FileType:  # pylint: disable=too-few-public-methods
     """
 
     def __init__(
-        self, extensions: Optional[List[str]] = None, should_exist: bool = False
+        self, extensions: Optional[list[str]] = None, should_exist: bool = False
     ) -> None:
         """
         :param extensions: a list of allowed file extensions.
@@ -93,7 +93,7 @@ class FileType:  # pylint: disable=too-few-public-methods
                 if not isinstance(extension, str):
                     raise TypeError("All extensions must be strings")
 
-        self.extensions: List[str] = []
+        self.extensions: list[str] = []
         if extensions is not None:
             # Strip any proceeding dots
             self.extensions = [

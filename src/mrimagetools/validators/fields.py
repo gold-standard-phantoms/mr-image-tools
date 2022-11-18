@@ -22,7 +22,7 @@ class UnitField(str):
         yield cls.validate
 
     @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
         field_schema.update(
             pattern=r"^[A-Za-z0-9-\/*^]*$",
             examples=[
@@ -74,9 +74,9 @@ https://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/"""
     """nifti1fields_pages/datatype.html"""
 )
 
-NIFTI_DATATYPES: Final[Tuple[NiftiDataType, ...]] = typing.get_args(NiftiDataType)
+NIFTI_DATATYPES: Final[tuple[NiftiDataType, ...]] = typing.get_args(NiftiDataType)
 # nifti datatypes (adapted from nibabel.nifti1._dtdefs)
-NIFTI_DATATYPE_MAP: Final[Dict[NiftiDataType, int]] = {
+NIFTI_DATATYPE_MAP: Final[dict[NiftiDataType, int]] = {
     "none": 0,
     "binary": 1,
     "uint8": 2,
@@ -107,7 +107,7 @@ class NiftiDataTypeField(str):
         yield cls.validate
 
     @classmethod
-    def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
+    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
         field_schema.update(
             # the full list of allowed types
             examples=list(NIFTI_DATATYPES)

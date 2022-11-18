@@ -75,10 +75,10 @@ class CreateVolumesFromSegMask(BaseFilter):
     def _run(self) -> None:
         """runs the filter"""
         seg_mask: BaseImageContainer = self.inputs[self.KEY_SEG_MASK].clone()
-        label_values: List[int] = self.inputs[self.KEY_LABEL_VALUES]
-        label_names: List[str] = self.inputs[self.KEY_LABEL_NAMES]
+        label_values: list[int] = self.inputs[self.KEY_LABEL_VALUES]
+        label_names: list[str] = self.inputs[self.KEY_LABEL_NAMES]
         quantities: dict = self.inputs[self.KEY_QUANTITIES]
-        units: List[str] = self.inputs[self.KEY_UNITS]
+        units: list[str] = self.inputs[self.KEY_UNITS]
 
         num_quantities = len(units)
         num_labels = len(label_values)

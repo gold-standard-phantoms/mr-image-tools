@@ -39,7 +39,7 @@ class Validator:
 
 
 def isfile_validator(
-    extensions: Union[str, List[str], None] = None, must_exist: bool = False
+    extensions: Union[str, list[str], None] = None, must_exist: bool = False
 ) -> Validator:
     """
     Validates that a given value is a path to a file.
@@ -87,7 +87,7 @@ def isfile_validator(
     )
 
 
-def isinstance_validator(a_type: Union[type, Tuple[type, ...]]) -> Validator:
+def isinstance_validator(a_type: Union[type, tuple[type, ...]]) -> Validator:
     """
     Validates that a given value is an instance of the given type(s) (or or derived from).
     a_type: a type e.g. str, or a tuple of types e.g. (int, str)
@@ -226,7 +226,7 @@ def of_length_validator(length: int) -> Validator:
     )
 
 
-def list_of_type_validator(a_type: Union[type, Tuple[type, ...]]) -> Validator:
+def list_of_type_validator(a_type: Union[type, tuple[type, ...]]) -> Validator:
     """
     Validates that a given value is a list of the given type(s).
     a_type: a type e.g. str, or a tuple of types e.g. (int, str)
@@ -278,7 +278,7 @@ def regex_validator(pattern: str, case_insensitive: bool = False) -> Validator:
 
 
 def reserved_string_list_validator(
-    strings: List[str], delimiter: str = " ", case_insensitive: bool = False
+    strings: list[str], delimiter: str = " ", case_insensitive: bool = False
 ) -> Validator:
     """
     Validates that the value is a string which is comprised only of the list of given strings,
@@ -352,7 +352,7 @@ def has_attribute_value_validator(
     )
 
 
-def or_validator(validators: List[Validator]) -> Validator:
+def or_validator(validators: list[Validator]) -> Validator:
     """Boolean OR between supplied validators.
     If any of the supplied validators evaluate as True, this validator
     evaluates as True.
@@ -372,7 +372,7 @@ def or_validator(validators: List[Validator]) -> Validator:
     )
 
 
-def and_validator(validators: List[Validator]) -> Validator:
+def and_validator(validators: list[Validator]) -> Validator:
     """Boolean AND between supplied validators.
     If all of the supplied validators evaluate as True, this validator
     evaluates as True.
@@ -393,7 +393,7 @@ def and_validator(validators: List[Validator]) -> Validator:
 
 
 def shape_validator(
-    keys: Union[List[str], Tuple[str]], maxdim: Union[int, None] = None
+    keys: Union[list[str], tuple[str]], maxdim: Union[int, None] = None
 ) -> Validator:
     """Checks that all of the keys have the same shape
     If all the supplied inputs have matching shapes, this validator
@@ -457,7 +457,7 @@ class Parameter:
 
     def __init__(
         self,
-        validators: Union[Callable[..., bool], List[Callable[..., bool]]],
+        validators: Union[Callable[..., bool], list[Callable[..., bool]]],
         default_value=None,
         optional=False,
     ):
@@ -492,8 +492,8 @@ class ParameterValidator:
 
     def __init__(
         self,
-        parameters: Dict[str, Parameter],
-        post_validators: Optional[List[Validator]] = None,
+        parameters: dict[str, Parameter],
+        post_validators: Optional[list[Validator]] = None,
     ):
         """
         :param parameters: a dictionary of input parameters. An example might be:
@@ -518,8 +518,8 @@ class ParameterValidator:
             if not isinstance(post_validator, Validator):
                 raise TypeError("All items in post_validators must be a Validator")
 
-        self.parameters: Dict[str, Parameter] = parameters
-        self.post_validators: List[Validator] = post_validators
+        self.parameters: dict[str, Parameter] = parameters
+        self.post_validators: list[Validator] = post_validators
 
     def get_defaults(self) -> dict:
         """Return a dictionary of default values for each of the parameters
@@ -533,7 +533,7 @@ class ParameterValidator:
                 defaults[parameter_key] = parameter_value.default_value
         return defaults
 
-    def validate(self, d: dict, error_type: Type[Exception] = ValidationError) -> dict:
+    def validate(self, d: dict, error_type: type[Exception] = ValidationError) -> dict:
         """
         Validate an input dictionary, replacing missing dictionary entries with default values.
         If any of the dictionary entries are invalid w.r.t. any of the validators, a

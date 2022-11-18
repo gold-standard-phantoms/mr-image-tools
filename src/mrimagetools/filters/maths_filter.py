@@ -148,7 +148,7 @@ class MathsFilter(BaseFilter):
         - all BaseImageContainer parameters must have matching shape and affine matrices
         """
         # expression must be a string
-        image_containers: Dict[str, BaseImageContainer] = {}
+        image_containers: dict[str, BaseImageContainer] = {}
 
         # Check that all of the input variables are of a valid type
         for key, value in self.inputs.items():

@@ -3,7 +3,8 @@
 import copy
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any, Dict, List, Optional
 
 from mrimagetools.utils.general import map_dict
 
@@ -42,7 +43,7 @@ class FilterLoopError(Exception):
 FILTER = "filter"
 IO_MAP = "io_map"
 
-FilterDictType = Dict[str, Any]
+FilterDictType = dict[str, Any]
 
 
 class BaseFilter(ABC):
@@ -178,7 +179,7 @@ class BaseFilter(ABC):
         self.parent_dict_list.append(new_parent_dict)
 
     def run(
-        self, validate_only: bool = False, history: Optional[List["BaseFilter"]] = None
+        self, validate_only: bool = False, history: Optional[list["BaseFilter"]] = None
     ) -> None:
         """Calls the _run class on all parents (recursively) to make sure they are up-to-date.
         Then maps the parents' outputs to inputs for this filter.

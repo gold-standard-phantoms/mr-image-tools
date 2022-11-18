@@ -13,14 +13,14 @@ InputType = Union[np.ndarray, float, int, complex]
 
 # These will be used as defaults if they are not changed in the ExpressionEvaluator
 SUPPORTED_UNARY_OPERATORS: Final[
-    Dict[Type[ast.AST], Callable[[InputType], InputType]]
+    dict[type[ast.AST], Callable[[InputType], InputType]]
 ] = {
     ast.USub: lambda x: np.subtract(0, x),
 }
 
 # These will be used as defaults if they are not changed in the ExpressionEvaluator
 SUPPORTED_BINARY_OPERATORS: Final[
-    Dict[Type[ast.AST], Callable[[InputType, InputType], InputType]]
+    dict[type[ast.AST], Callable[[InputType, InputType], InputType]]
 ] = {
     ast.Add: np.add,
     ast.Sub: np.subtract,
@@ -111,15 +111,15 @@ class ExpressionEvaluator:
     Once run, the filter will return the result, which may be a numpy array, float, int or complex.
     """
 
-    unary_operators: Dict[Type[ast.AST], Callable[[InputType], InputType]] = field(
+    unary_operators: dict[type[ast.AST], Callable[[InputType], InputType]] = field(
         default_factory=lambda: copy(SUPPORTED_UNARY_OPERATORS)
     )
 
-    binary_operators: Dict[
-        Type[ast.AST], Callable[[InputType, InputType], InputType]
+    binary_operators: dict[
+        type[ast.AST], Callable[[InputType, InputType], InputType]
     ] = field(default_factory=lambda: copy(SUPPORTED_BINARY_OPERATORS))
 
-    def _eval(self, node: ast.AST, variables: Dict[str, InputType]) -> InputType:
+    def _eval(self, node: ast.AST, variables: dict[str, InputType]) -> InputType:
         """Evaluates the node using the supplied variables and the supported operators
         :param node: The ast node
         :param variables: The variables to be substituted into the expression
@@ -148,7 +148,7 @@ class ExpressionEvaluator:
 
     # pylint: disable=too-many-return-statements
     def _valid(
-        self, node: ast.AST, variables: Dict[str, InputType], raise_exception=False
+        self, node: ast.AST, variables: dict[str, InputType], raise_exception=False
     ) -> bool:
         """Determines whether the expression can be evaluated with the given variables.
         Optionally, raises an exception if the expression cannot be evaluated

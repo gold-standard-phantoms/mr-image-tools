@@ -22,13 +22,13 @@ SchemaNames = Literal[
 ]
 
 
-def load_schemas() -> Dict[SchemaNames, Any]:
+def load_schemas() -> dict[SchemaNames, Any]:
     """Return all of the schemas in this directory in a dictionary where
     the keys are the filename (without the .json extension) and the values
     are the JSON schemas (in dictionary format)
     :raises jsonschema.exceptions.SchemaError if any of the JSON files in this
     directory are not valid (Draft 7) JSON schemas"""
-    schemas: Dict[SchemaNames, Any] = {}
+    schemas: dict[SchemaNames, Any] = {}
 
     for schema in get_args(SchemaNames):
         # Override some of the JSON schemas

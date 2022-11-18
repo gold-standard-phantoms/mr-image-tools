@@ -2,8 +2,9 @@
 import json
 import logging
 import os
+from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Any, Dict, Final, Literal, Optional, Sequence, Union
+from typing import Any, Dict, Final, Literal, Optional, Union
 
 import git
 import nibabel as nib
@@ -219,7 +220,7 @@ class BidsOutputFilter(BaseFilter):
     GT_SUBDIR: Final[str] = "ground_truth"
 
     # metadata parameters to BIDS fields mapping dictionary
-    BIDS_MAPPING: Final[Dict] = {
+    BIDS_MAPPING: Final[dict] = {
         GkmFilter.KEY_LABEL_TYPE: "ArterialSpinLabelingType",
         GkmFilter.KEY_LABEL_DURATION: "LabelingDuration",
         GkmFilter.KEY_LABEL_EFFICIENCY: "LabelingEfficiency",
@@ -250,14 +251,14 @@ class BidsOutputFilter(BaseFilter):
     }
 
     # maps ASLDRO MRI contrast to BIDS contrast names
-    ACQ_CONTRAST_MAPPING: Final[Dict] = {
+    ACQ_CONTRAST_MAPPING: Final[dict] = {
         MriSignalFilter.CONTRAST_GE: "GR",
         MriSignalFilter.CONTRAST_SE: "SE",
         MriSignalFilter.CONTRAST_IR: "IR",
     }
 
     # maps ASLDRO image type names to complex components used in BIDS
-    COMPLEX_IMAGE_COMPONENT_MAPPING: Final[Dict] = {
+    COMPLEX_IMAGE_COMPONENT_MAPPING: Final[dict] = {
         REAL_IMAGE_TYPE: "REAL",
         IMAGINARY_IMAGE_TYPE: "IMAGINARY",
         COMPLEX_IMAGE_TYPE: "COMPLEX",
@@ -266,7 +267,7 @@ class BidsOutputFilter(BaseFilter):
     }
 
     # Maps ASLDRO tissue types to BIDS standard naming
-    LABEL_MAP_MAPPING: Final[Dict] = {
+    LABEL_MAP_MAPPING: Final[dict] = {
         "background": "BG",
         "grey_matter": "GM",
         "white_matter": "WM",
@@ -275,7 +276,7 @@ class BidsOutputFilter(BaseFilter):
         "lesion": "L",
     }
 
-    QUANTITY_MAPPING: Final[Dict] = {
+    QUANTITY_MAPPING: Final[dict] = {
         "t1": "T1map",
         "t2": "T2map",
         "t2_star": "T2starmap",
@@ -296,7 +297,7 @@ class BidsOutputFilter(BaseFilter):
         subject_string = "sub-" + self.inputs[self.KEY_SUBJECT_LABEL]
         output_directory = os.path.join(output_directory, subject_string)
         # map the image metadata to the json sidecar
-        json_sidecar: Dict[str, Any] = map_dict(
+        json_sidecar: dict[str, Any] = map_dict(
             image.metadata.dict(exclude_unset=True),
             self.BIDS_MAPPING,
             io_map_optional=True,

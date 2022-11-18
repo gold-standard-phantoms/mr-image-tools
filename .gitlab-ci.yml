@@ -1,5 +1,12 @@
 default:
-  image: python:3.8-bullseye
+  image: python:3.9-bullseye
+
+before_script:
+  - apt update
+  - apt install -y locales
+  - locale-gen "en_GB.UTF-8"
+  - mkdir -p ~/.pip
+  - echo "$PIP_CONF" > ~/.pip/pip.conf
 
 stages:
   - test
@@ -20,14 +27,35 @@ python:
       - coverage_html_report
     expire_in: 1 day
 
+deploy_development:
+  stage: deploy
+  variables:
+    # Set to use GSPs private pypi index
+    TWINE_USERNAME: '${PRIVATE_PYPI_USERNAME}'
+    TWINE_REPOSITORY_URL: '${PRIVATE_PYPI_URL}'
+    TWINE_PASSWORD: '${PRIVATE_PYPI_PASSWORD}'
+  script:
+    - python -m pip install -U twine
+    - python setup.py sdist bdist_wheel
+    - python -m twine upload dist/*
+  only:
+    - develop
+
 deploy_production:
   stage: deploy
+  variables:
+    # Set to use GSPs private pypi index
+    # To change to https://pypi.org/:
+    # - remove the TWINE_REPOSITORY_URL
+    # - change TWINE_USERNAME to __token__ (double underscores)
+    # - change TWINE_PASSWORD to the pypi API token
+    TWINE_USERNAME: __token__
+    TWINE_REPOSITORY_URL: '${PRIVATE_PYPI_URL}'
+    TWINE_PASSWORD: '${PRIVATE_PYPI_PASSWORD}'
   script:
-    - python3 -m pip install -U twine
-    - python3 setup.py sdist bdist_wheel
-    # Upload to the public PyPI index - assumes env variable TWINE_PASSWORD
-    # is set to the API token
-    - TWINE_USERNAME=__token__ python -m twine upload dist/*
+    - python -m pip install -U twine
+    - python setup.py sdist bdist_wheel
+    - python -m twine upload dist/*
   only:
     - master
 

@@ -37,16 +37,16 @@ class GroundTruthConfig(GenericParameterModel):
     that need to be calculated"""
 
     # Quantities that must correspond with the size of the 5th input image dimension
-    quantities: List[Quantity]
+    quantities: list[Quantity]
     # Any calculated quantities - defaults to an empty list
-    calculated_quantities: List[CalculatedQuantity] = Field(default_factory=list)
+    calculated_quantities: list[CalculatedQuantity] = Field(default_factory=list)
     # Any parameters
     parameters: dict = Field(default_factory=dict)
     # Any segmentation_labels - defaults to an empty dict
-    segmentation_labels: Dict[str, Dict[str, int]] = Field(default_factory=dict)
+    segmentation_labels: dict[str, dict[str, int]] = Field(default_factory=dict)
 
     @validator("quantities", "calculated_quantities")
-    def quantity_names_are_unique(cls, value: List[Quantity]) -> List[Quantity]:
+    def quantity_names_are_unique(cls, value: list[Quantity]) -> list[Quantity]:
         """To check the quantity names are unique"""
 
         names = [quantity.name for quantity in value]
@@ -57,8 +57,8 @@ class GroundTruthConfig(GenericParameterModel):
 
     @validator("segmentation_labels")
     def segmentation_label_checks(
-        cls, value: Dict[str, Dict[str, int]]
-    ) -> Dict[str, Dict[str, int]]:
+        cls, value: dict[str, dict[str, int]]
+    ) -> dict[str, dict[str, int]]:
         """checks that segmentaion_labels has no negative values and no duplicate"""
         for _, dictionary in value.items():
             # checks no negative values
@@ -79,16 +79,16 @@ class GroundTruthInput(GenericParameterModel):
     image: NiftiImageContainer
     config: GroundTruthConfig
     # parameter_validator
-    parameter_validator_type: Optional[Type[BaseModel]] = None
+    parameter_validator_type: Optional[type[BaseModel]] = None
 
     # Any required quantities. These should be supplied in the `config.quantities` or
     # `self.calculated_quantities` field
-    required_quantities: Optional[Tuple[str, ...]]
+    required_quantities: Optional[tuple[str, ...]]
 
     @root_validator(skip_on_failure=True)
     def check_parameters_match_model(cls, values: dict) -> dict:
         """Check that the parameters are validated by the parameter_validator"""
-        parameter_validator_type: Optional[Type[BaseModel]] = values.get(
+        parameter_validator_type: Optional[type[BaseModel]] = values.get(
             "parameter_validator_type", None
         )
         if parameter_validator_type is not None:
@@ -153,7 +153,7 @@ class GroundTruthInput(GenericParameterModel):
         quantity_names = [quantity.name for quantity in values["config"].quantities] + [
             quantity.name for quantity in values["config"].calculated_quantities
         ]
-        required_quantities: Optional[Tuple[str, ...]] = values["required_quantities"]
+        required_quantities: Optional[tuple[str, ...]] = values["required_quantities"]
         if required_quantities is None:
             return values
         for quantity in required_quantities:
@@ -168,7 +168,7 @@ class GroundTruthInput(GenericParameterModel):
 class GroundTruthOutput(ParameterModel):
     """All of the outputs for the GroundTruthParser"""
 
-    images: Dict[str, BaseImageContainer]
+    images: dict[str, BaseImageContainer]
     config: GroundTruthConfig
 
 
@@ -204,14 +204,14 @@ class GroundTruthParser(BaseFilter):
 
     def __init__(
         self,
-        required_quantities: Optional[Tuple[str, ...]] = None,
-        parameter_model: Type[BaseModel] = BaseModel,
+        required_quantities: Optional[tuple[str, ...]] = None,
+        parameter_model: type[BaseModel] = BaseModel,
     ) -> None:
         super().__init__(name="Ground Truth Parser")
-        self.required_quantities: Final[Optional[Tuple[str, ...]]] = required_quantities
+        self.required_quantities: Final[Optional[tuple[str, ...]]] = required_quantities
         self.parsed_inputs: GroundTruthInput
         self.parsed_outputs: GroundTruthOutput
-        self.parameter_model: Type[BaseModel] = parameter_model
+        self.parameter_model: type[BaseModel] = parameter_model
 
     def _get_parsed_inputs(self) -> GroundTruthInput:
         return GroundTruthInput(
@@ -232,7 +232,7 @@ class GroundTruthParser(BaseFilter):
         shared_header["dim"][5] = 1  # tidy the 5th dimensions size
 
         # For each new image, based on the "quantities"
-        output_images: Dict[str, BaseImageContainer] = {}
+        output_images: dict[str, BaseImageContainer] = {}
         for quantity_index, quantity in enumerate(self.parsed_inputs.config.quantities):
             # HEADER
             # Create a copy of the shared header - we might want to modify this further

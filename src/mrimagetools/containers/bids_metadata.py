@@ -52,11 +52,11 @@ class CASLType(Enum):
 
 
 class ChunkTransformationMatrixItem(ParameterModel):
-    __root__: List[Any]
+    __root__: list[Any]
 
 
 class ChunkTransformationMatrixItem1(ParameterModel):
-    __root__: List[Any]
+    __root__: list[Any]
 
 
 class ContrastBolusIngredient(Enum):
@@ -564,7 +564,7 @@ class BidsMetadata(ParameterModel):
             'Type of acquisition of the PET data (for example, `"list mode"`).\n'
         ),
     )
-    AcquisitionVoxelSize: Optional[List[AcquisitionVoxelSizeItem]] = Field(
+    AcquisitionVoxelSize: Optional[list[AcquisitionVoxelSizeItem]] = Field(
         None,
         description=(
             "An array of numbers with a length of 3, in millimeters.\nThis parameter"
@@ -580,7 +580,7 @@ class BidsMetadata(ParameterModel):
     Anaesthesia: Optional[str] = Field(
         None, description="Details of anaesthesia used, if any.\n"
     )
-    AnalyticalApproach: Optional[Union[str, List[str]]] = Field(
+    AnalyticalApproach: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             'Methodology or methodologies used to analyse the `"GeneticLevel"`.\nValues'
@@ -616,7 +616,7 @@ class BidsMetadata(ParameterModel):
             'Units of the coordinates of `"AnatomicalLandmarkCoordinateSystem"`.\n'
         ),
     )
-    AnatomicalLandmarkCoordinates: Optional[Dict[str, List[float]]] = Field(
+    AnatomicalLandmarkCoordinates: Optional[dict[str, list[float]]] = Field(
         None,
         description=(
             "Key:value pairs of the labels and 3-D digitized locations of anatomical"
@@ -627,7 +627,7 @@ class BidsMetadata(ParameterModel):
             " z\naxis of the coordinate system in that exact order.\n"
         ),
     )
-    AnatomicalLandmarkCoordinates__mri: Optional[Dict[str, List[float]]] = Field(
+    AnatomicalLandmarkCoordinates__mri: Optional[dict[str, list[float]]] = Field(
         None,
         description=(
             "Key:value pairs of any number of additional anatomical landmarks and"
@@ -642,7 +642,7 @@ class BidsMetadata(ParameterModel):
     ArterialSpinLabelingType: Optional[ArterialSpinLabelingType] = Field(
         None, description="The arterial spin labeling type.\n"
     )
-    AssociatedEmptyRoom: Optional[Union[List[str], str]] = Field(
+    AssociatedEmptyRoom: Optional[Union[list[str], str]] = Field(
         None,
         description=(
             "Relative path in BIDS folder structure to empty-room file associated"
@@ -662,14 +662,14 @@ class BidsMetadata(ParameterModel):
         None,
         description="Reference paper for the attenuation correction method used.\n",
     )
-    Authors: Optional[List[str]] = Field(
+    Authors: Optional[list[str]] = Field(
         None,
         description=(
             "List of individuals who contributed to the creation/curation of the"
             " dataset.\n"
         ),
     )
-    B0FieldIdentifier: Optional[Union[str, List[str]]] = Field(
+    B0FieldIdentifier: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "The presence of this key states that this particular 3D or 4D image MAY"
@@ -682,7 +682,7 @@ class BidsMetadata(ParameterModel):
             " former is not defined (for example, in GE devices.)\n"
         ),
     )
-    B0FieldSource: Optional[Union[str, List[str]]] = Field(
+    B0FieldSource: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             'At least one existing `"B0FieldIdentifier"` defined by images in'
@@ -708,7 +708,7 @@ class BidsMetadata(ParameterModel):
             " labeling.\n"
         ),
     )
-    BackgroundSuppressionPulseTime: Optional[List[confloat(ge=0.0)]] = Field(
+    BackgroundSuppressionPulseTime: Optional[list[confloat(ge=0.0)]] = Field(
         None,
         description=(
             "Array of numbers containing timing, in seconds,\nof the background"
@@ -717,7 +717,7 @@ class BidsMetadata(ParameterModel):
             " pulse time of the first PLD should be defined.\n"
         ),
     )
-    BasedOn: Optional[Union[str, List[str]]] = Field(
+    BasedOn: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "List of files in a file collection to generate the map.\nFieldmaps are"
@@ -749,7 +749,7 @@ class BidsMetadata(ParameterModel):
         ),
     )
     BolusCutOffDelayTime: Optional[
-        Union[confloat(ge=0.0), List[confloat(ge=0.0)]]
+        Union[confloat(ge=0.0), list[confloat(ge=0.0)]]
     ] = Field(
         None,
         description=(
@@ -808,7 +808,7 @@ class BidsMetadata(ParameterModel):
         ),
     )
     ChunkTransformationMatrix: Optional[
-        Union[List[ChunkTransformationMatrixItem], List[ChunkTransformationMatrixItem1]]
+        Union[list[ChunkTransformationMatrixItem], list[ChunkTransformationMatrixItem1]]
     ] = Field(
         None,
         description=(
@@ -821,7 +821,7 @@ class BidsMetadata(ParameterModel):
             " channel are not included in the\ntransformation matrix.\n"
         ),
     )
-    ChunkTransformationMatrixAxis: Optional[List[str]] = Field(
+    ChunkTransformationMatrixAxis: Optional[list[str]] = Field(
         None,
         description=(
             'Describe the axis of the ChunkTransformationMatrix\n(for examples: `["X",'
@@ -864,7 +864,7 @@ class BidsMetadata(ParameterModel):
             " reported.\n"
         ),
     )
-    Columns: Optional[List[str]] = Field(
+    Columns: Optional[list[str]] = Field(
         None, description="Names of columns in file.\n"
     )
     ContinuousHeadLocalization: Optional[bool] = Field(
@@ -906,7 +906,7 @@ class BidsMetadata(ParameterModel):
             ' default value is `"raw"`.\n'
         ),
     )
-    DecayCorrectionFactor: Optional[List[float]] = Field(
+    DecayCorrectionFactor: Optional[list[float]] = Field(
         None, description="Decay correction factor for each frame.\n"
     )
     DelayAfterTrigger: Optional[float] = Field(
@@ -931,7 +931,7 @@ class BidsMetadata(ParameterModel):
             ' is mutually exclusive with `"VolumeTiming"`.\n'
         ),
     )
-    Density: Optional[Union[str, Dict[str, str]]] = Field(
+    Density: Optional[Union[str, dict[str, str]]] = Field(
         None,
         description=(
             "Specifies the interpretation of the density keyword.\nIf an object is"
@@ -1110,7 +1110,7 @@ class BidsMetadata(ParameterModel):
     EOGChannelCount: Optional[conint(ge=0)] = Field(
         None, description="Number of EOG channels.\n"
     )
-    EchoTime: Optional[Union[PositiveFloat, List[PositiveFloat]]] = Field(
+    EchoTime: Optional[Union[PositiveFloat, list[PositiveFloat]]] = Field(
         None,
         description=(
             "The echo time (TE) for the acquisition, specified in seconds.\nCorresponds"
@@ -1209,7 +1209,7 @@ class BidsMetadata(ParameterModel):
             "Reference to the study/studies on which the implementation is based.\n"
         ),
     )
-    EthicsApprovals: Optional[List[str]] = Field(
+    EthicsApprovals: Optional[list[str]] = Field(
         None,
         description=(
             "List of ethics committee approvals of the research protocols"
@@ -1242,7 +1242,7 @@ class BidsMetadata(ParameterModel):
             ' field\n`"FiducialsCoordinateSystem"` are represented.\n'
         ),
     )
-    FiducialsCoordinates: Optional[Dict[str, List[float]]] = Field(
+    FiducialsCoordinates: Optional[dict[str, list[float]]] = Field(
         None,
         description=(
             "Key:value pairs of the labels and 3-D digitized position of"
@@ -1263,7 +1263,7 @@ class BidsMetadata(ParameterModel):
         ),
     )
     FlipAngle: Optional[
-        Union[confloat(le=360.0, gt=0.0), List[confloat(le=360.0, gt=0.0)]]
+        Union[confloat(le=360.0, gt=0.0), list[confloat(le=360.0, gt=0.0)]]
     ] = Field(
         None,
         description=(
@@ -1280,27 +1280,27 @@ class BidsMetadata(ParameterModel):
             " variable flip angle fMRI sequences.\n"
         ),
     )
-    FrameDuration: Optional[List[float]] = Field(
+    FrameDuration: Optional[list[float]] = Field(
         None,
         description=(
             "Time duration of each frame in default unit seconds.\nThis corresponds to"
             " DICOM Tag 0018, 1242 `Actual Frame Duration` converted\nto seconds.\n"
         ),
     )
-    FrameTimesStart: Optional[List[float]] = Field(
+    FrameTimesStart: Optional[list[float]] = Field(
         None,
         description=(
             'Start times for all frames relative to `"TimeZero"` in default unit'
             " seconds.\n"
         ),
     )
-    Funding: Optional[List[str]] = Field(
+    Funding: Optional[list[str]] = Field(
         None, description="List of sources of funding (grant numbers).\n"
     )
-    GeneratedBy: Optional[List[GeneratedByItem]] = Field(
+    GeneratedBy: Optional[list[GeneratedByItem]] = Field(
         None, description="Used to specify provenance of the dataset.\n", min_items=1
     )
-    GeneticLevel: Optional[Union[Any, List[Any]]] = Field(
+    GeneticLevel: Optional[Union[Any, list[Any]]] = Field(
         None,
         description=(
             'Describes the level of analysis.\nValues MUST be one of `"Genetic"`,'
@@ -1324,7 +1324,7 @@ class BidsMetadata(ParameterModel):
             " can be retrieved.\n"
         ),
     )
-    Genetics_Descriptors: Optional[Union[str, List[str]]] = Field(
+    Genetics_Descriptors: Optional[Union[str, list[str]]] = Field(
         None,
         alias="Genetics.Descriptors",
         description=(
@@ -1347,7 +1347,7 @@ class BidsMetadata(ParameterModel):
             " should be\nreported independently.\n"
         ),
     )
-    HED: Optional[Union[str, Dict[str, str]]] = Field(
+    HED: Optional[Union[str, dict[str, str]]] = Field(
         None,
         description=(
             "Hierarchical Event Descriptor (HED) information,\nsee: [Appendix"
@@ -1376,7 +1376,7 @@ class BidsMetadata(ParameterModel):
             " `Hardcopy Device Software Version`.\n"
         ),
     )
-    HardwareFilters: Optional[Union[Dict[str, Dict[str, Any]], HardwareFilter]] = Field(
+    HardwareFilters: Optional[Union[dict[str, dict[str, Any]], HardwareFilter]] = Field(
         None,
         description=(
             'Object of temporal hardware filters applied, or `"n/a"` if the data is'
@@ -1414,7 +1414,7 @@ class BidsMetadata(ParameterModel):
     HeadCoilCoordinateUnits: Optional[HeadCoilCoordinateUnits] = Field(
         None, description="Units of the coordinates of `HeadCoilCoordinateSystem`.\n"
     )
-    HeadCoilCoordinates: Optional[Dict[str, List[float]]] = Field(
+    HeadCoilCoordinates: Optional[dict[str, list[float]]] = Field(
         None,
         description=(
             "Key:value pairs describing head localization coil labels and"
@@ -1429,7 +1429,7 @@ class BidsMetadata(ParameterModel):
             " system in that exact order.\n"
         ),
     )
-    HeadCoilFrequency: Optional[Union[float, List[float]]] = Field(
+    HeadCoilFrequency: Optional[Union[float, list[float]]] = Field(
         None,
         description=(
             "List of frequencies (in Hz) used by the head localisation coils\n('HLC' in"
@@ -1586,7 +1586,7 @@ class BidsMetadata(ParameterModel):
             "Text of the instructions given to participants before the recording.\n"
         ),
     )
-    IntendedFor: Optional[Union[str, List[str]]] = Field(
+    IntendedFor: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "The paths to files for which the associated file is intended to be"
@@ -1616,7 +1616,7 @@ class BidsMetadata(ParameterModel):
             " C.8.13.5.14.\n"
         ),
     )
-    LabelingDuration: Optional[Union[confloat(ge=0.0), List[confloat(ge=0.0)]]] = Field(
+    LabelingDuration: Optional[Union[confloat(ge=0.0), list[confloat(ge=0.0)]]] = Field(
         None,
         description=(
             "Total duration of the labeling pulse train, in seconds,\ncorresponding to"
@@ -1650,7 +1650,7 @@ class BidsMetadata(ParameterModel):
             " on DICOM macro C.8.13.5.14.\n"
         ),
     )
-    LabelingOrientation: Optional[List[float]] = Field(
+    LabelingOrientation: Optional[list[float]] = Field(
         None,
         description=(
             "Orientation of the labeling plane (`(P)CASL`) or slab (`PASL`).\nThe"
@@ -1703,7 +1703,7 @@ class BidsMetadata(ParameterModel):
             " Thickness`.\n"
         ),
     )
-    Levels: Optional[Dict[str, str]] = Field(
+    Levels: Optional[dict[str, str]] = Field(
         None,
         description=(
             "For categorical variables: An object of possible values (keys) and"
@@ -2005,7 +2005,7 @@ class BidsMetadata(ParameterModel):
             ' independent of the value of\n`"NumberOfVolumesDiscardedByUser"` field.\n'
         ),
     )
-    NumberShots: Optional[Union[float, List[float]]] = Field(
+    NumberShots: Optional[Union[float, list[float]]] = Field(
         None,
         description=(
             "The number of RF excitations needed to reconstruct a slice or volume\n(may"
@@ -2080,7 +2080,7 @@ class BidsMetadata(ParameterModel):
             " Direction`.\n"
         ),
     )
-    PharmaceuticalDoseAmount: Optional[Union[float, List[float]]] = Field(
+    PharmaceuticalDoseAmount: Optional[Union[float, list[float]]] = Field(
         None, description="Dose amount of pharmaceutical coadministered with tracer.\n"
     )
     PharmaceuticalDoseRegimen: Optional[str] = Field(
@@ -2091,7 +2091,7 @@ class BidsMetadata(ParameterModel):
             ' `"single oral bolus"`).\n'
         ),
     )
-    PharmaceuticalDoseTime: Optional[Union[float, List[float]]] = Field(
+    PharmaceuticalDoseTime: Optional[Union[float, list[float]]] = Field(
         None,
         description=(
             "Time of administration of pharmaceutical dose, relative to time zero.\nFor"
@@ -2126,7 +2126,7 @@ class BidsMetadata(ParameterModel):
             " values.\n"
         ),
     )
-    PixelSize: Optional[List[PixelSizeItem]] = Field(
+    PixelSize: Optional[list[PixelSizeItem]] = Field(
         None,
         description=(
             "A 2- or 3-number array of the physical size of a pixel, either"
@@ -2163,7 +2163,7 @@ class BidsMetadata(ParameterModel):
     PlasmaFreeFractionMethod: Optional[str] = Field(
         None, description="Method used to estimate free fraction.\n"
     )
-    PostLabelingDelay: Optional[Union[PositiveFloat, List[PositiveFloat]]] = Field(
+    PostLabelingDelay: Optional[Union[PositiveFloat, list[PositiveFloat]]] = Field(
         None,
         description=(
             "This is the postlabeling delay (PLD) time, in seconds, after the end of"
@@ -2186,7 +2186,7 @@ class BidsMetadata(ParameterModel):
             " the\ninstrument (for example, `50` or `60`).\n"
         ),
     )
-    PromptRate: Optional[List[float]] = Field(
+    PromptRate: Optional[list[float]] = Field(
         None,
         description=(
             "Prompt rate for each frame (same units as `Units`, for example,"
@@ -2213,14 +2213,14 @@ class BidsMetadata(ParameterModel):
     Purity: Optional[confloat(ge=0.0, le=100.0)] = Field(
         None, description="Purity of the radiolabeled compound (between 0 and 100%).\n"
     )
-    RandomRate: Optional[List[float]] = Field(
+    RandomRate: Optional[list[float]] = Field(
         None,
         description=(
             'Random rate for each frame (same units as `"Units"`, for example,'
             ' `"Bq/mL"`).\n'
         ),
     )
-    RawSources: Optional[List[str]] = Field(
+    RawSources: Optional[list[str]] = Field(
         None,
         description=(
             "A list of paths relative to dataset root pointing to the BIDS-Raw"
@@ -2245,13 +2245,13 @@ class BidsMetadata(ParameterModel):
             " appropriate\nprivate DICOM field.\n"
         ),
     )
-    ReconFilterSize: Optional[Union[float, List[float]]] = Field(
+    ReconFilterSize: Optional[Union[float, list[float]]] = Field(
         None,
         description=(
             'Kernel size of post-recon filter (FWHM) in default units `"mm"`.\n'
         ),
     )
-    ReconFilterType: Optional[Union[str, List[str]]] = Field(
+    ReconFilterType: Optional[Union[str, list[str]]] = Field(
         None, description='Type of post-recon smoothing (for example, `["Shepp"]`).\n'
     )
     ReconMethodImplementationVersion: Optional[str] = Field(
@@ -2264,20 +2264,20 @@ class BidsMetadata(ParameterModel):
             'Reconstruction method or algorithm (for example, `"3d-op-osem"`).\n'
         ),
     )
-    ReconMethodParameterLabels: Optional[List[str]] = Field(
+    ReconMethodParameterLabels: Optional[list[str]] = Field(
         None,
         description=(
             'Names of reconstruction parameters (for example, `["subsets",'
             ' "iterations"]`).\n'
         ),
     )
-    ReconMethodParameterUnits: Optional[List[str]] = Field(
+    ReconMethodParameterUnits: Optional[list[str]] = Field(
         None,
         description=(
             'Unit of reconstruction parameters (for example, `["none", "none"]`).\n'
         ),
     )
-    ReconMethodParameterValues: Optional[List[float]] = Field(
+    ReconMethodParameterValues: Optional[list[float]] = Field(
         None,
         description="Values of reconstruction parameters (for example, `[21, 3]`).\n",
     )
@@ -2293,7 +2293,7 @@ class BidsMetadata(ParameterModel):
             " responses).\n"
         ),
     )
-    ReferencesAndLinks: Optional[List[str]] = Field(
+    ReferencesAndLinks: Optional[list[str]] = Field(
         None,
         description=(
             "List of references to publications that contain information on the"
@@ -2338,7 +2338,7 @@ class BidsMetadata(ParameterModel):
         ),
     )
     RepetitionTimePreparation: Optional[
-        Union[confloat(ge=0.0), List[confloat(ge=0.0)]]
+        Union[confloat(ge=0.0), list[confloat(ge=0.0)]]
     ] = Field(
         None,
         description=(
@@ -2352,7 +2352,7 @@ class BidsMetadata(ParameterModel):
             " in\n[ASL](/04-modality-specific-files/01-magnetic-resonance-imaging-data.html\\\n#arterial-spin-labeling-perfusion-data).\n"
         ),
     )
-    Resolution: Optional[Union[str, Dict[str, str]]] = Field(
+    Resolution: Optional[Union[str, dict[str, str]]] = Field(
         None,
         description=(
             "Specifies the interpretation of the resolution keyword.\nIf an object is"
@@ -2406,7 +2406,7 @@ class BidsMetadata(ParameterModel):
             "Describes from which tissue the genetic information was extracted.\n"
         ),
     )
-    SamplePrimaryAntibody: Optional[Union[str, List[str]]] = Field(
+    SamplePrimaryAntibody: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "Description(s) of the primary antibody used for immunostaining.\nEither an"
@@ -2419,7 +2419,7 @@ class BidsMetadata(ParameterModel):
             " in each channel of the file.\n"
         ),
     )
-    SampleSecondaryAntibody: Optional[Union[str, List[str]]] = Field(
+    SampleSecondaryAntibody: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "Description(s) of the secondary antibody used for immunostaining.\nEither"
@@ -2432,7 +2432,7 @@ class BidsMetadata(ParameterModel):
             " each channel of the file.\n"
         ),
     )
-    SampleStaining: Optional[Union[str, List[str]]] = Field(
+    SampleStaining: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "Description(s) of the tissue sample staining (for example:"
@@ -2447,7 +2447,7 @@ class BidsMetadata(ParameterModel):
             " of their type (for example, `2400`).\n"
         ),
     )
-    ScaleFactor: Optional[List[float]] = Field(
+    ScaleFactor: Optional[list[float]] = Field(
         None, description="Scale factor for each frame.\n"
     )
     ScanDate: Optional[date] = Field(
@@ -2459,7 +2459,7 @@ class BidsMetadata(ParameterModel):
             " file](/03-modality-agnostic-files.html#scans-file).\n"
         ),
     )
-    ScanOptions: Optional[Union[str, List[str]]] = Field(
+    ScanOptions: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "Parameters of ScanningSequence.\nCorresponds to DICOM Tag 0018, 0022 `Scan"
@@ -2473,14 +2473,14 @@ class BidsMetadata(ParameterModel):
             " seconds.\n"
         ),
     )
-    ScanningSequence: Optional[Union[str, List[str]]] = Field(
+    ScanningSequence: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "Description of the type of data acquired.\nCorresponds to DICOM Tag 0018,"
             " 0020 `Scanning Sequence`.\n"
         ),
     )
-    ScatterFraction: Optional[List[confloat(ge=0.0, le=100.0)]] = Field(
+    ScatterFraction: Optional[list[confloat(ge=0.0, le=100.0)]] = Field(
         None, description="Scatter fraction for each frame (Units: 0-100%).\n"
     )
     SequenceName: Optional[str] = Field(
@@ -2490,14 +2490,14 @@ class BidsMetadata(ParameterModel):
             " 0018, 0024 `Sequence Name`.\n"
         ),
     )
-    SequenceVariant: Optional[Union[str, List[str]]] = Field(
+    SequenceVariant: Optional[Union[str, list[str]]] = Field(
         None,
         description=(
             "Variant of the ScanningSequence.\nCorresponds to DICOM Tag 0018, 0021"
             " `Sequence Variant`.\n"
         ),
     )
-    SinglesRate: Optional[List[float]] = Field(
+    SinglesRate: Optional[list[float]] = Field(
         None,
         description=(
             "Singles rate for each frame (same units as `Units`, for example,"
@@ -2534,7 +2534,7 @@ class BidsMetadata(ParameterModel):
             " example: `5`).\n"
         ),
     )
-    SliceTiming: Optional[List[confloat(ge=0.0)]] = Field(
+    SliceTiming: Optional[list[confloat(ge=0.0)]] = Field(
         None,
         description=(
             "The time at which each slice was acquired within each volume (frame) of"
@@ -2552,7 +2552,7 @@ class BidsMetadata(ParameterModel):
             " possible.\n"
         ),
     )
-    SoftwareFilters: Optional[Union[Dict[str, Dict[str, Any]], SoftwareFilter]] = Field(
+    SoftwareFilters: Optional[Union[dict[str, dict[str, Any]], SoftwareFilter]] = Field(
         None,
         description=(
             "[Object](https://www.json.org/json-en.html)\nof temporal software filters"
@@ -2586,7 +2586,7 @@ class BidsMetadata(ParameterModel):
             " produced\nthe measurements.\n"
         ),
     )
-    SourceDatasets: Optional[List[SourceDataset]] = Field(
+    SourceDatasets: Optional[list[SourceDataset]] = Field(
         None,
         description=(
             "Used to specify the locations and relevant attributes of all source"
@@ -2596,7 +2596,7 @@ class BidsMetadata(ParameterModel):
             " with\n[string](https://www.w3schools.com/js/js_json_datatypes.asp)\nvalues.\n"
         ),
     )
-    Sources: Optional[List[str]] = Field(
+    Sources: Optional[list[str]] = Field(
         None,
         description=(
             "A list of files with the paths specified relative to dataset root;\nthese"
@@ -2614,7 +2614,7 @@ class BidsMetadata(ParameterModel):
             SpatialReferenceEnum,
             AnyUrl,
             str,
-            Dict[str, Union[SpatialReferenceEnum1, AnyUrl, str]],
+            dict[str, Union[SpatialReferenceEnum1, AnyUrl, str]],
         ]
     ] = Field(
         None,
@@ -2846,7 +2846,7 @@ class BidsMetadata(ParameterModel):
             " 0018, 9259 `ASL Crusher Flag`.\n"
         ),
     )
-    VascularCrushingVENC: Optional[Union[float, List[float]]] = Field(
+    VascularCrushingVENC: Optional[Union[float, list[float]]] = Field(
         None,
         description=(
             "The crusher gradient strength, in centimeters per second.\nSpecify either"
@@ -2856,7 +2856,7 @@ class BidsMetadata(ParameterModel):
             " 0018, 925A `ASL Crusher Flow Limit`.\n"
         ),
     )
-    VolumeTiming: Optional[List[float]] = Field(
+    VolumeTiming: Optional[list[float]] = Field(
         None,
         description=(
             "The time at which each volume was acquired during the acquisition.\nIt is"
@@ -2888,7 +2888,7 @@ class BidsMetadata(ParameterModel):
     _CoordUnits: Optional[_CoordUnits] = None
     _EEGCoordSys: Optional[_EEGCoordSys] = None
     _GeneticLevelEnum: Optional[_GeneticLevelEnum] = None
-    _LandmarkCoordinates: Optional[Dict[str, List[float]]] = None
+    _LandmarkCoordinates: Optional[dict[str, list[float]]] = None
     _MEGCoordSys: Optional[_MEGCoordSys] = None
     _StandardTemplateCoordSys: Optional[_StandardTemplateCoordSys] = None
     _StandardTemplateDeprecatedCoordSys: Optional[

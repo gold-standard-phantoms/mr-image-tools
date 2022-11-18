@@ -12,11 +12,11 @@ from mrimagetools.containers.image import BaseImageContainer
 
 def transform_resample_image(
     image: Union[nib.Nifti1Image, nib.Nifti2Image, BaseImageContainer],
-    translation: Tuple[float, float, float],
-    rotation: Tuple[float, float, float],
-    rotation_origin: Tuple[float, float, float],
-    target_shape: Tuple[int, int, int],
-) -> Tuple[Union[nib.Nifti2Image, nib.Nifti2Image], np.ndarray]:
+    translation: tuple[float, float, float],
+    rotation: tuple[float, float, float],
+    rotation_origin: tuple[float, float, float],
+    target_shape: tuple[int, int, int],
+) -> tuple[Union[nib.Nifti2Image, nib.Nifti2Image], np.ndarray]:
     """
     Transforms and resamples a nibabel NIFTI image in world-space
 
@@ -48,11 +48,11 @@ def transform_resample_image(
 
 def transform_resample_affine(
     image: Union[nib.Nifti1Image, nib.Nifti2Image, BaseImageContainer],
-    translation: Tuple[float, float, float],
-    rotation: Tuple[float, float, float],
-    rotation_origin: Tuple[float, float, float],
-    target_shape: Tuple[int, int, int],
-) -> Tuple[np.ndarray, np.ndarray]:
+    translation: tuple[float, float, float],
+    rotation: tuple[float, float, float],
+    rotation_origin: tuple[float, float, float],
+    target_shape: tuple[int, int, int],
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Calculates the affine matrices that transform and resample an image in world-space. Note that
     while an image (NIFTI or BaseImageContainer derived) is accepted an an argument, the image
@@ -195,7 +195,7 @@ def rot_z_mat(theta: float) -> np.ndarray:
 
 
 def translate_mat(
-    translation: Union[Tuple[float, float, float], np.ndarray]
+    translation: Union[tuple[float, float, float], np.ndarray]
 ) -> np.ndarray:
     """Creates a 4x4 affine performing translations
 
@@ -214,7 +214,7 @@ def translate_mat(
     )
 
 
-def scale_mat(scale: Union[Tuple[float, float, float], np.ndarray]) -> np.ndarray:
+def scale_mat(scale: Union[tuple[float, float, float], np.ndarray]) -> np.ndarray:
     """Creates a 4x4 affine performing scaling
 
     :param vector: describes (sx, sy, sz) scaling factors

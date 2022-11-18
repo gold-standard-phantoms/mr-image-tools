@@ -117,7 +117,7 @@ def test_snake_to_camel() -> None:
 
 def test_camel_to_snake_case_keys() -> None:
     """Check the camel to snake case converter"""
-    input_dict: Final[Dict[str, Any]] = {
+    input_dict: Final[dict[str, Any]] = {
         "CamelCase": "CamelCase",
         "AnotherDict": {
             "FooBar1": 1,

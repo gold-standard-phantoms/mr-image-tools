@@ -1,7 +1,8 @@
 """Utility functions for testing filters"""
+from collections.abc import Generator
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from typing import Any, Dict, Generator, Generic, List, Tuple, Type, TypeVar
+from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
 
 import pytest
 from pydantic import Field, root_validator
@@ -69,8 +70,8 @@ class FilterValidationModelParameter(GenericParameterModel, Generic[DataT]):
     :raises: FilterInputValidationError"""
 
     is_optional: bool = False
-    valid_values: List[DataT] = Field(default_factory=list)
-    invalid_values: List[Any] = Field(default_factory=list)
+    valid_values: list[DataT] = Field(default_factory=list)
+    invalid_values: list[Any] = Field(default_factory=list)
 
     def permutations(self) -> Generator[ParameterPermutation, None, None]:
         """Generate the possible combinations that the parameter might take.
@@ -92,10 +93,10 @@ class FilterValidationModelParameter(GenericParameterModel, Generic[DataT]):
 
 
 def _recursive_parameter_solver(
-    validation_tuple_list: List[Tuple[str, FilterValidationModelParameter]],
-    current_parameters: Dict[str, ParameterPermutation],
+    validation_tuple_list: list[tuple[str, FilterValidationModelParameter]],
+    current_parameters: dict[str, ParameterPermutation],
     depth: int = 0,
-) -> List[Dict[str, ParameterPermutation]]:
+) -> list[dict[str, ParameterPermutation]]:
     """A recursive function which generated a list of all permutations
     of the parameter space"""
     # If we're at the end of the rescursion (the end of the list), just
@@ -103,7 +104,7 @@ def _recursive_parameter_solver(
     if depth >= len(validation_tuple_list):
         return [current_parameters]
     key, value = validation_tuple_list[depth]
-    permutation_list: List[Dict[str, ParameterPermutation]] = []
+    permutation_list: list[dict[str, ParameterPermutation]] = []
     # For all of the possible values that the current parameter might take
     for parameter in value.permutations():
         # Copy the parameter space created so far
@@ -157,30 +158,30 @@ class FilterValidationModel(GenericParameterModel, Generic[FilterT]):
     or vice-versa.
     """
 
-    filter_type: Type[FilterT]
-    filter_arguments: Dict[str, Any] = Field(default_factory=dict)
+    filter_type: type[FilterT]
+    filter_arguments: dict[str, Any] = Field(default_factory=dict)
     # keys correspond with the parameter name
-    parameters: Dict[str, FilterValidationModelParameter] = Field(default_factory=dict)
+    parameters: dict[str, FilterValidationModelParameter] = Field(default_factory=dict)
     run_filter: bool = False
 
     @root_validator(skip_on_failure=True)
     def validate_model(cls, values: dict) -> dict:
         """Perform the validation on the filter_type with all permutations of inputs."""
-        filter_type: Type[BaseFilter] = values.get("filter_type")  # type:ignore
-        parameters: Dict[str, FilterValidationModelParameter] = values.get(
+        filter_type: type[BaseFilter] = values.get("filter_type")  # type:ignore
+        parameters: dict[str, FilterValidationModelParameter] = values.get(
             "parameters"
         )  # type:ignore
-        filter_arguments: Dict[str, Any] = values.get("filter_arguments")  # type:ignore
+        filter_arguments: dict[str, Any] = values.get("filter_arguments")  # type:ignore
         run_filter: bool = values.get("run_filter")  # type: ignore
 
         all_permutations = _recursive_parameter_solver(
             validation_tuple_list=list(parameters.items()), current_parameters={}
         )
-        valid: List[Dict[str, Any]] = []
-        invalid: List[Dict[str, Any]] = []
+        valid: list[dict[str, Any]] = []
+        invalid: list[dict[str, Any]] = []
         for permutation in all_permutations:
 
-            parameter_set: Dict[str, Any] = {}  # To hold the current set of parameters
+            parameter_set: dict[str, Any] = {}  # To hold the current set of parameters
             is_valid = True  # The parameter should not trigger an exception
 
             for key, value in permutation.items():
@@ -224,7 +225,7 @@ class FilterValidationModel(GenericParameterModel, Generic[FilterT]):
 
 
 def validate_filter_inputs(
-    filter_to_test: Type[BaseFilter], validation_data: dict
+    filter_to_test: type[BaseFilter], validation_data: dict
 ) -> None:
     """Tests a filter with a validation data dictionary.  Checks that FilterInputValidationErrors
     are raised when data is missing or incorrect.

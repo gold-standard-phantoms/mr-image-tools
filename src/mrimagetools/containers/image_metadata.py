@@ -1,6 +1,7 @@
 """ImageMetadata class"""
+from collections.abc import Sequence
 from copy import copy
-from typing import Any, Callable, Dict, Literal, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, Literal, Optional, Tuple, Union
 
 from pydantic import BaseModel
 
@@ -19,7 +20,7 @@ AcqContrastType = Literal["ge", "ir", "se"]
 
 ImageFlavorType = Literal["PERFUSION", "DIFFUSION", "OTHER"]
 
-ImageType = Tuple[
+ImageType = tuple[
     Literal["ORIGINAL", "DERIVED"], Literal["PRIMARY"], str, Literal["NONE", "RCBF"]
 ]
 ComplexImageComponent = Literal["REAL", "IMAGINARY"]
@@ -229,7 +230,7 @@ class ImageMetadata(ParameterModel):
         "11-qmri.html#metadata-requirements-for-qmri-maps"
     )
 
-    segmentation: Optional[Union[str, Dict[str, int]]]
+    segmentation: Optional[Union[str, dict[str, int]]]
     """Either the name of the segmentation e.g. "m0" or a dict which represents
     each of the labels. e.g.:
 
@@ -284,7 +285,7 @@ class ImageMetadata(ParameterModel):
     # Some key conversions between BIDs and ImageMetadata
     # It is unneccessary to specify a conversion if only CamelCase to
     # snake_case is to be carried out
-    _BIDS_KEY_CONVERSION: Dict[str, str] = {
+    _BIDS_KEY_CONVERSION: dict[str, str] = {
         "LabelingEfficiency": "label_efficiency",
         "LabelingDuration": "label_duration",
         "FlipAngle": "excitation_flip_angle",
@@ -302,14 +303,14 @@ class ImageMetadata(ParameterModel):
         image_to_bids: Callable
         bids_to_image: Callable
 
-    _BIDS_VALUE_CONVERSION: Dict[str, Converter] = {
+    _BIDS_VALUE_CONVERSION: dict[str, Converter] = {
         "ArterialSpinLabelingType": Converter(
             bids_to_image=str.lower, image_to_bids=str.upper
         )
     }
 
     @classmethod
-    def from_bids(cls, bids: Dict[str, Any]) -> "ImageMetadata":
+    def from_bids(cls, bids: dict[str, Any]) -> "ImageMetadata":
         """Converts a BIDS-like dictionary to ImageMetadata"""
         semi_converted = copy(bids)
 

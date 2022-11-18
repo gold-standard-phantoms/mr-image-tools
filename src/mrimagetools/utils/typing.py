@@ -6,7 +6,7 @@ from typing import Any, Type, TypeVar
 T = TypeVar("T")
 
 
-def typed(value: Any, input_type: Type[T]) -> T:
+def typed(value: Any, input_type: type[T]) -> T:
     """Get a value (typed), checking that the type is correct.
     (helps with mypy type checking). e.g.:
     a:Any = 5.0

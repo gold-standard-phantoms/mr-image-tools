@@ -31,7 +31,7 @@ def image_data_fixture() -> np.ndarray:
 
 
 @pytest.fixture(name="test_pcasl_data")
-def pcasl_data_fixture(tmp_path, image_data) -> Dict[str, Any]:
+def pcasl_data_fixture(tmp_path, image_data) -> dict[str, Any]:
     """
     Creates PCASL test data with non-default parameters
     Returns the outputs of the BidsOutputFilter, and also saves
@@ -69,7 +69,7 @@ def pcasl_data_fixture(tmp_path, image_data) -> Dict[str, Any]:
 
 
 @pytest.fixture(name="test_pasl_data")
-def pasl_data_fixture(tmp_path, image_data) -> Dict[str, Any]:
+def pasl_data_fixture(tmp_path, image_data) -> dict[str, Any]:
     """
     Creates PASL test data with non-default parameters
     Returns the outputs of the BidsOutputFilter, and also saves
@@ -108,7 +108,7 @@ def pasl_data_fixture(tmp_path, image_data) -> Dict[str, Any]:
 
 
 @pytest.fixture(name="test_pcasl_data_missing_params")
-def pcasl_data_missing_params_fixture(tmp_path, image_data) -> Dict[str, Any]:
+def pcasl_data_missing_params_fixture(tmp_path, image_data) -> dict[str, Any]:
     """
     Creates PCASL test data missing parameters
     returns the outputs of the BidsOutputFilter, and also saves

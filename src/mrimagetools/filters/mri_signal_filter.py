@@ -153,7 +153,7 @@ class MriSignalFilter(BaseFilter):
     def __init__(self) -> None:
         super().__init__(name="MRI Signal Model")
 
-    def get_typed_input(self, key: str, input_type: Type[T]) -> T:
+    def get_typed_input(self, key: str, input_type: type[T]) -> T:
         """Get a variable from the inputs, checking that the type is correct.
         (helps with mypy type checking"""
         value: Any = self.inputs.get(key)

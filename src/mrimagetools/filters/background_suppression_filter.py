@@ -348,7 +348,7 @@ class BackgroundSuppressionFilter(BaseFilter):
     def calculate_mz(
         initial_mz: Union[float, np.ndarray],
         t1: Union[float, np.ndarray],
-        inv_pulse_times: Union[List[float], np.ndarray],
+        inv_pulse_times: Union[list[float], np.ndarray],
         sat_pulse_time: float,
         mag_time: float,
         inv_eff: Union[float, np.ndarray],

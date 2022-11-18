@@ -42,7 +42,7 @@ def generate_qasper(output_dir: Union[None, str] = None) -> GroundTruthOutput:
     inlet_label_value: int = 1
     porous_label_value: int = 2
     outlet_label_value: int = 3
-    region_values: List[int] = [
+    region_values: list[int] = [
         inlet_label_value,
         porous_label_value,
         outlet_label_value,

@@ -1,7 +1,7 @@
 """ CombineTimeSeriesFilter tests """
 import os
+from collections.abc import Mapping, MutableMapping
 from tempfile import TemporaryDirectory
-from typing import Mapping, MutableMapping
 
 import nibabel as nib
 import numpy as np

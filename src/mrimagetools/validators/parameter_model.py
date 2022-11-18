@@ -54,7 +54,7 @@ class ModelMixin(Representation):
         # Does not allow extra (undefined) attributes to be added to a model
         extra = Extra.forbid
         # Additional JSON encoders
-        json_encoders: Dict[Union[Type[Any], str, ForwardRef], AnyCallable] = {
+        json_encoders: dict[Union[type[Any], str, ForwardRef], AnyCallable] = {
             PosixPath: path_encoder,
             FilePath: path_encoder,
         }

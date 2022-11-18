@@ -30,7 +30,7 @@ PHASE_IMAGE_TYPE = "PHASE_IMAGE_TYPE"
 COMPLEX_IMAGE_TYPE = "COMPLEX_IMAGE_TYPE"
 
 
-VoxelSizeType = Union[List[float], Tuple[float, ...], npt.NDArray[np.floating]]
+VoxelSizeType = Union[list[float], tuple[float, ...], npt.NDArray[np.floating]]
 
 
 class BaseImageContainer(ABC):
@@ -198,7 +198,7 @@ class BaseImageContainer(ABC):
 
     @property
     @abstractmethod
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """Returns the shape of the image [x, y, z, t, etc]"""
 
     @staticmethod
@@ -395,7 +395,7 @@ class NiftiImageContainer(BaseImageContainer):
         super().__init__(**kwargs)  # Call super last as we check member variables
 
     @property
-    def nifti_type(self) -> Union[Type[nib.Nifti1Image], Type[nib.Nifti2Image]]:
+    def nifti_type(self) -> Union[type[nib.Nifti1Image], type[nib.Nifti2Image]]:
         """Return the type of NIFTI data contained here (nib.Nifti1Image or nib.Nifti2Image)"""
         return type(self.nifti_image)
 
