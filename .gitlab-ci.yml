@@ -49,7 +49,7 @@ deploy_production:
     # - remove the TWINE_REPOSITORY_URL
     # - change TWINE_USERNAME to __token__ (double underscores)
     # - change TWINE_PASSWORD to the pypi API token
-    TWINE_USERNAME: __token__
+    TWINE_USERNAME: '${PRIVATE_PYPI_USERNAME}'
     TWINE_REPOSITORY_URL: '${PRIVATE_PYPI_URL}'
     TWINE_PASSWORD: '${PRIVATE_PYPI_PASSWORD}'
   script:
