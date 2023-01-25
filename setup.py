@@ -94,6 +94,11 @@ setup(
     },
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    entry_points={
+        "console_scripts": [
+            "mrimagetools = mrimagetools.cli:main",
+        ],
+    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
