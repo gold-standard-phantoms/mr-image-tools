@@ -108,13 +108,19 @@ def dwi_pipeline_processing(
     s0 = mri_signal_filter.outputs[MriSignalFilter.KEY_IMAGE]
     s0.image = np.squeeze(s0.image)
 
+    # Validate the dimensions of adc_x, adc_y and adc_z before stacking
+    if not (adc_x.image.shape == adc_y.image.shape == adc_z.image.shape):
+        raise ValueError("All input ADC image datasets must have the same shape")
+    if len(adc_x.image.shape) != 3:
+        raise ValueError("All input ADC image datasets must be 3D")
+
     adc_image = np.stack(
         (
             np.asarray(adc_x.image),
             np.asarray(adc_y.image),
             np.asarray(adc_z.image),
         ),
-        axis=0,
+        axis=3,
     )
 
     # running the dwi signal filter
