@@ -1,14 +1,13 @@
-"calculate Diffusion image Pipeline"
+"""Diffusion Weighted Image (DWI) Pipeline"""
 
 import json
 import os
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import nibabel as nib
 import numpy as np
-from pydantic import FilePath
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.filters.add_complex_noise_filter import AddComplexNoiseFilter
@@ -196,43 +195,32 @@ def dwi_pipeline_processing(
 
 
 def dwi_pipeline(
-    ground_truth_path: str,
+    ground_truth_nii_path: str,
+    ground_truth_json_path: str,
     input_parameters_path: str,
     output_dir: Optional[str] = None,
 ) -> DwiPipelineOutput:
     """Run the DWI pipeline.
-    Loads in a 5D Nifti ground truth and JSON parameters file,
-    expects the JSON and the ground_truth_path to have the
-    same name
-    calculates the DWI signal for each b values, then combine
-    them as a 4D Nifti file
+    Loads in a 5D Nifti ground truth and JSON parameters file, expects the JSON and the
+    ground_truth_path to have the same name calculates the DWI signal for each b values,
+    then combine them as a 4D Nifti file
 
-    **Inputs**
-
-    :param ground_truth_path: Path to the Nifti file
-    :type ground_truth_path: str
-    :param input_parameter_path: Path to the JSON file that holds
-        the pipeline parameters
-    :type input_parameter_path: str
-    :param output_dir: The directory to save to, defaults to None
-    :type output_dir: str, optional
+    :param ground_truth_nii_path: High Resolution Ground Truth NIfTI file path
+    :param ground_truth_json_path: High Resolution Ground Truth JSON file path
+    :param input_parameter_path: DWI pipelines parameters file path
+    :param output_dir: The directory to save to (must exist), defaults to None
 
     :return: A DwiPipelineOutput object with the following entries:
 
         :'image':
         :'filename:
-
-    :rtype: DwiPipelineOutput"""
-    # getting filenames
-    nifti_filename = splitext(ground_truth_path)[0] + ".nii"
-    json_filename = splitext(ground_truth_path)[0] + ".json"
-
+    """
     # loading input parameters
     with open(input_parameters_path, encoding="utf-8") as f_obj:
         input_parameters = DwiInputParameters(**json.load(f_obj))
 
     ground_truth = GroundTruthFiles(
-        nii_file=Path(nifti_filename), json_file=Path(json_filename)
+        nii_file=Path(ground_truth_nii_path), json_file=Path(ground_truth_json_path)
     )
     # loading nifti
     nifti_loader = NiftiLoaderFilter()
@@ -264,9 +252,9 @@ def dwi_pipeline(
     # saving if a name was given
     if output_dir is not None:
         dwi_base_filename = os.path.join(
-            output_dir, os.path.split(splitext(ground_truth_path)[0])[1] + "_DWI"
+            output_dir, os.path.split(splitext(ground_truth_nii_path)[0])[1] + "_DWI"
         )
-        dwi_nifti_filename = dwi_base_filename + ".nii"
+        dwi_nifti_filename = dwi_base_filename + ".nii.gz"
         dwi_json_filename = dwi_base_filename + ".json"
 
         nib.save(

@@ -131,20 +131,30 @@ GROUND_TRUTH_INPUT[:, :, :, 0, 0] = np.multiply(
 )
 
 
-def test_dwi_pipeline():
+def test_dwi_pipeline() -> None:
     """Test that the pipeline outputs something"""
     with tempfile.TemporaryDirectory() as temp_dir:
-        print(temp_dir)
-        input_para_name = Path(temp_dir, "input_para_name.json")
-        input_name = Path(temp_dir, "input_name.json")
-        input_para_name.write_text(json.dumps(TEST_DATA_INPUT_PARAM), encoding="utf-8")
-        input_name.write_text(json.dumps(TEST_DATA_INPUT_JSON), encoding="utf-8")
-        # create the nifti file
-        image = nib.Nifti1Image(
-            GROUND_TRUTH_INPUT,
-            affine=np.eye(4),
+        input_parameter_filename = os.path.join(temp_dir, "input_parameters.json")
+        input_json_filename = os.path.join(temp_dir, "input_json.json")
+        input_nii_filename = os.path.join(temp_dir, "input_nii.nii.gz")
+        Path(input_parameter_filename).write_text(
+            json.dumps(TEST_DATA_INPUT_PARAM), encoding="utf-8"
         )
-        nib.save(image, os.path.join(temp_dir, "input_name.nii"))
-        results = dwi_pipeline(str(input_name), str(input_para_name))
+        Path(input_json_filename).write_text(
+            json.dumps(TEST_DATA_INPUT_JSON), encoding="utf-8"
+        )
+        # create the nifti file
+        nib.save(
+            nib.Nifti1Image(
+                GROUND_TRUTH_INPUT,
+                affine=np.eye(4),
+            ),
+            input_nii_filename,
+        )
+        results = dwi_pipeline(
+            ground_truth_nii_path=input_nii_filename,
+            ground_truth_json_path=input_json_filename,
+            input_parameters_path=input_parameter_filename,
+        )
 
         assert results.image.image is not None
