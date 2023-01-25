@@ -1,7 +1,7 @@
-nibabel
-numpy
-jsonschema
-nilearn
-gitpython
-pydantic
-pint
+nibabel==4.*
+numpy==1.*
+jsonschema==4.*
+nilearn==0.*
+gitpython==3.*
+pydantic==1.*
+pint==0.*
