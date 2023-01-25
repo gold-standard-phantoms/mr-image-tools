@@ -3,14 +3,12 @@
 import argparse
 import json
 import logging
-import os
 import sys
 from enum import Enum
-from typing import List, Optional
 
 from pydantic import DirectoryPath, FilePath
 
-from mrimagetools.data.filepaths import GROUND_TRUTH_DATA
+from mrimagetools import pipelines
 from mrimagetools.pipelines.adc_pipeline import adc_pipeline
 from mrimagetools.pipelines.asl_dro_pipeline import (
     PipelineReturnVariables,
@@ -18,115 +16,13 @@ from mrimagetools.pipelines.asl_dro_pipeline import (
 )
 from mrimagetools.pipelines.generate_ground_truth import generate_hrgt
 from mrimagetools.pipelines.mtr_pipeline import mtr_pipeline
+from mrimagetools.utils.cli_types import DirType, FileType
 from mrimagetools.validators.parameter_model import ParameterModel
 
 logging.basicConfig(
     stream=sys.stdout, format="%(asctime)s %(message)s", level=logging.INFO
 )  # Set the log level to INFO
 logger = logging.getLogger(__name__)
-
-
-class HrgtType:  # pylint: disable=too-few-public-methods
-    """A HRGT string checker.
-    Will determine if the input is a valid HRGT string label.
-    """
-
-    def __call__(self, hrgt_label: str) -> str:
-        """
-        Do the checking
-        :param hrgt_label: the HRGT label string
-        """
-        if hrgt_label not in GROUND_TRUTH_DATA:
-            raise argparse.ArgumentTypeError(
-                f"{hrgt_label} is not valid, must be one of"
-                f" {', '.join(GROUND_TRUTH_DATA.keys())}"
-            )
-        return hrgt_label
-
-
-class DirType:  # pylint: disable=too-few-public-methods
-    """A directory checker.
-    Will determine if the input is a directory and
-    optionally, whether it exists
-    """
-
-    def __init__(self, should_exist: bool = False) -> None:
-        """
-        :param should_exist: does the directory have to exist
-        """
-        self.should_exist: bool = should_exist
-
-    def __call__(self, path: str) -> str:
-        """
-        Do the checking
-        :param path: the path to the directory
-        """
-        # Always check the file is a directory
-
-        if self.should_exist:
-            # Check whether the file exists
-            if not os.path.exists(path):
-                raise argparse.ArgumentTypeError(f"{path} does not exist")
-            if not os.path.isdir(path):
-                raise argparse.ArgumentTypeError(f"{path} is not a directory")
-        return path
-
-
-class FileType:  # pylint: disable=too-few-public-methods
-    """A file checker.
-    Will determine if the input is a valid file name (or path)
-    and optionally, whether it has a particular extension and/or exists
-    """
-
-    def __init__(
-        self, extensions: Optional[list[str]] = None, should_exist: bool = False
-    ) -> None:
-        """
-        :param extensions: a list of allowed file extensions.
-        :param should_exist: does the file have to exist
-        """
-        if not isinstance(extensions, list) and extensions is not None:
-            raise TypeError("extensions should be a list of string extensions")
-
-        if extensions is not None:
-            for extension in extensions:
-                if not isinstance(extension, str):
-                    raise TypeError("All extensions must be strings")
-
-        self.extensions: list[str] = []
-        if extensions is not None:
-            # Strip any proceeding dots
-            self.extensions = [
-                extension if not extension.startswith(".") else extension[1:]
-                for extension in extensions
-            ]
-        self.should_exist: bool = should_exist
-
-    def __call__(self, path: str) -> str:
-        """
-        Do the checkstructing
-        :param path: the path to the file
-        """
-        # Always check the file is not a directory
-        if os.path.isdir(path):
-            raise argparse.ArgumentTypeError(f"{path} is a directory")
-
-        if self.should_exist:
-            # Check whether the file exists
-            if not os.path.exists(path):
-                raise argparse.ArgumentTypeError(f"{path} does not exist")
-
-        if self.extensions:
-            valid_extension = False
-            for extension in self.extensions:
-                if path.lower().endswith(extension.lower()):
-                    valid_extension = True
-            if not valid_extension:
-                raise argparse.ArgumentTypeError(
-                    f"{path} is does not have a valid extension "
-                    f"(from {', '.join(self.extensions)})"
-                )
-        return path
 
 
 def mtr_quantify(args: argparse.Namespace) -> None:
@@ -368,6 +264,14 @@ def main() -> None:
         ),
     )
     generate_parser.set_defaults(func=generate)
+
+    # Pipelines parser
+    pipelines_parser = subparsers.add_parser(
+        name="pipeline",
+        description="Run a pipeline",
+    )
+    pipelines.cli.add_cli_arguments_to(pipelines_parser)
+
     args = parser.parse_args()
     args.func(args)  # call the default function
 

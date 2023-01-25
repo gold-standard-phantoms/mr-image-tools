@@ -2,6 +2,7 @@
 
 import json
 import os
+from argparse import ArgumentParser, Namespace, _SubParsersAction
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Optional
@@ -21,6 +22,7 @@ from mrimagetools.filters.transform_resample_image_filter import (
     TransformResampleImageFilter,
 )
 from mrimagetools.models.file import GroundTruthFiles
+from mrimagetools.utils.cli_types import DirType, FileType
 from mrimagetools.utils.general import splitext
 from mrimagetools.validators.parameter_model import ParameterModel
 
@@ -281,3 +283,48 @@ def dwi_pipeline(
 
     output = DwiPipelineOutput(image=resulting_image)
     return output
+
+
+def add_cli_arguments_to(parser: ArgumentParser) -> None:
+    """Add the CLI arguments for the DWI pipeline to the supplied (sub)parser,
+    and assign any execution logic."""
+    parser.add_argument(
+        "hrgt_nii_path",
+        type=FileType(extensions=[".nii", ".nii.gz"], should_exist=True),
+        help=(
+            "The path to the HRGT image. Must be a NIFTI or gzipped NIFTI"
+            " with extension .nii or .nii.gz. The image data can either be integer, or"
+            " floatingpoint. For floating point data voxel values will be rounded to"
+            " the nearest integer whendefining which region type is in a voxel."
+        ),
+    )
+    parser.add_argument(
+        "hrgt_json_path",
+        type=FileType(extensions=["json"], should_exist=True),
+        help="The path to the HRGT parameter file (JSON)",
+    )
+    parser.add_argument(
+        "dwi_params_path",
+        type=FileType(extensions=["json"], should_exist=True),
+        help="The path to the DWI parameters",
+    )
+    parser.add_argument(
+        "output_dir",
+        type=DirType(should_exist=True),
+        help=(
+            "The directory to output to. Will create 'ORIGINALFILENAME_DWI.nii.gz' "
+            " and corresponding JSON files. "
+            " The directory must exist. "
+            " Will overwrite any existing files with the same names."
+        ),
+    )
+
+    def parsing_func(args: Namespace) -> None:
+        dwi_pipeline(
+            ground_truth_nii_path=args.hrgt_nii_path,
+            ground_truth_json_path=args.hrgt_json_path,
+            input_parameters_path=args.dwi_params_path,
+            output_dir=args.output_dir,
+        )
+
+    parser.set_defaults(func=parsing_func)
