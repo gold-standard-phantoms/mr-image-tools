@@ -2,13 +2,14 @@
 
 import json
 import os
-from argparse import ArgumentParser, Namespace, _SubParsersAction
-from collections.abc import Sequence
+from argparse import ArgumentParser, Namespace
+from collections.abc import Iterable, Sequence
 from pathlib import Path
-from typing import Optional
+from typing import Final, Optional
 
 import nibabel as nib
 import numpy as np
+from typing_extensions import TypeAlias
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.filters.add_complex_noise_filter import AddComplexNoiseFilter
@@ -18,13 +19,13 @@ from mrimagetools.filters.ground_truth_parser import GroundTruthParser
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.mri_signal_filter import MriSignalFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
-from mrimagetools.filters.transform_resample_image_filter import (
-    TransformResampleImageFilter,
-)
 from mrimagetools.models.file import GroundTruthFiles
 from mrimagetools.utils.cli_types import DirType, FileType
 from mrimagetools.utils.general import splitext
 from mrimagetools.validators.parameter_model import ParameterModel
+
+# A dictionary that maps b_values to corresponding DWI image
+DwiDict: TypeAlias = dict[float, BaseImageContainer]
 
 
 class DwiInputParameters(ParameterModel):
@@ -58,8 +59,8 @@ class Filename(ParameterModel):
     """Filename class made to write a proper DwiPipelineOutput"""
 
     nifti_name: Optional[str] = None
-    """the path to the nifti file created by the pipeline, is None if no output directory
-    was specified"""
+    """the path to the nifti file created by the pipeline, is None if no output
+    directory was specified"""
 
     json_name: Optional[str] = None
     """the path to the json file created by the pipeline, is None if no output directory
@@ -94,6 +95,15 @@ def dwi_pipeline_processing(
     m0 = ground_truth_parser.outputs["m0"]
     # segmentation = ground_truth_parser.outputs["segmentation"]
 
+    def equal_shapes(images: Iterable[BaseImageContainer]) -> bool:
+        """Returns true if the images have the same shape"""
+        iterator = iter(images)
+        try:
+            first = next(iterator)
+        except StopIteration:
+            return True
+        return all(first.shape == x.shape for x in iterator)
+
     # running MRI Signal Filter
     mri_signal_filter.add_inputs(
         {
@@ -110,9 +120,13 @@ def dwi_pipeline_processing(
     s0 = mri_signal_filter.outputs[MriSignalFilter.KEY_IMAGE]
     s0.image = np.squeeze(s0.image)
 
+    if not equal_shapes([adc_x, adc_y, adc_z, t1, t2, m0, s0]):
+        raise ValueError("Input images from ground truth should have the same shapes")
+
+    # Use this to check shape consistency
+    constant_shape: Final[tuple[int, ...]] = adc_x.shape
+
     # Validate the dimensions of adc_x, adc_y and adc_z before stacking
-    if not (adc_x.image.shape == adc_y.image.shape == adc_z.image.shape):
-        raise ValueError("All input ADC image datasets must have the same shape")
     if len(adc_x.image.shape) != 3:
         raise ValueError("All input ADC image datasets must be 3D")
 
@@ -142,37 +156,21 @@ def dwi_pipeline_processing(
     )
     dwi_signal_filter.run()
 
+    # TypeAlias
     dwi = dwi_signal_filter.outputs[dwi_signal_filter.KEY_DWI]
-    dwi_3d_dict: dict[str, BaseImageContainer] = {}
+    dwi_3d_dict: DwiDict = {}
     for b_value_index, b_value in enumerate(
         dwi_signal_filter.outputs[dwi_signal_filter.KEY_ATTENUATION].metadata.b_values
     ):
-        dwi_3d_dict[f"{b_value}"] = NiftiImageContainer(  # the key is the b_value
+        dwi_3d_dict[b_value] = NiftiImageContainer(  # the key is the b_value
             nib.Nifti1Image(dwi.image[:, :, :, b_value_index], affine=np.eye(4))
         )
-
-    # running transform resample image filter
-    dwi_3d_dict_transformed: dict[str, BaseImageContainer] = {}
-    shape = np.shape(dwi.image[:, :, :, 0])
-    for key, value in dwi_3d_dict.items():
-        transform_resample_image_filter = TransformResampleImageFilter()
-
-        transform_resample_image_filter.add_inputs(
-            {
-                TransformResampleImageFilter.KEY_IMAGE: value,
-                TransformResampleImageFilter.KEY_TARGET_SHAPE: shape,
-            }
-        )
-        transform_resample_image_filter.run()
-        dwi_3d_dict_transformed[
-            key  # the key is the b_value
-        ] = transform_resample_image_filter.outputs[
-            transform_resample_image_filter.KEY_IMAGE
-        ]
+        assert dwi_3d_dict[b_value].shape == constant_shape
 
     # running the add complex noise filter
-    final_outputs_dict: dict[str, BaseImageContainer] = {}
-    for key, value in dwi_3d_dict_transformed.items():
+    final_outputs_dict: DwiDict = {}
+    # for key, value in dwi_3d_dict_transformed.items():
+    for key, value in dwi_3d_dict.items():
         add_complex_noise_filter = AddComplexNoiseFilter()
         add_complex_noise_filter.add_inputs(
             {
@@ -187,11 +185,13 @@ def dwi_pipeline_processing(
         final_outputs_dict[key] = add_complex_noise_filter.outputs[
             add_complex_noise_filter.KEY_IMAGE
         ]
+        assert final_outputs_dict[key].shape == constant_shape
+
+    if len(final_outputs_dict) >= 10000:
+        raise ValueError("too  many images to combine")
 
     # running the combine time series filter
-    for index, (key, value) in enumerate(final_outputs_dict.items()):
-        if index == 10000:
-            raise ValueError("too  many images to combine")
+    for index, value in enumerate(final_outputs_dict.values()):
         combine_time_series_filter.add_input(f"image_0{index:04}", value)
 
     combine_time_series_filter.run()

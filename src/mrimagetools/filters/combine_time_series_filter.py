@@ -1,7 +1,6 @@
 """ Combine Time Series Filter """
 
 import re
-from typing import List, Tuple
 
 import nibabel as nib
 import numpy as np
@@ -32,22 +31,23 @@ class CombineTimeSeriesFilter(BaseFilter):
     for example :class:`CombineTimeSeriesFilter.KEY_T1`.
 
     :param 'image_NNNNN': A time-series image. The order of these time series will be
-      determined by the NNNNN component, which shall be a positive integer. Any number of
-      digits can be used in combination in NNNNN. For example, as sequence, `image_0000`,
-      `image_1`, `image_002`, `image_03` is valid.
+      determined by the NNNNN component, which shall be a positive integer. Any number
+      of digits can be used in combination in NNNNN. For example, as sequence,
+      `image_0000`, `image_1`, `image_002`, `image_03` is valid.
 
-    .. NOTE:: the indices MUST start from 0 and increment by 1, and have no missing or duplicate
-        indices. This is to help prevent accidentally missing/adding an index value.
+    .. NOTE:: the indices MUST start from 0 and increment by 1, and have no missing or
+    duplicate indices. This is to help prevent accidentally missing/adding an index
+    value.
 
-    .. NOTE:: If the image data type is complex, it is likely that most NIFTI viewers will
-        problems displaying 4D complex data correctly.
+    .. NOTE:: If the image data type is complex, it is likely that most NIFTI viewers
+    will problems displaying 4D complex data correctly.
 
     :type 'image_NNNNN': BaseImageContainer
 
     **Outputs**
 
-    Once run, the filter will populate the dictionary :class:`MriSignalFilter.outputs` with the
-    following entries
+    Once run, the filter will populate the dictionary :class:`MriSignalFilter.outputs`
+    with the following entries
 
     :param 'image': A 4D image of the combined time series.
     :type 'image': BaseImageContainer
@@ -113,8 +113,8 @@ class CombineTimeSeriesFilter(BaseFilter):
                         getattr(containers[0].metadata, key),
                     )
                 elif all_values.count(values_not_none[0]) == len(values_not_none):
-                    # All values that are not None are the same, output just that value for
-                    # given key
+                    # All values that are not None are the same, output just that value
+                    # for given key
                     setattr(output_container.metadata, key, values_not_none[0])
                 else:
                     # The values are not the same - concatenate them into a list
@@ -131,8 +131,8 @@ class CombineTimeSeriesFilter(BaseFilter):
         extracted integer image index.
         """
 
-        containers = []
-        indices = []
+        containers: list[BaseImageContainer] = []
+        indices: list[int] = []
 
         # Extract the input images
         for key, value in self.inputs.items():
