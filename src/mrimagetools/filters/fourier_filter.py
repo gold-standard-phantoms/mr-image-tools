@@ -61,7 +61,8 @@ class FftFilter(BaseFilter):
 class IfftFilter(BaseFilter):
     """A filter for performing a n-dimensional inverse fast fourier transform of input.
     Input is a numpy array named 'kdata'.
-    Output is a complex numpy array of the inverse discrete fourier transform named 'image'"""
+    Output is a complex numpy array of the inverse discrete fourier transform named 'image'
+    """
 
     # Key constants
     KEY_IMAGE = "image"

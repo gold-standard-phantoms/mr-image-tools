@@ -272,8 +272,10 @@ def regex_validator(pattern: str, case_insensitive: bool = False) -> Validator:
         )
         if isinstance(value, str)
         else False,
-        "Value must match pattern"
-        f" {pattern}{' (ignoring case)' if case_insensitive else ''}",
+        (
+            "Value must match pattern"
+            f" {pattern}{' (ignoring case)' if case_insensitive else ''}"
+        ),
     )
 
 
@@ -306,8 +308,10 @@ def reserved_string_list_validator(
     pattern = rf"^({concat_strings})({delimiter}({concat_strings}))*$"
     return Validator(
         regex_validator(pattern=pattern, case_insensitive=case_insensitive).func,
-        f"Value must be a string combination of {strings} separated by "
-        f"'_'{' (ignoring case)' if case_insensitive else ''}",
+        (
+            f"Value must be a string combination of {strings} separated by "
+            f"'_'{' (ignoring case)' if case_insensitive else ''}"
+        ),
     )
 
 

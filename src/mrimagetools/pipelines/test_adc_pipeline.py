@@ -36,11 +36,11 @@ def pipeline_test_data_fixture(test_data, tmp_path) -> dict:
     bval_filename = base_filename + ".bval"
     bvec_filename = base_filename + ".bvec"
 
-    with open(bval_filename, "wt", encoding="utf-8") as bval_file:
+    with open(bval_filename, "w", encoding="utf-8") as bval_file:
         tsv_writer = csv.writer(bval_file, delimiter=" ")
         tsv_writer.writerow(test_data["b_values"])
 
-    with open(bvec_filename, "wt", encoding="utf-8") as bvec_file:
+    with open(bvec_filename, "w", encoding="utf-8") as bvec_file:
         tsv_writer = csv.writer(bvec_file, delimiter=" ")
         [
             tsv_writer.writerow(

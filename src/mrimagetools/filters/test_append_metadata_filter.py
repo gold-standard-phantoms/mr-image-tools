@@ -77,7 +77,8 @@ def test_append_metadata_filter_validate_inputs() -> None:
 
 
 def test_append_metadata_filter_new_metadata() -> None:
-    """Tests the AppendMetadataFilter with an image that has no metadata to begin with"""
+    """Tests the AppendMetadataFilter with an image that has no metadata to begin with
+    """
 
     append_metadata_filter = AppendMetadataFilter()
     append_metadata_filter.add_input("image", TEST_NIFTI_CON_ONES)

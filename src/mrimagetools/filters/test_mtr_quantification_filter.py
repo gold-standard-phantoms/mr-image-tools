@@ -52,7 +52,6 @@ def data_fixture() -> dict:
 
 @pytest.fixture(name="validation_data")
 def input_validation_dict_fixture(test_data) -> dict:
-
     im_wrong_size = NiftiImageContainer(nib.Nifti1Image(np.ones((3, 3, 3)), np.eye(4)))
     im_wrong_affine = NiftiImageContainer(
         nib.Nifti1Image(np.ones((4, 4, 1)), 3 * np.eye(4))

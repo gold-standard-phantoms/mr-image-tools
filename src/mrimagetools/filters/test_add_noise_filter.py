@@ -213,7 +213,8 @@ def test_add_noise_filter_with_mock_data_mag_image_only(image_container) -> None
 def test_add_noise_filter_with_mock_data_mag_image_reference_same_domain(
     image_container,
 ):
-    """Test the add noise filter with an image and reference image, both in the same domain"""
+    """Test the add noise filter with an image and reference image, both in the same domain
+    """
     np.random.seed(RANDOM_SEED)
     # calculate manually
     image_with_noise = add_noise_function(

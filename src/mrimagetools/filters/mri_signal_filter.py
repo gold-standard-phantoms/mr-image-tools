@@ -261,7 +261,6 @@ class MriSignalFilter(BaseFilter):
         # excitation pulse and 180° refocusing pulse. Equation is from p69 in the book
         # MRI from Picture to Proton, second edition, 2006, McRobbie et. al.
         elif acq_contrast.lower() == self.CONTRAST_SE:
-
             mri_signal = (
                 m0
                 * (

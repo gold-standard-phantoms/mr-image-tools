@@ -186,7 +186,8 @@ class BaseFilter(ABC):
         Then calls the _run method on this filter.
         :param validate_only: If set true, NO filters will be run. This can be useful for
         testing validation. However, care must be taken to manually run any necessary parent filters
-        :param history: Not necessary to specify, used to stop cyclic (infinite) recursion"""
+        :param history: Not necessary to specify, used to stop cyclic (infinite) recursion
+        """
         # Don't run anything if the inputs haven't changed
         if not self.needs_run:
             return
@@ -213,7 +214,6 @@ class BaseFilter(ABC):
 
         # Map all inputs from parent filters
         for parent_dict in self.parent_dict_list:
-
             for output_key in parent_dict[FILTER].outputs:
                 if parent_dict[IO_MAP] is None:
                     # Directly map the parent outputs to inputs

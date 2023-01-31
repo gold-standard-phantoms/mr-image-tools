@@ -771,7 +771,6 @@ def test_isfile_validator() -> None:
     """Tests the isfile validator with some values"""
 
     with TemporaryDirectory() as temp_dir:
-
         file_name = os.path.join(temp_dir, "file.txt")
         validator = isfile_validator()
         assert not validator(1)  # non-string

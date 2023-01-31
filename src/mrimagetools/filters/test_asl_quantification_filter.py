@@ -601,7 +601,6 @@ def test_asl_quantification_filter_asl_quant_lsq_gkm(multiphase_data) -> None:
     """Numerically tests the least squares fitting to the general kinetic model
     for both the casl and pasl signal models."""
     for label_type in ["pasl", "casl"]:
-
         results = AslQuantificationFilter.asl_quant_lsq_gkm(
             multiphase_data["control"][label_type],
             multiphase_data["label"][label_type],

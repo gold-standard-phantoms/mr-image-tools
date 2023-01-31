@@ -336,7 +336,8 @@ class InputParameters(ParameterModel):
 
 
 def load_ground_truth(input_params: InputParameters) -> GroundTruthParser:
-    """Load and prepare and run the GroundTruthLoaderFilter from the given input parameters"""
+    """Load and prepare and run the GroundTruthLoaderFilter from the given input parameters
+    """
     json_filter = JsonLoaderFilter()
     json_filter.add_input(
         "filename", str(input_params.global_configuration.ground_truth.json_file)

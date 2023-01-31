@@ -196,7 +196,6 @@ def generate_circular_function_array(
     if func_params.get("loc") is None:
         raise KeyError("dictionary `func_params` must have an entry 'loc'")
     elif isinstance(func_params["loc"], (np.ndarray, tuple, list)):
-
         if not (
             np.asarray(func_params["loc"]).size == 3
             and np.asarray(func_params["loc"]).ndim == 1

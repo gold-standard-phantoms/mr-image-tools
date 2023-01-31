@@ -537,8 +537,10 @@ def test_mri_signal_timecourse(
 
 
 @pytest.mark.parametrize(
-    "t1, t2, m0, t2_star, echo_time, repetition_time,"
-    " flip_angle, inversion_angle, inversion_time, expected",
+    (
+        "t1, t2, m0, t2_star, echo_time, repetition_time,"
+        " flip_angle, inversion_angle, inversion_time, expected"
+    ),
     IR_TIMECOURSE_PARAMS,
 )
 def test_mri_signal_timecourse_inversion_recovery(

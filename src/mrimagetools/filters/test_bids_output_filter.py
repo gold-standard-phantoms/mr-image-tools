@@ -629,7 +629,8 @@ def test_bids_output_filter_m0_float(asl_input) -> None:
 def test_bids_output_filter_m0scan(
     structural_input: tuple[NiftiImageContainer, dict]
 ) -> None:
-    """Tests the BidsOutputFilter with mock ASL data where there is a separate m0 scan"""
+    """Tests the BidsOutputFilter with mock ASL data where there is a separate m0 scan
+    """
     with TemporaryDirectory() as temp_dir:
         image = structural_input[0]
         d = structural_input[1]
@@ -836,7 +837,6 @@ def test_bids_output_filter_acquisition_date_time() -> None:
     with patch("mrimagetools.filters.bids_output_filter.datetime", new=datetime_mock):
         datetime_mock.now.return_value = test_datetime
         with TemporaryDirectory() as temp_dir:
-
             bids_output_filter = BidsOutputFilter()
             bids_output_filter.add_input("image", TEST_NIFTI_CON_ONES)
             bids_output_filter.add_input("output_directory", temp_dir)
@@ -1148,7 +1148,6 @@ def test_bids_output_filter_determine_source_version_static_method() -> None:
     """Tests the determine_asldro_version static method"""
 
     with TemporaryDirectory() as temp_dir:
-
         repo_path = os.path.join(temp_dir, "test_repo")
         filename = os.path.join(repo_path, "file")
         os.mkdir(repo_path)

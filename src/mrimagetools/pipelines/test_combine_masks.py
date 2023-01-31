@@ -61,7 +61,6 @@ def test_combine_masks_params_schema(validation_data: dict) -> None:
 def test_combine_masks_mock_data(validation_data: dict) -> None:
     """test combine_masks function"""
     with TemporaryDirectory() as temp_dir:
-
         # save the test images
         nifti_filenames = []
         for i, image in enumerate(validation_data["masks"]):

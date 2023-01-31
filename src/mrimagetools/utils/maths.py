@@ -47,7 +47,8 @@ class VariableMissingError(ExpressionEvaluatorError):
 
 
 class BadVariableTypeError(ExpressionEvaluatorError):
-    """Raised if a variable is not a supported type (int, float, complex, numpy array)"""
+    """Raised if a variable is not a supported type (int, float, complex, numpy array)
+    """
 
 
 class UnsupportedNodeError(ExpressionEvaluatorError):
@@ -252,7 +253,8 @@ class ExpressionEvaluator:
         :param 'variables' : The remaining variables, which must be in the expression. These are
         numpy arrays, floats, ints or complex types.
 
-        :return: A numpy array, float, int or complex with the result of the expression."""
+        :return: A numpy array, float, int or complex with the result of the expression.
+        """
         tree = self._generate_tree(expression=expression)
         return self._eval(node=tree.body, variables=variables)
 

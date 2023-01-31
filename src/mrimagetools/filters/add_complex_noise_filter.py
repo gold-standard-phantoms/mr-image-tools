@@ -64,7 +64,6 @@ class AddComplexNoiseFilter(FilterBlock):
         # Because this is a filter block it needs to be done by another filter - fortunately
         # the AddNoiseFilter does just this when AddNoiseFilter.inputs["snr"] = 0
         if self.inputs[self.KEY_SNR] == 0:
-
             add_noise_filter = AddNoiseFilter()
             add_noise_filter.add_input(self.KEY_IMAGE, input_image)
             add_noise_filter.add_input(self.KEY_SNR, self.inputs[self.KEY_SNR])

@@ -282,7 +282,8 @@ def test_validation_variable_missing_error() -> None:
 
 
 def test_validation_bad_variable_type_error() -> None:
-    """Test that the correct errors are raised a variable is unsupported unsupported type"""
+    """Test that the correct errors are raised a variable is unsupported unsupported type
+    """
     with pytest.raises(BadVariableTypeError):
         expression_evaluator()(expression="A+B", A=1, B="foo")  # type:ignore
     with pytest.raises(BadVariableTypeError):

@@ -75,7 +75,8 @@ class FilterValidationModelParameter(GenericParameterModel, Generic[DataT]):
 
     def permutations(self) -> Generator[ParameterPermutation, None, None]:
         """Generate the possible combinations that the parameter might take.
-        :returns: A generator for possible parameters (derived from ParameterPermutation)"""
+        :returns: A generator for possible parameters (derived from ParameterPermutation)
+        """
         # If the parameter is optional, it is valid if missing
         yield MissingParameterPermutation(is_valid=self.is_optional)
         for value in self.valid_values:
@@ -180,12 +181,10 @@ class FilterValidationModel(GenericParameterModel, Generic[FilterT]):
         valid: list[dict[str, Any]] = []
         invalid: list[dict[str, Any]] = []
         for permutation in all_permutations:
-
             parameter_set: dict[str, Any] = {}  # To hold the current set of parameters
             is_valid = True  # The parameter should not trigger an exception
 
             for key, value in permutation.items():
-
                 # The parameter has a value - so set it in the permutation
                 if isinstance(value, ExistingParameterPermutation):
                     parameter_set[key] = value.parameter

@@ -47,14 +47,16 @@ def check_resampling() -> None:
     plt.text(
         0,
         resampled_nifti_image_container.shape[1],
-        f"rotation={rotation}"
-        "\n"
-        f"rotation origin-{rotation_origin}"
-        "\n"
-        f"translation={translation}"
-        "\n"
-        f"shape = {resampled_nifti_image_container.shape}"
-        "\n",
+        (
+            f"rotation={rotation}"
+            "\n"
+            f"rotation origin-{rotation_origin}"
+            "\n"
+            f"translation={translation}"
+            "\n"
+            f"shape = {resampled_nifti_image_container.shape}"
+            "\n"
+        ),
         {"color": "white"},
     )
     plt.show()

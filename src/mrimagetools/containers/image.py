@@ -396,7 +396,8 @@ class NiftiImageContainer(BaseImageContainer):
 
     @property
     def nifti_type(self) -> Union[type[nib.Nifti1Image], type[nib.Nifti2Image]]:
-        """Return the type of NIFTI data contained here (nib.Nifti1Image or nib.Nifti2Image)"""
+        """Return the type of NIFTI data contained here (nib.Nifti1Image or nib.Nifti2Image)
+        """
         return type(self.nifti_image)
 
     @property

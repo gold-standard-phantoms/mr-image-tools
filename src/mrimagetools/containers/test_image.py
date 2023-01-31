@@ -177,7 +177,6 @@ def test_nifti_image_xyzt_units_reading(
 ):
     """Test the xyzt_units are interpreted properly"""
     for image_container in nifti_image_containers_a:
-
         image_container.header["xyzt_units"] = 1 | 8  # meters and seconds
         assert image_container.space_units == UNITS_METERS
         assert image_container.time_units == UNITS_SECONDS
@@ -245,7 +244,6 @@ def test_nifti_image_container_time_step_seconds_setter(
 ):
     """Test that the correct time step is get on a NiftiImageContainer"""
     for image_container in nifti_image_containers_a:
-
         image_container.time_step_seconds = 10.0
         image_container.time_units = UNITS_MILLISECONDS
 
@@ -551,7 +549,6 @@ def test_nifti_image_container_clone(
     """Check that the NIFTI image container is cloned correctly"""
 
     for image_container in nifti_image_containers_a:
-
         cloned_image_container = image_container.clone()
         general_image_container_clone_tests(image_container, cloned_image_container)
 
@@ -676,7 +673,8 @@ def test_image_container_metadata_get_set() -> None:
 
 
 def test_nifti_to_numpy(nifti_image_containers_a: list[NiftiImageContainer]) -> None:
-    """Check the as_numpy()/as_nifti() functionality works correctly on a nifti container"""
+    """Check the as_numpy()/as_nifti() functionality works correctly on a nifti container
+    """
     for image_container in nifti_image_containers_a:
         new_image_container: BaseImageContainer = image_container.as_numpy()
         for new_image_container in [

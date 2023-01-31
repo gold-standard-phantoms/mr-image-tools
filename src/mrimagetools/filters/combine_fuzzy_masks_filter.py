@@ -161,7 +161,6 @@ class CombineFuzzyMasksFilter(BaseFilter):
         number_masks = 1  # if there's just one image don't need to check
 
         if isinstance(self.inputs[self.KEY_FUZZY_MASK], list):
-
             # first check against a validator
             fuzzy_mask: list[BaseImageContainer] = self.inputs[self.KEY_FUZZY_MASK]
             fuzzy_mask_list_validator = ParameterValidator(

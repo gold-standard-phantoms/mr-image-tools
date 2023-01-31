@@ -556,7 +556,6 @@ def validate_input_params(input_params: dict) -> dict:
 
         # for image series ASL some extra validation/generation is required
         if image_series["series_type"] == ASL:
-
             # Check for any array parameters that need to be dynamically generated
             asl_context = series_params[ASL_CONTEXT].split()
             num_acquisitions = len(asl_context)

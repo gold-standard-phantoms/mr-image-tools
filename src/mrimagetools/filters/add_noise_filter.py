@@ -86,7 +86,6 @@ class AddNoiseFilter(BaseFilter):
         if snr == 0:
             self.outputs[self.KEY_IMAGE] = input_image
         else:
-
             # If present load the reference image, if not
             # copy the input_image
             reference_image: BaseImageContainer

@@ -81,7 +81,8 @@ def test_non_optional_field_needs_valid_values() -> None:
 
 
 def test_generic_filter_validation_parameter() -> None:
-    """Test the generic type checking. Use the "Strict" versions to prevent type coercion"""
+    """Test the generic type checking. Use the "Strict" versions to prevent type coercion
+    """
     with pytest.raises(FilterInputValidationError):
         FilterValidationModelParameter[StrictFloat](
             valid_values=[0.0, "1.0"]  # type:ignore
