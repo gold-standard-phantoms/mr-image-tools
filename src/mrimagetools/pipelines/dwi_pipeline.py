@@ -141,10 +141,7 @@ def dwi_pipeline_processing(
 
     # running the dwi signal filter
     adc = NiftiImageContainer(
-        nib.Nifti1Image(
-            adc_image,
-            affine=np.eye(4),
-        )
+        nib.Nifti1Image(adc_image, affine=np.eye(4), dtype=adc_image.dtype)
     )
     dwi_signal_filter.add_inputs(
         {
@@ -163,7 +160,11 @@ def dwi_pipeline_processing(
         dwi_signal_filter.outputs[dwi_signal_filter.KEY_ATTENUATION].metadata.b_values
     ):
         dwi_3d_dict[b_value] = NiftiImageContainer(  # the key is the b_value
-            nib.Nifti1Image(dwi.image[:, :, :, b_value_index], affine=np.eye(4))
+            nib.Nifti1Image(
+                dwi.image[:, :, :, b_value_index],
+                affine=np.eye(4),
+                dtype=dwi.image.dtype,
+            )
         )
         assert dwi_3d_dict[b_value].shape == constant_shape
 

@@ -19,13 +19,14 @@ def data_fixture() -> dict:
             nib.Nifti1Image(
                 np.stack([i * np.ones([8] * n) for i in range(10)], axis=n),
                 affine=np.eye(4),
+                dtype=np.array(1).dtype,
             ),
             metadata=ImageMetadata(series_description="", magnetic_field_strength=3.0),
         )
         for n in range(1, 4)
     }
     data["image_1d"] = NiftiImageContainer(
-        nib.Nifti1Image(np.arange(10), np.eye(4)),
+        nib.Nifti1Image(np.arange(10), np.eye(4), dtype=np.array(1).dtype),
         metadata=ImageMetadata(series_description="one", magnetic_field_strength=3.0),
     )
     return data

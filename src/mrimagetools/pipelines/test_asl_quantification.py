@@ -37,7 +37,9 @@ def pcasl_data_fixture(tmp_path, image_data) -> dict[str, Any]:
     Returns the outputs of the BidsOutputFilter, and also saves
     data to disk in a temporary directory that persists during the tests
     """
-    image_container = NiftiImageContainer(nib.Nifti1Image(image_data, affine=np.eye(4)))
+    image_container = NiftiImageContainer(
+        nib.Nifti1Image(image_data, affine=np.eye(4), dtype=image_data.dtype)
+    )
     image_container.metadata = ImageMetadata(
         echo_time=0.01,
         repetition_time=[10.0, 5.0, 5.0],
@@ -75,7 +77,9 @@ def pasl_data_fixture(tmp_path, image_data) -> dict[str, Any]:
     Returns the outputs of the BidsOutputFilter, and also saves
     data to disk in a temporary directory that persists during the tests
     """
-    image_container = NiftiImageContainer(nib.Nifti1Image(image_data, affine=np.eye(4)))
+    image_container = NiftiImageContainer(
+        nib.Nifti1Image(image_data, affine=np.eye(4), dtype=image_data.dtype)
+    )
     image_container.metadata = ImageMetadata(
         echo_time=0.01,
         repetition_time=[10.0, 5.0, 5.0],
@@ -115,7 +119,9 @@ def pcasl_data_missing_params_fixture(tmp_path, image_data) -> dict[str, Any]:
     data to disk in a temporary directory that persists during the tests
 
     """
-    image_container = NiftiImageContainer(nib.Nifti1Image(image_data, affine=np.eye(4)))
+    image_container = NiftiImageContainer(
+        nib.Nifti1Image(image_data, affine=np.eye(4), dtype=image_data.dtype)
+    )
     image_container.metadata = ImageMetadata(
         echo_time=0.01,
         repetition_time=[10.0, 5.0, 5.0],

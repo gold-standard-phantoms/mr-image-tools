@@ -95,7 +95,9 @@ def nifti_image_containers_a() -> list[NiftiImageContainer]:
 
     containers = []
     for image_type in [nib.Nifti1Image, nib.Nifti2Image]:
-        temp_img = image_type(np.zeros((1, 1, 1)), affine=np.eye(4))
+        temp_img = image_type(
+            np.zeros((1, 1, 1), dtype=np.int64), affine=np.eye(4), dtype=np.int64
+        )
         header = temp_img.header
 
         for key, value in NIFTI_HEADER.items():

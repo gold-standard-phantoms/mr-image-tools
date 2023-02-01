@@ -67,7 +67,9 @@ class CombineTimeSeriesFilter(BaseFilter):
         dataobj = np.stack([container.image for container in containers], axis=3)
 
         output_container = NiftiImageContainer(
-            nifti_img=nib.Nifti1Image(dataobj=dataobj, affine=containers[0].affine)
+            nifti_img=nib.Nifti1Image(
+                dataobj=dataobj, affine=containers[0].affine, dtype=dataobj.dtype
+            )
         )
         output_container.nifti_image.header["xyzt_units"] = (
             containers[0].as_nifti().header["xyzt_units"]

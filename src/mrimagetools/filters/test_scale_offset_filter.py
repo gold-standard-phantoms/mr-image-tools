@@ -16,7 +16,9 @@ def fixture_test_image() -> NiftiImageContainer:
     fastest (C-like index order)"""
     return NiftiImageContainer(
         nifti_img=nib.Nifti1Image(
-            dataobj=np.reshape(np.array(range(3**3)), (3, 3, 3)), affine=np.eye(4)
+            dataobj=np.reshape(np.array(range(3**3)), (3, 3, 3)),
+            affine=np.eye(4),
+            dtype=np.array(1).dtype,
         )
     )
 
