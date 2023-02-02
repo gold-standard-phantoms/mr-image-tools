@@ -1,6 +1,8 @@
 """Diffusion Weighted Image (DWI) Pipeline"""
 
+
 import json
+import logging
 import os
 from argparse import ArgumentParser, Namespace
 from collections.abc import Iterable, Sequence
@@ -9,6 +11,7 @@ from typing import Final, Optional
 
 import nibabel as nib
 import numpy as np
+from pydantic import root_validator
 from typing_extensions import TypeAlias
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
@@ -19,11 +22,13 @@ from mrimagetools.filters.ground_truth_parser import GroundTruthParser
 from mrimagetools.filters.json_loader import JsonLoaderFilter
 from mrimagetools.filters.mri_signal_filter import MriSignalFilter
 from mrimagetools.filters.nifti_loader import NiftiLoaderFilter
+from mrimagetools.filters.phase_magnitude_filter import PhaseMagnitudeFilter
 from mrimagetools.models.file import GroundTruthFiles
 from mrimagetools.utils.cli_types import DirType, FileType
 from mrimagetools.utils.general import splitext
 from mrimagetools.validators.parameter_model import ParameterModel
 
+logger = logging.getLogger(__name__)
 # A dictionary that maps b_values to corresponding DWI image
 DwiDict: TypeAlias = dict[float, BaseImageContainer]
 
@@ -54,6 +59,18 @@ class DwiInputParameters(ParameterModel):
     the middle of the excitation pulse to the peak of the echo that is used to cover
     the center of k-space (i.e.-kx=0, ky=0)."""
 
+    @root_validator(pre=False, skip_on_failure=True)
+    def check_b_arrays_same_length(cls, values: dict) -> dict:
+        """Check the b_values and b_vectors have the same length"""
+        b_values: Sequence = values.get("b_values")  # type: ignore
+        b_vectors: Sequence = values.get("b_vectors")  # type: ignore
+        if len(b_values) != len(b_vectors):
+            raise ValueError(
+                f"Length of b_values {b_values} must equal the length of"
+                f" b_vectors {b_vectors}"
+            )
+        return values
+
 
 class Filename(ParameterModel):
     """Filename class made to write a proper DwiPipelineOutput"""
@@ -81,6 +98,7 @@ class DwiPipelineOutput(ParameterModel):
 def dwi_pipeline_processing(
     ground_truth_parser: GroundTruthParser, input_parameters: DwiInputParameters
 ) -> BaseImageContainer:
+    logger.info("Creating a DWI DRO using the input parameters: %s", input_parameters)
     mri_signal_filter = MriSignalFilter()
     dwi_signal_filter = DwiSignalFilter()
     # transform resample creation is inside a loop later on
@@ -153,6 +171,24 @@ def dwi_pipeline_processing(
     )
     dwi_signal_filter.run()
 
+    # We should get an output that has the same size 4th dimension as the number
+    # b_values/b_vectors
+    if dwi_signal_filter.outputs[dwi_signal_filter.KEY_DWI].shape[3] != len(
+        input_parameters.b_vectors
+    ):
+        raise ValueError(
+            "The created DWI image has"
+            f" {dwi_signal_filter.outputs[dwi_signal_filter.KEY_DWI].shape(3)} DWI"
+            " acqusitions, but there are only"
+            f" {len(input_parameters.b_values)} b_values"
+        )
+
+    logger.info(
+        "The DWI signal filter generated an image with shape: %s, and datatype: %s",
+        dwi_signal_filter.outputs[dwi_signal_filter.KEY_DWI].shape,
+        dwi_signal_filter.outputs[dwi_signal_filter.KEY_DWI].image.dtype,
+    )
+
     # TypeAlias
     dwi = dwi_signal_filter.outputs[dwi_signal_filter.KEY_DWI]
     dwi_3d_dict: DwiDict = {}
@@ -168,6 +204,16 @@ def dwi_pipeline_processing(
         )
         assert dwi_3d_dict[b_value].shape == constant_shape
 
+    # We should get an output that has the same size 4th dimension as the number
+    # b_values/b_vectors
+    if len(dwi_3d_dict) != len(input_parameters.b_values):
+        raise ValueError(
+            "The created DWI dictionary has"
+            f" {len(dwi_3d_dict)} DWI"
+            " acqusitions, but there are only"
+            f" {len(input_parameters.b_values)} b_values"
+        )
+
     # running the add complex noise filter
     final_outputs_dict: DwiDict = {}
     # for key, value in dwi_3d_dict_transformed.items():
@@ -182,11 +228,33 @@ def dwi_pipeline_processing(
         )
 
         add_complex_noise_filter.run()
-
-        final_outputs_dict[key] = add_complex_noise_filter.outputs[
-            add_complex_noise_filter.KEY_IMAGE
+        phase_magnitude_filter = PhaseMagnitudeFilter()
+        phase_magnitude_filter.add_parent_filter(add_complex_noise_filter)
+        phase_magnitude_filter.run()
+        final_outputs_dict[key] = phase_magnitude_filter.outputs[
+            PhaseMagnitudeFilter.KEY_MAGNITUDE
         ]
         assert final_outputs_dict[key].shape == constant_shape
+
+    logger.info(
+        (
+            "The add complex noise filter + magnitude filter generated %d images with"
+            " shape: %s, and datatype: %s"
+        ),
+        len(final_outputs_dict),
+        final_outputs_dict[key].shape,
+        final_outputs_dict[key].image.dtype,
+    )
+
+    # We should get an output that has the same size 4th dimension as the number
+    # b_values/b_vectors
+    if len(final_outputs_dict) != len(input_parameters.b_values):
+        raise ValueError(
+            "The created DWI+noise dictionary has"
+            f" {len(dwi_3d_dict)} DWI"
+            " acqusitions, but there are only"
+            f" {len(input_parameters.b_values)} b_values"
+        )
 
     if len(final_outputs_dict) >= 10000:
         raise ValueError("too  many images to combine")
@@ -200,6 +268,24 @@ def dwi_pipeline_processing(
         CombineTimeSeriesFilter.KEY_IMAGE
     ]
 
+    # We should get an output that has the same size 4th dimension as the number
+    # b_values/b_vectors
+    if resulting_image.shape[3] != len(input_parameters.b_values):
+        raise ValueError(
+            "The created final image has"
+            f" {len(dwi_3d_dict)} DWI"
+            " acqusitions, but there are only"
+            f" {len(input_parameters.b_values)} b_values"
+        )
+
+    logger.info(
+        (
+            "The commbine time series filter generated an image with shape: %s, and"
+            " datatype: %s"
+        ),
+        resulting_image.shape,
+        resulting_image.image.dtype,
+    )
     return resulting_image
 
 

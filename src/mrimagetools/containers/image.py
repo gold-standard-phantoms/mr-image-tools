@@ -4,7 +4,7 @@ be instantiated with either NIFTI files or using numpy arrays """
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import List, Optional, Tuple, Type, Union
+from typing import Any, Optional, Union
 
 import nibabel as nib
 import numpy as np
@@ -59,7 +59,7 @@ class BaseImageContainer(ABC):
         data_domain: str = SPATIAL_DOMAIN,
         image_type: Optional[str] = None,
         metadata: Optional[ImageMetadata] = None,
-        **kwargs,
+        **kwargs: Any,
     ):
         if data_domain not in [SPATIAL_DOMAIN, INVERSE_DOMAIN]:
             raise ValueError(
