@@ -94,6 +94,9 @@ setup(
     },
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    package_data={
+        "mrimagetools": ["py.typed"],
+    },
     entry_points={
         "console_scripts": [
             "mrimagetools = mrimagetools.cli:main",
