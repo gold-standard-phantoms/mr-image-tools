@@ -66,7 +66,7 @@ def test_nifti_loader() -> None:
 
     with TemporaryDirectory() as temp_dir:
         filename = os.path.join(temp_dir, "image.nii")
-        nib.save(
+        nib.nifti2.save(
             img=nib.Nifti1Image(dataobj=np.zeros([3, 3, 3]), affine=np.eye(4)),
             filename=filename,
         )

@@ -96,19 +96,21 @@ class AdcQuantificationFilter(BaseFilter):
 
         adc = np.stack(
             [
-                -(
-                    safelog(
-                        np.divide(
-                            dwi.image[:, :, :, idx],
-                            dwi_b0,
-                            out=np.zeros_like(dwi_b0),
-                            where=dwi_b0 > 0,
+                (
+                    -(
+                        safelog(
+                            np.divide(
+                                dwi.image[:, :, :, idx],
+                                dwi_b0,
+                                out=np.zeros_like(dwi_b0),
+                                where=dwi_b0 > 0,
+                            )
                         )
+                        / b_values[idx]
                     )
-                    / b_values[idx]
+                    if b_values[idx] != 0
+                    else 0
                 )
-                if b_values[idx] != 0
-                else 0
                 for idx in index_b
             ],
             axis=3,

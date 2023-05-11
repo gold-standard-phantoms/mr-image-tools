@@ -308,8 +308,7 @@ def test_rot_z_mat(theta: float, expected: np.ndarray) -> None:
 def test_translate_mat(
     vector: tuple[float, float, float], expected: np.ndarray
 ) -> None:
-    """Tests translate_mat with some translation vectors, comparing against expected values
-    """
+    """Tests translate_mat with some translation vectors, comparing against expected values"""
     numpy.testing.assert_array_almost_equal(rs.translate_mat(vector), expected, 6)
 
 

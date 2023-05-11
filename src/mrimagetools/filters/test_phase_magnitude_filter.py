@@ -125,8 +125,7 @@ def test_phase_magnitude_filter_validator_phase_input(
 def test_phase_magnitude_filter_real_input(
     test_data: tuple[np.ndarray, np.ndarray, BaseImageContainer]
 ):
-    """Run the phase_magnitude_filter with non-complex data and image_type=REAL_IMAGE_TYPE.
-    """
+    """Run the phase_magnitude_filter with non-complex data and image_type=REAL_IMAGE_TYPE."""
     _, _, image_container = test_data
 
     # real input
@@ -150,8 +149,7 @@ def test_phase_magnitude_filter_real_input(
 def test_phase_magnitude_filter_imaginary_input(
     test_data: tuple[np.ndarray, np.ndarray, BaseImageContainer]
 ):
-    """Run the phase_magnitude_filter with non-complex data and image_type=IMAGINARY_IMAGE_TYPE.
-    """
+    """Run the phase_magnitude_filter with non-complex data and image_type=IMAGINARY_IMAGE_TYPE."""
     _, _, image_container = test_data
 
     # real input
@@ -175,8 +173,7 @@ def test_phase_magnitude_filter_imaginary_input(
 def test_phase_magnitude_filter_magnitude_input(
     test_data: tuple[np.ndarray, np.ndarray, BaseImageContainer]
 ):
-    """Run the phase_magnitude_filter with non-complex data and image_type=MAGNITUDE_IMAGE_TYPE.
-    """
+    """Run the phase_magnitude_filter with non-complex data and image_type=MAGNITUDE_IMAGE_TYPE."""
     _, _, image_container = test_data
 
     # real input

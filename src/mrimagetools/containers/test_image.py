@@ -1,7 +1,7 @@
 """ ImageContainer tests """
 # pylint: disable=redefined-outer-name,protected-access,duplicate-code
 import os
-from typing import Dict, Final, List
+from typing import Final
 
 import nibabel as nib
 import numpy as np
@@ -28,13 +28,14 @@ from mrimagetools.containers.image import (
     NumpyImageContainer,
 )
 from mrimagetools.containers.image_metadata import ImageMetadata
+from mrimagetools.utils.io import nifti_reader
 
 
 @pytest.fixture
 def icbm_v1_nifti() -> NiftiImageContainer:
     """Returns the ICBM v1 test nifti data"""
     return NiftiImageContainer(
-        nifti_img=nib.load(
+        nifti_img=nifti_reader(
             os.path.join(definitions.ROOT_DIR, "data", "hrgt_ICBM_2009a_NLS_v1.nii.gz")
         )
     )
@@ -398,7 +399,7 @@ def test_image_container_unexpected_arguments() -> None:
         NumpyImageContainer(image=np.zeros((3, 3, 3)), unexpected="test")
     with pytest.raises(TypeError):
         NiftiImageContainer(
-            nib.Nifti1Pair(np.zeros((3, 3, 3)), affine=np.eye(4)), unexpected="test"
+            nib.Nifti1Image(np.zeros((3, 3, 3)), affine=np.eye(4)), unexpected="test"
         )
 
 
@@ -675,8 +676,7 @@ def test_image_container_metadata_get_set() -> None:
 
 
 def test_nifti_to_numpy(nifti_image_containers_a: list[NiftiImageContainer]) -> None:
-    """Check the as_numpy()/as_nifti() functionality works correctly on a nifti container
-    """
+    """Check the as_numpy()/as_nifti() functionality works correctly on a nifti container"""
     for image_container in nifti_image_containers_a:
         new_image_container: BaseImageContainer = image_container.as_numpy()
         for new_image_container in [

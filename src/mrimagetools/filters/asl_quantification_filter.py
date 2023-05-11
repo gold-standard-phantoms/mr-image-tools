@@ -200,31 +200,31 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
                 GkmFilter.CASL,
                 GkmFilter.PCASL,
             ]:
-                self.outputs[
-                    self.KEY_PERFUSION_RATE
-                ].image = AslQuantificationFilter.asl_quant_wp_casl(
-                    control=images[self.KEY_CONTROL],
-                    label=images[self.KEY_LABEL],
-                    m0=images[self.KEY_M0],
-                    lambda_blood_brain=self.inputs[self.KEY_LAMBDA_BLOOD_BRAIN],
-                    label_duration=self.inputs[self.KEY_LABEL_DURATION],
-                    post_label_delay=self.inputs[self.KEY_POST_LABEL_DELAY],
-                    label_efficiency=self.inputs[self.KEY_LABEL_EFFICIENCY],
-                    t1_arterial_blood=self.inputs[self.KEY_T1_ARTERIAL_BLOOD],
+                self.outputs[self.KEY_PERFUSION_RATE].image = (
+                    AslQuantificationFilter.asl_quant_wp_casl(
+                        control=images[self.KEY_CONTROL],
+                        label=images[self.KEY_LABEL],
+                        m0=images[self.KEY_M0],
+                        lambda_blood_brain=self.inputs[self.KEY_LAMBDA_BLOOD_BRAIN],
+                        label_duration=self.inputs[self.KEY_LABEL_DURATION],
+                        post_label_delay=self.inputs[self.KEY_POST_LABEL_DELAY],
+                        label_efficiency=self.inputs[self.KEY_LABEL_EFFICIENCY],
+                        t1_arterial_blood=self.inputs[self.KEY_T1_ARTERIAL_BLOOD],
+                    )
                 )
 
             elif self.inputs[self.KEY_LABEL_TYPE].lower() in [GkmFilter.PASL]:
-                self.outputs[
-                    self.KEY_PERFUSION_RATE
-                ].image = AslQuantificationFilter.asl_quant_wp_pasl(
-                    control=images[self.KEY_CONTROL],
-                    label=images[self.KEY_LABEL],
-                    m0=images[self.KEY_M0],
-                    lambda_blood_brain=self.inputs[self.KEY_LAMBDA_BLOOD_BRAIN],
-                    bolus_duration=self.inputs[self.KEY_LABEL_DURATION],
-                    inversion_time=self.inputs[self.KEY_POST_LABEL_DELAY],
-                    label_efficiency=self.inputs[self.KEY_LABEL_EFFICIENCY],
-                    t1_arterial_blood=self.inputs[self.KEY_T1_ARTERIAL_BLOOD],
+                self.outputs[self.KEY_PERFUSION_RATE].image = (
+                    AslQuantificationFilter.asl_quant_wp_pasl(
+                        control=images[self.KEY_CONTROL],
+                        label=images[self.KEY_LABEL],
+                        m0=images[self.KEY_M0],
+                        lambda_blood_brain=self.inputs[self.KEY_LAMBDA_BLOOD_BRAIN],
+                        bolus_duration=self.inputs[self.KEY_LABEL_DURATION],
+                        inversion_time=self.inputs[self.KEY_POST_LABEL_DELAY],
+                        label_efficiency=self.inputs[self.KEY_LABEL_EFFICIENCY],
+                        t1_arterial_blood=self.inputs[self.KEY_T1_ARTERIAL_BLOOD],
+                    )
                 )
             output_image.metadata.estimation_algorithm = self.ESTIMATION_ALGORITHM[
                 self.WHITEPAPER
@@ -661,19 +661,25 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
                             GkmFilter.calculate_delta_m_gkm(
                                 perf,
                                 att,
-                                m0_tissue[i, j, k]
-                                if isinstance(m0_tissue, np.ndarray)
-                                else m0_tissue,
+                                (
+                                    m0_tissue[i, j, k]
+                                    if isinstance(m0_tissue, np.ndarray)
+                                    else m0_tissue
+                                ),
                                 label_duration,
                                 label_duration + pld,
                                 label_efficiency,
-                                lambda_blood_brain[i, j, k]
-                                if isinstance(lambda_blood_brain, np.ndarray)
-                                else lambda_blood_brain,
+                                (
+                                    lambda_blood_brain[i, j, k]
+                                    if isinstance(lambda_blood_brain, np.ndarray)
+                                    else lambda_blood_brain
+                                ),
                                 t1_arterial_blood,
-                                t1_tissue[i, j, k]
-                                if isinstance(t1_tissue, np.ndarray)
-                                else t1_tissue,
+                                (
+                                    t1_tissue[i, j, k]
+                                    if isinstance(t1_tissue, np.ndarray)
+                                    else t1_tissue
+                                ),
                                 label_type,
                             )
                             for pld in plds

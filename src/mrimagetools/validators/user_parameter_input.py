@@ -632,7 +632,7 @@ def validate_input_params(input_params: dict) -> dict:
         if not ground_truth_params.endswith((".nii", ".nii.gz")):
             raise ValidationError(
                 f"The ground truth {ground_truth_params} must be one of: "
-                f'{". ".join(GROUND_TRUTH_DATA.keys())} or be a .nii or .nii.gz file'
+                f"{'. '.join(GROUND_TRUTH_DATA.keys())} or be a .nii or .nii.gz file"
             )
         validated_input_params["global_configuration"]["ground_truth"] = {
             "nii_file": ground_truth_params,

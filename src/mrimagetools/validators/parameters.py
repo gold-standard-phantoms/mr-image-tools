@@ -79,11 +79,11 @@ def isfile_validator(
 
     return Validator(
         validate,
-        "Value must be a valid filename" + f"with extension(s) {extensions}"
-        if extensions is not None
-        else "" + "and must exist"
-        if must_exist
-        else "",
+        (
+            "Value must be a valid filename" + f"with extension(s) {extensions}"
+            if extensions is not None
+            else "" + "and must exist" if must_exist else ""
+        ),
     )
 
 
@@ -202,9 +202,11 @@ def from_list_validator(
     if case_insensitive:
         lowercase_options = [x.lower() if isinstance(x, str) else x for x in options]
         return Validator(
-            lambda value: value.lower() in lowercase_options
-            if isinstance(value, str)
-            else value in lowercase_options,
+            lambda value: (
+                value.lower() in lowercase_options
+                if isinstance(value, str)
+                else value in lowercase_options
+            ),
             f"Value must be in {options} (ignoring case)",
         )
     return Validator(lambda value: value in options, f"Value must be in {options}")
@@ -267,11 +269,13 @@ def regex_validator(pattern: str, case_insensitive: bool = False) -> Validator:
     except re.error as exc:
         raise ValueError(f"{pattern} is not a valid python regex pattern") from exc
     return Validator(
-        lambda value: bool(
-            re.match(pattern, value, flags=re.IGNORECASE if case_insensitive else 0)
-        )
-        if isinstance(value, str)
-        else False,
+        lambda value: (
+            bool(
+                re.match(pattern, value, flags=re.IGNORECASE if case_insensitive else 0)
+            )
+            if isinstance(value, str)
+            else False
+        ),
         (
             "Value must match pattern"
             f" {pattern}{' (ignoring case)' if case_insensitive else ''}"

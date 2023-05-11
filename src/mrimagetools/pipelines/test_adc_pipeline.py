@@ -26,7 +26,7 @@ def pipeline_test_data_fixture(test_data, tmp_path) -> dict:
     base_filename = os.path.join(tmp_path, "dwi")
     dwi_nifti_filename = base_filename + ".nii.gz"
     dwi_json_filename = base_filename + ".json"
-    nib.save(test_data["dwi"].nifti_image, dwi_nifti_filename)
+    nib.nifti2.save(test_data["dwi"].nifti_image, dwi_nifti_filename)
     BidsOutputFilter.save_json(
         test_data["dwi"].metadata.dict(exclude_none=True),
         dwi_json_filename,

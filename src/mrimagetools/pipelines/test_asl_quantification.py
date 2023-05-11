@@ -15,6 +15,7 @@ from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.pipelines.asl_quantification import asl_quantification
+from mrimagetools.utils.io import nifti_reader
 from mrimagetools.validators.schemas.index import load_schemas
 
 TEST_VOLUME_DIMS = [4, 4, 4]
@@ -246,7 +247,7 @@ def test_asl_quantification_pcasl_output_files(test_pcasl_data, tmp_path) -> Non
         "nifti": os.path.join(tmp_path, "sub-001_acq-001_asl_cbf.nii.gz"),
         "json": os.path.join(tmp_path, "sub-001_acq-001_asl_cbf.json"),
     }
-    loaded_nifti = nib.load(out["filenames"]["nifti"])
+    loaded_nifti = nifti_reader(out["filenames"]["nifti"])
     # check that the nifti that is loaded is the same as what the function outputs
     numpy.testing.assert_array_equal(loaded_nifti.dataobj, out["image"].image)
     # check that the JSON that is loaded is the same as the function's output

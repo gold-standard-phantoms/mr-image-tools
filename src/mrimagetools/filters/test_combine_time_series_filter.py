@@ -13,6 +13,7 @@ from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.combine_time_series_filter import CombineTimeSeriesFilter
+from mrimagetools.utils.io import nifti_reader
 
 
 @pytest.fixture(name="image_containers")
@@ -35,26 +36,28 @@ def fixture_image_containers() -> dict:
     dummy_nifti.header.set_xyzt_units("mm", "sec")
     num_image_containers = 10
     image_containers = {
-        f"image_{''.join(['0' for _ in range(i)]) + str(i)}": NiftiImageContainer(
-            nifti_img=nib.Nifti1Image(
-                dataobj=np.ones((2, 3, 4)) * i,
-                affine=np.eye(4),
-                header=dummy_nifti.header,
-            ),
-            metadata=ImageMetadata(
-                repetition_time_preparation=i, m0=10, post_label_delay=i
-            ),
-        )
-        if i % 2 == 0
-        else NiftiImageContainer(
-            nifti_img=nib.Nifti1Image(
-                dataobj=np.ones((2, 3, 4)) * i,
-                affine=np.eye(4),
-                header=dummy_nifti.header,
-            ),
-            metadata=ImageMetadata(
-                repetition_time_preparation=i, m0=10, label_efficiency=1.5
-            ),
+        f"image_{''.join(['0' for _ in range(i)]) + str(i)}": (
+            NiftiImageContainer(
+                nifti_img=nib.Nifti1Image(
+                    dataobj=np.ones((2, 3, 4)) * i,
+                    affine=np.eye(4),
+                    header=dummy_nifti.header,
+                ),
+                metadata=ImageMetadata(
+                    repetition_time_preparation=i, m0=10, post_label_delay=i
+                ),
+            )
+            if i % 2 == 0
+            else NiftiImageContainer(
+                nifti_img=nib.Nifti1Image(
+                    dataobj=np.ones((2, 3, 4)) * i,
+                    affine=np.eye(4),
+                    header=dummy_nifti.header,
+                ),
+                metadata=ImageMetadata(
+                    repetition_time_preparation=i, m0=10, label_efficiency=1.5
+                ),
+            )
         )
         for i in range(num_image_containers)
     }
@@ -151,22 +154,24 @@ def test_combine_time_series_filter_with_complex_images() -> None:
     """Test the combine time series filter with more advanced images"""
     num_image_containers = 10
     image_containers = {
-        f"image_{''.join(['0' for _ in range(i)]) + str(i)}": NiftiImageContainer(
-            nifti_img=nib.Nifti1Image(
-                dataobj=np.ones((1, 1, 1)) * (i + 1j), affine=np.eye(4)
-            ),
-            metadata=ImageMetadata(
-                repetition_time_preparation=i, m0=10, post_label_delay=i
-            ),
-        )
-        if i % 2 == 0
-        else NiftiImageContainer(
-            nifti_img=nib.Nifti1Image(
-                dataobj=np.ones((1, 1, 1)) * (i + 1j), affine=np.eye(4)
-            ),
-            metadata=ImageMetadata(
-                repetition_time_preparation=i, m0=10, label_efficiency=1.5
-            ),
+        f"image_{''.join(['0' for _ in range(i)]) + str(i)}": (
+            NiftiImageContainer(
+                nifti_img=nib.Nifti1Image(
+                    dataobj=np.ones((1, 1, 1)) * (i + 1j), affine=np.eye(4)
+                ),
+                metadata=ImageMetadata(
+                    repetition_time_preparation=i, m0=10, post_label_delay=i
+                ),
+            )
+            if i % 2 == 0
+            else NiftiImageContainer(
+                nifti_img=nib.Nifti1Image(
+                    dataobj=np.ones((1, 1, 1)) * (i + 1j), affine=np.eye(4)
+                ),
+                metadata=ImageMetadata(
+                    repetition_time_preparation=i, m0=10, label_efficiency=1.5
+                ),
+            )
         )
         for i in range(num_image_containers)
     }
@@ -182,8 +187,8 @@ def test_combine_time_series_filter_with_complex_images() -> None:
     )
     with TemporaryDirectory() as temp_dir:
         filename = os.path.join(temp_dir, "image.nii.gz")
-        nib.save(a_filter.outputs["image"].nifti_image, filename)
-        loaded_image: Nifti1Image = nib.load(filename)
+        nib.nifti2.save(a_filter.outputs["image"].nifti_image, filename)
+        loaded_image = nifti_reader(filename)
 
         numpy.testing.assert_array_equal(
             loaded_image.dataobj,

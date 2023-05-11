@@ -60,7 +60,7 @@ def adc_pipeline(dwi_nifti_filename: str, output_dir: Optional[str] = None) -> d
         adc_nifti_filename = adc_base_filename + ".nii.gz"
         adc_json_filename = adc_base_filename + ".json"
 
-        nib.save(
+        nib.nifti2.save(
             adc_quantification_filter.outputs[
                 AdcQuantificationFilter.KEY_ADC
             ].nifti_image,

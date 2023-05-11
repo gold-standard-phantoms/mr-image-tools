@@ -29,7 +29,7 @@ def data_fixture(tmp_path) -> dict:
     }
     nifti_filename = os.path.join(tmp_path, "data.nii.gz")
     json_filename = os.path.join(tmp_path, "data.json")
-    nib.save(test_nifti.nifti_image, nifti_filename)
+    nib.nifti2.save(test_nifti.nifti_image, nifti_filename)
     wrong_ext_filename = os.path.join(tmp_path, "data.gz")
     copyfile(nifti_filename, wrong_ext_filename)
 

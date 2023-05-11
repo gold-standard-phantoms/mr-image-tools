@@ -100,9 +100,11 @@ class CombineTimeSeriesFilter(BaseFilter):
             else:
                 # The key appears in more than one containers
                 all_values = [
-                    getattr(container.metadata, key)
-                    if key in container.metadata.dict(exclude_none=True).keys()
-                    else None
+                    (
+                        getattr(container.metadata, key)
+                        if key in container.metadata.dict(exclude_none=True).keys()
+                        else None
+                    )
                     for container in containers
                 ]
                 # find values that are not None

@@ -2,14 +2,13 @@
 
 pytest==7.*
 pytest-mock==3.*
-pytest-xdist==2.*
-tox==3.*
-coverage==6.*
-pytest-cov==3.*
+pytest-xdist==3.*
+tox==4.*
+coverage==7.*
+pytest-cov==4.*
 pylint==2.*
 pylint-pydantic==0.*
 pylint-pytest==1.*
-mypy==0.*
-mypy-extensions==0.*
+mypy==1.*
 types-jsonschema==4.*
-pre-commit==2.*
+pre-commit==3.*

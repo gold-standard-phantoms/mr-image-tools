@@ -110,15 +110,15 @@ class RigidRotationSeriesParameters(GeneralImageSeriesParameters):
         distribution="gaussian", mean=0.0, sd=0.0
     )
 
-    transl_x: Union[
-        Annotated[float, Field(ge=-180, le=180)], Distribution
-    ] = Distribution(distribution="gaussian", mean=0.0, sd=0.0)
-    transl_y: Union[
-        Annotated[float, Field(ge=-180, le=180)], Distribution
-    ] = Distribution(distribution="gaussian", mean=0.0, sd=0.0)
-    transl_z: Union[
-        Annotated[float, Field(ge=-180, le=180)], Distribution
-    ] = Distribution(distribution="gaussian", mean=0.0, sd=0.0)
+    transl_x: Union[Annotated[float, Field(ge=-180, le=180)], Distribution] = (
+        Distribution(distribution="gaussian", mean=0.0, sd=0.0)
+    )
+    transl_y: Union[Annotated[float, Field(ge=-180, le=180)], Distribution] = (
+        Distribution(distribution="gaussian", mean=0.0, sd=0.0)
+    )
+    transl_z: Union[Annotated[float, Field(ge=-180, le=180)], Distribution] = (
+        Distribution(distribution="gaussian", mean=0.0, sd=0.0)
+    )
 
 
 class StructuralSeriesParameters(RigidRotationSeriesParameters):
@@ -174,15 +174,15 @@ class AslContextValues(ParameterModel):
 class AslSeriesParameters(GeneralImageSeriesParameters):
     """Series parameters specific to ASL"""
 
-    rot_x: Union[
-        Sequence[Annotated[float, Field(ge=-180, le=180)]], Distribution
-    ] = Distribution(distribution="gaussian", mean=0.0, sd=0.0)
-    rot_y: Union[
-        Sequence[Annotated[float, Field(ge=-180, le=180)]], Distribution
-    ] = Distribution(distribution="gaussian", mean=0.0, sd=0.0)
-    rot_z: Union[
-        Sequence[Annotated[float, Field(ge=-180, le=180)]], Distribution
-    ] = Distribution(distribution="gaussian", mean=0.0, sd=0.0)
+    rot_x: Union[Sequence[Annotated[float, Field(ge=-180, le=180)]], Distribution] = (
+        Distribution(distribution="gaussian", mean=0.0, sd=0.0)
+    )
+    rot_y: Union[Sequence[Annotated[float, Field(ge=-180, le=180)]], Distribution] = (
+        Distribution(distribution="gaussian", mean=0.0, sd=0.0)
+    )
+    rot_z: Union[Sequence[Annotated[float, Field(ge=-180, le=180)]], Distribution] = (
+        Distribution(distribution="gaussian", mean=0.0, sd=0.0)
+    )
 
     transl_x: Union[
         Sequence[Annotated[float, Field(ge=-180, le=180)]], Distribution
@@ -323,9 +323,9 @@ class GenericImageSeries(ParameterModel):
     """A generic image series (helps to discriminate between the different types based
     on the `series_type` field)"""
 
-    __root__: Union[
-        AslImageSeries, StructuralImageSeries, GroundTruthImageSeries
-    ] = Field(..., discriminator="series_type")
+    __root__: Union[AslImageSeries, StructuralImageSeries, GroundTruthImageSeries] = (
+        Field(..., discriminator="series_type")
+    )
 
 
 class InputParameters(ParameterModel):
@@ -336,8 +336,7 @@ class InputParameters(ParameterModel):
 
 
 def load_ground_truth(input_params: InputParameters) -> GroundTruthParser:
-    """Load and prepare and run the GroundTruthLoaderFilter from the given input parameters
-    """
+    """Load and prepare and run the GroundTruthLoaderFilter from the given input parameters"""
     json_filter = JsonLoaderFilter()
     json_filter.add_input(
         "filename", str(input_params.global_configuration.ground_truth.json_file)
@@ -449,9 +448,9 @@ def asl_pipeline(
             ]
             # "sat_pulse_time_opt" goes to "sat_pulse_time", because this is what
             # we want to generate optimised times for
-            bs_params[
-                BackgroundSuppressionFilter.KEY_SAT_PULSE_TIME
-            ] = asl_params.background_suppression.sat_pulse_time_opt
+            bs_params[BackgroundSuppressionFilter.KEY_SAT_PULSE_TIME] = (
+                asl_params.background_suppression.sat_pulse_time_opt
+            )
 
         bs_filter = BackgroundSuppressionFilter()
         bs_filter.add_inputs(bs_params)
@@ -530,7 +529,9 @@ def asl_pipeline(
                 acquire_mri_image_filter.add_parent_filter(
                     parent=bs_filter,
                     io_map={
-                        BackgroundSuppressionFilter.KEY_MAG_Z: AcquireMriImageFilter.KEY_M0,
+                        BackgroundSuppressionFilter.KEY_MAG_Z: (
+                            AcquireMriImageFilter.KEY_M0
+                        ),
                     },
                 )
             else:
@@ -543,10 +544,14 @@ def asl_pipeline(
                 asl_params.dict(exclude_none=True),
                 io_map={
                     "acq_contrast": AcquireMriImageFilter.KEY_ACQ_CONTRAST,
-                    "excitation_flip_angle": AcquireMriImageFilter.KEY_EXCITATION_FLIP_ANGLE,
+                    "excitation_flip_angle": (
+                        AcquireMriImageFilter.KEY_EXCITATION_FLIP_ANGLE
+                    ),
                     "desired_snr": AcquireMriImageFilter.KEY_SNR,
                     "inversion_time": AcquireMriImageFilter.KEY_INVERSION_TIME,
-                    "inversion_flip_angle": AcquireMriImageFilter.KEY_INVERSION_FLIP_ANGLE,
+                    "inversion_flip_angle": (
+                        AcquireMriImageFilter.KEY_INVERSION_FLIP_ANGLE
+                    ),
                 },
                 io_map_optional=True,
             )
@@ -647,9 +652,9 @@ def asl_pipeline(
     acquired_timeseries_nifti_container: NiftiImageContainer = (
         combine_time_series_filter.outputs["image"].as_nifti()
     )
-    acquired_timeseries_nifti_container.header[
-        "descrip"
-    ] = image_series.series_description
+    acquired_timeseries_nifti_container.header["descrip"] = (
+        image_series.series_description
+    )
 
     # logging
     logger.debug("GkmFilter outputs: \n %s", pprint.pformat(gkm_filter.outputs))

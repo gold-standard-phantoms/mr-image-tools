@@ -1,6 +1,11 @@
 """Contains checkers that will return a True or False value based on the input"""
 
-import pint
+import logging
+
+from pint import UnitRegistry
+
+_ureg = UnitRegistry()
+logger = logging.getLogger(__name__)
 
 
 def is_a_unit(unit: str) -> bool:
@@ -15,12 +20,14 @@ def is_a_unit(unit: str) -> bool:
     are all valid and would return True"""
 
     if not isinstance(unit, str):
+        logger.warning("Input to is_a_unit is not a string")
         return False
     # allow the empty unit
     if not unit:
         return True
     try:
-        pint.Quantity(unit)
-    except Exception:  # pylint: disable=broad-except
+        _ureg.Quantity(unit)  # type: ignore
+    except Exception as e:  # pylint: disable=broad-except
+        logger.warning("Input %s to is_a_unit is not a valid unit: %s", unit, e)
         return False
     return True

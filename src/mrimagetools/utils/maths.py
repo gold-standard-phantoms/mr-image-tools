@@ -47,8 +47,7 @@ class VariableMissingError(ExpressionEvaluatorError):
 
 
 class BadVariableTypeError(ExpressionEvaluatorError):
-    """Raised if a variable is not a supported type (int, float, complex, numpy array)
-    """
+    """Raised if a variable is not a supported type (int, float, complex, numpy array)"""
 
 
 class UnsupportedNodeError(ExpressionEvaluatorError):

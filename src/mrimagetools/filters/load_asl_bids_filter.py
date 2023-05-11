@@ -9,6 +9,7 @@ import numpy as np
 from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.utils.io import nifti_reader
 from mrimagetools.validators.parameters import (
     Parameter,
     ParameterValidator,
@@ -87,7 +88,7 @@ class LoadAslBidsFilter(BaseFilter):
         """
 
         # load in the NIFTI image
-        image = nib.load(self.inputs[self.KEY_IMAGE_FILENAME])
+        image = nifti_reader(self.inputs[self.KEY_IMAGE_FILENAME])
         # load in the sidecar
         with open(
             self.inputs[self.KEY_SIDECAR_FILENAME], encoding="utf-8"
@@ -228,7 +229,7 @@ class LoadAslBidsFilter(BaseFilter):
             )
 
         # length of asl_context should be the same as total number of volumes in image
-        image = nib.load(self.inputs[self.KEY_IMAGE_FILENAME])
+        image = nifti_reader(self.inputs[self.KEY_IMAGE_FILENAME])
         if not len(asl_context[1:]) == image.dataobj.shape[3]:
             raise FilterInputValidationError(
                 "The number of aslcontext entries must be equal to the number of"

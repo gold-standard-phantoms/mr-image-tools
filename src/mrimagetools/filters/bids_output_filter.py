@@ -4,7 +4,7 @@ import logging
 import os
 from collections.abc import Sequence
 from datetime import datetime, timezone
-from typing import Any, Dict, Final, Literal, Optional, Union
+from typing import Any, Final, Literal, Optional, Union
 
 import git
 import nibabel as nib
@@ -438,12 +438,12 @@ class BidsOutputFilter(BaseFilter):
                         image.metadata.background_suppression_inv_pulse_timing
                     )
 
-                    json_sidecar[
-                        "BackgroundSuppressionPulseTime"
-                    ] = inv_pulse_times.tolist()
-                    json_sidecar[
-                        "BackgroundSuppressionNumberPulses"
-                    ] = inv_pulse_times.size
+                    json_sidecar["BackgroundSuppressionPulseTime"] = (
+                        inv_pulse_times.tolist()
+                    )
+                    json_sidecar["BackgroundSuppressionNumberPulses"] = (
+                        inv_pulse_times.size
+                    )
                 else:
                     json_sidecar["BackgroundSuppression"] = False
 
@@ -537,7 +537,7 @@ class BidsOutputFilter(BaseFilter):
         nifti_filename = os.path.join(output_directory, sub_directory, nifti_filename)
         # write the nifti file
         logger.info("saving %s", nifti_filename)
-        nib.save(image.as_nifti().nifti_image, nifti_filename)
+        nib.nifti2.save(image.as_nifti().nifti_image, nifti_filename)
 
         json_filename = os.path.join(output_directory, sub_directory, json_filename)
         # write the json sidecar

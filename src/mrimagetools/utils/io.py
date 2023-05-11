@@ -1,0 +1,34 @@
+"""General utilities for inputs/output"""
+
+import logging
+from os import PathLike
+from typing import Union
+
+import nibabel as nib
+from nibabel.nifti1 import Nifti1Image, Nifti1Pair
+from nibabel.nifti2 import Nifti2Image, Nifti2Pair
+
+logger = logging.getLogger(__name__)
+
+
+def nifti_reader(
+    filepath: Union[str, PathLike]
+) -> Union[Nifti1Pair, Nifti1Image, Nifti2Pair, Nifti2Image]:
+    """Reads in a nifti file and returns the image object
+
+    :param filepath: The filepath to the nifti file
+    :return: The nifti image object
+    :raises nibabel.filebasedimages.ImageFileError: If the file is not a nifti file
+    """
+    try:
+        nii = nib.nifti2.load(filepath)
+        logger.info("Loaded %s as a nifti2 file", filepath)
+        return nii
+    except nib.filebasedimages.ImageFileError:
+        pass
+    except nib.spatialimages.HeaderDataError:
+        pass
+
+    nii = nib.nifti1.load(filepath)
+    logger.info("Loaded %s as a nifti1 file", filepath)
+    return nii

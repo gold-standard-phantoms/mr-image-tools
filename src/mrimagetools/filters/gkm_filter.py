@@ -547,8 +547,9 @@ class GkmFilter(BaseFilter):
         """
         return {
             "not_arrived": 0 < signal_time <= transit_time,
-            "arriving": (transit_time < signal_time)
-            & (signal_time < transit_time + label_duration),
+            "arriving": (transit_time < signal_time) & (
+                signal_time < transit_time + label_duration
+            ),
             "arrived": signal_time >= transit_time + label_duration,
         }
 

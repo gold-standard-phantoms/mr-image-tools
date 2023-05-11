@@ -608,13 +608,13 @@ class BidsMetadata(ParameterModel):
             " detail.\n"
         ),
     )
-    AnatomicalLandmarkCoordinateUnits: Optional[
-        AnatomicalLandmarkCoordinateUnits
-    ] = Field(
-        None,
-        description=(
-            'Units of the coordinates of `"AnatomicalLandmarkCoordinateSystem"`.\n'
-        ),
+    AnatomicalLandmarkCoordinateUnits: Optional[AnatomicalLandmarkCoordinateUnits] = (
+        Field(
+            None,
+            description=(
+                'Units of the coordinates of `"AnatomicalLandmarkCoordinateSystem"`.\n'
+            ),
+        )
     )
     AnatomicalLandmarkCoordinates: Optional[dict[str, list[float]]] = Field(
         None,
@@ -748,19 +748,19 @@ class BidsMetadata(ParameterModel):
             ' `"https://www.ebi.ac.uk/ols/ontologies/uberon"`).\n'
         ),
     )
-    BolusCutOffDelayTime: Optional[
-        Union[confloat(ge=0.0), list[confloat(ge=0.0)]]
-    ] = Field(
-        None,
-        description=(
-            "Duration between the end of the labeling and the start of the bolus"
-            " cut-off\nsaturation pulse(s), in seconds.\nThis can be a number or array"
-            " of numbers, of which the values must be\nnon-negative and monotonically"
-            " increasing, depending on the number of bolus\ncut-off saturation"
-            " pulses.\nFor Q2TIPS, only the values for the first and last bolus cut-off"
-            " saturation\npulses are provided.\nBased on DICOM Tag 0018, 925F `ASL"
-            " Bolus Cut-off Delay Time`.\n"
-        ),
+    BolusCutOffDelayTime: Optional[Union[confloat(ge=0.0), list[confloat(ge=0.0)]]] = (
+        Field(
+            None,
+            description=(
+                "Duration between the end of the labeling and the start of the bolus"
+                " cut-off\nsaturation pulse(s), in seconds.\nThis can be a number or"
+                " array of numbers, of which the values must be\nnon-negative and"
+                " monotonically increasing, depending on the number of bolus\ncut-off"
+                " saturation pulses.\nFor Q2TIPS, only the values for the first and"
+                " last bolus cut-off saturation\npulses are provided.\nBased on DICOM"
+                " Tag 0018, 925F `ASL Bolus Cut-off Delay Time`.\n"
+            ),
+        )
     )
     BolusCutOffFlag: Optional[bool] = Field(
         None,
@@ -993,13 +993,13 @@ class BidsMetadata(ParameterModel):
             " detail.\n"
         ),
     )
-    DigitizedHeadPointsCoordinateUnits: Optional[
-        DigitizedHeadPointsCoordinateUnits
-    ] = Field(
-        None,
-        description=(
-            'Units of the coordinates of `"DigitizedHeadPointsCoordinateSystem"`.\n'
-        ),
+    DigitizedHeadPointsCoordinateUnits: Optional[DigitizedHeadPointsCoordinateUnits] = (
+        Field(
+            None,
+            description=(
+                'Units of the coordinates of `"DigitizedHeadPointsCoordinateSystem"`.\n'
+            ),
+        )
     )
     DigitizedLandmarks: Optional[bool] = Field(
         None,

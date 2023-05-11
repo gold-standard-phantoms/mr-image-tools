@@ -14,6 +14,7 @@ import pytest
 
 from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.pipelines.combine_masks import combine_fuzzy_masks
+from mrimagetools.utils.io import nifti_reader
 from mrimagetools.validators.schemas.index import load_schemas
 
 
@@ -65,7 +66,7 @@ def test_combine_masks_mock_data(validation_data: dict) -> None:
         nifti_filenames = []
         for i, image in enumerate(validation_data["masks"]):
             nifti_filenames.append(os.path.join(temp_dir, f"image_{i}.nii.gz"))
-            nib.save(image.nifti_image, nifti_filenames[i])
+            nib.nifti2.save(image.nifti_image, nifti_filenames[i])
 
         # put the filenames into the dictionary then save as a json
         validation_data["test_params"]["mask_files"] = nifti_filenames
@@ -75,6 +76,6 @@ def test_combine_masks_mock_data(validation_data: dict) -> None:
 
         output_filename = os.path.join(temp_dir, "combined_mask.nii.gz")
         results = combine_fuzzy_masks(json_filename, output_filename)
-        saved_nifti: nib.Nifti1Image = nib.load(output_filename)
+        saved_nifti = nifti_reader(output_filename)
 
         numpy.testing.assert_array_equal(saved_nifti.dataobj, results.image)

@@ -111,6 +111,8 @@ def generate_hrgt(
             json_file.write(ground_truth_parser.parsed_outputs.config.json())
 
         nifti_filename = os.path.join(output_dir, "hrgt.nii.gz")
-        nib.save(create_volume_filter.outputs["image"].nifti_image, nifti_filename)
+        nib.nifti2.save(
+            create_volume_filter.outputs["image"].nifti_image, nifti_filename
+        )
 
     return ground_truth_parser.parsed_outputs

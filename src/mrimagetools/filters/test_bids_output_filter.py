@@ -1,10 +1,10 @@
+# type: ignore
 """ Tests for BidsOutputFilter """
 import datetime
 import json
 import os
 from copy import deepcopy
 from tempfile import TemporaryDirectory
-from typing import Tuple
 from unittest.mock import Mock, patch
 
 import git
@@ -19,6 +19,7 @@ from mrimagetools.containers.image_metadata import ImageMetadata
 from mrimagetools.filters.basefilter import FilterInputValidationError
 from mrimagetools.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.utils.filter_validation import validate_filter_inputs
+from mrimagetools.utils.io import nifti_reader
 from mrimagetools.validators.fields import UnitField
 
 TEST_VOLUME_DIMENSIONS = (32, 32, 32)
@@ -168,8 +169,8 @@ def test_bids_output_filter_validate_metadata(validation_metadata: dict) -> None
         passing_inputs = {}
 
         # create inputs dictionary of passing data
-        for data_key in INPUT_VALIDATION_DICT:
-            passing_inputs[data_key] = deepcopy(INPUT_VALIDATION_DICT[data_key][1])
+        for data_key, data_value in INPUT_VALIDATION_DICT.items():
+            passing_inputs[data_key] = deepcopy(data_value[1])
         passing_inputs["output_directory"] = temp_dir
         # add passing metdata to the input image
         for metadata_key in test_data:
@@ -296,7 +297,7 @@ def test_bids_output_filter_mock_data_structural(structural_input) -> None:
         )
 
         # load in the files and check against what they should be
-        loaded_nifti = nib.load(bids_output_filter.outputs["filename"][0])
+        loaded_nifti = nifti_reader(bids_output_filter.outputs["filename"][0])
         numpy.testing.assert_array_equal(
             loaded_nifti.dataobj, TEST_NIFTI_CON_ONES.image
         )
@@ -406,7 +407,7 @@ def test_bids_output_filter_mock_data_asl(asl_input) -> None:
         )
 
         # load in the files and check against what they should be
-        loaded_nifti = nib.load(bids_output_filter.outputs["filename"][0])
+        loaded_nifti = nifti_reader(bids_output_filter.outputs["filename"][0])
         numpy.testing.assert_array_equal(
             loaded_nifti.dataobj, TEST_NIFTI_CON_ONES.image
         )
@@ -629,8 +630,7 @@ def test_bids_output_filter_m0_float(asl_input) -> None:
 def test_bids_output_filter_m0scan(
     structural_input: tuple[NiftiImageContainer, dict]
 ) -> None:
-    """Tests the BidsOutputFilter with mock ASL data where there is a separate m0 scan
-    """
+    """Tests the BidsOutputFilter with mock ASL data where there is a separate m0 scan"""
     with TemporaryDirectory() as temp_dir:
         image = structural_input[0]
         d = structural_input[1]
@@ -658,7 +658,7 @@ def test_bids_output_filter_m0scan(
         )
 
         # load in the files and check against what they should be
-        loaded_nifti = nib.load(bids_output_filter.outputs["filename"][0])
+        loaded_nifti = nifti_reader(bids_output_filter.outputs["filename"][0])
         numpy.testing.assert_array_equal(
             loaded_nifti.dataobj, TEST_NIFTI_CON_ONES.image
         )
@@ -729,7 +729,7 @@ def test_bids_output_filter_mock_data_ground_truth(asldro_version) -> None:
         )
 
         # load in the files and check against what they should be
-        loaded_nifti = nib.load(bids_output_filter.outputs["filename"][0])
+        loaded_nifti = nifti_reader(bids_output_filter.outputs["filename"][0])
         numpy.testing.assert_array_equal(
             loaded_nifti.dataobj, TEST_NIFTI_CON_ONES.image
         )
@@ -816,7 +816,7 @@ def test_bids_output_filter_mock_data_ground_truth_seg_label(asldro_version) -> 
         )
 
         # load in the files and check against what they should be
-        loaded_nifti = nib.load(bids_output_filter.outputs["filename"][0])
+        loaded_nifti = nifti_reader(bids_output_filter.outputs["filename"][0])
         numpy.testing.assert_array_equal(
             loaded_nifti.dataobj, TEST_NIFTI_CON_ONES.image
         )

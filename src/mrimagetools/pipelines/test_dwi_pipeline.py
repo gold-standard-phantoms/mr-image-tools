@@ -144,7 +144,7 @@ def test_dwi_pipeline() -> None:
             json.dumps(TEST_DATA_INPUT_JSON), encoding="utf-8"
         )
         # create the nifti file
-        nib.save(
+        nib.nifti2.save(
             nib.Nifti1Image(
                 GROUND_TRUTH_INPUT,
                 affine=np.eye(4),

@@ -276,9 +276,9 @@ class GroundTruthParser(BaseFilter):
         self.outputs["parameters"] = self.parsed_inputs.config.parameters
         # For legacy reasons, these parameters need to be in the base of the outputs
         self.outputs = {**self.outputs, **self.parsed_inputs.config.parameters}
-        self.outputs[
-            "segmentation_labels"
-        ] = self.parsed_inputs.config.segmentation_labels
+        self.outputs["segmentation_labels"] = (
+            self.parsed_inputs.config.segmentation_labels
+        )
         self.parsed_outputs = GroundTruthOutput(
             images=output_images, config=self.parsed_inputs.config
         )

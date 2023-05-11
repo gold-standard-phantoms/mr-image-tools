@@ -48,7 +48,7 @@ def combine_fuzzy_masks(
 
     # save the file
     if output_filename is not None:
-        nib.save(
+        nib.nifti2.save(
             combine_masks_filter.outputs[
                 CombineFuzzyMasksFilter.KEY_SEG_MASK
             ].nifti_image,

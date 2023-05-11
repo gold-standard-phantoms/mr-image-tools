@@ -85,7 +85,7 @@ def mtr_pipeline(
         )
         mtr_nifti_filename = mtr_base_filename + ".nii.gz"
         mtr_json_filename = mtr_base_filename + ".json"
-        nib.save(
+        nib.nifti2.save(
             mtr_quantification_filter.outputs[
                 MtrQuantificationFilter.KEY_MTR
             ].nifti_image,

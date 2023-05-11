@@ -51,7 +51,7 @@ def test_append_metadata_filter_validate_inputs() -> None:
     for inputs_key in INPUT_VALIDATION_DICT:
         test_data = deepcopy(INPUT_VALIDATION_DICT)
         test_filter = AppendMetadataFilter()
-        is_optional: bool = test_data[inputs_key][0]
+        is_optional: bool = test_data[inputs_key][0]  # type: ignore
 
         # remove key
         test_data.pop(inputs_key)
@@ -77,8 +77,7 @@ def test_append_metadata_filter_validate_inputs() -> None:
 
 
 def test_append_metadata_filter_new_metadata() -> None:
-    """Tests the AppendMetadataFilter with an image that has no metadata to begin with
-    """
+    """Tests the AppendMetadataFilter with an image that has no metadata to begin with"""
 
     append_metadata_filter = AppendMetadataFilter()
     append_metadata_filter.add_input("image", TEST_NIFTI_CON_ONES)

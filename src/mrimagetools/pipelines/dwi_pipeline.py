@@ -352,7 +352,7 @@ def dwi_pipeline(
         dwi_nifti_filename = dwi_base_filename + ".nii.gz"
         dwi_json_filename = dwi_base_filename + ".json"
 
-        nib.save(
+        nib.nifti2.save(
             resulting_image.as_nifti().nifti_image,
             dwi_nifti_filename,
         )

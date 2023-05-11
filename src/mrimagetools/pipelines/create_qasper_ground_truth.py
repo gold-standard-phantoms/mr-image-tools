@@ -181,8 +181,8 @@ def generate_qasper(output_dir: Union[None, str] = None) -> GroundTruthOutput:
     # save
     if output_dir is not None:
         for quantity in qasper_hrgt.config.quantities:
-            nib.save(
-                qasper_hrgt.images[quantity.name],
+            nib.nifti2.save(
+                qasper_hrgt.images[quantity.name].as_nifti().nifti_image,
                 os.path.join(output_dir, "qasper_hrgt_" + quantity.name + ".nii.gz"),
             )
 

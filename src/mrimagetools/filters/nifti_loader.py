@@ -5,6 +5,7 @@ import nibabel as nib
 
 from mrimagetools.containers.image import NiftiImageContainer
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
+from mrimagetools.utils.io import nifti_reader
 
 
 class NiftiLoaderFilter(BaseFilter):
@@ -25,7 +26,7 @@ class NiftiLoaderFilter(BaseFilter):
         `image`."""
 
         self.outputs["image"] = NiftiImageContainer(
-            nifti_img=nib.load(self.inputs["filename"])
+            nifti_img=nifti_reader(self.inputs["filename"])
         )
 
     def _validate_inputs(self) -> None:

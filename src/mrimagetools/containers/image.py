@@ -386,18 +386,32 @@ class NiftiImageContainer(BaseImageContainer):
     """A container for an ND image. Must be initialised with
     a nibabel Nifti1Image or Nifti2Image"""
 
-    def __init__(self, nifti_img: Union[nib.Nifti1Image, nib.Nifti2Image], **kwargs):
+    def __init__(
+        self,
+        nifti_img: Union[
+            nib.Nifti1Image, nib.Nifti2Image, nib.Nifti1Pair, nib.Nifti2Pair
+        ],
+        **kwargs,
+    ) -> None:
         """
         :param nifti_img: A nibabel Nifti1Image or Nifti2Image
         :param **kwargs: any additional arguments accepted by BaseImageContainer
         """
-        self.nifti_image: Union[nib.Nifti1Image, nib.Nifti2Image] = nifti_img
+        self.nifti_image: Union[
+            nib.Nifti1Image, nib.Nifti2Image, nib.Nifti1Pair, nib.Nifti2Pair
+        ] = nifti_img
         super().__init__(**kwargs)  # Call super last as we check member variables
 
     @property
-    def nifti_type(self) -> Union[type[nib.Nifti1Image], type[nib.Nifti2Image]]:
-        """Return the type of NIFTI data contained here (nib.Nifti1Image or nib.Nifti2Image)
-        """
+    def nifti_type(
+        self,
+    ) -> Union[
+        type[nib.Nifti1Image],
+        type[nib.Nifti2Image],
+        type[nib.Nifti1Pair],
+        type[nib.Nifti2Pair],
+    ]:
+        """Return the type of NIFTI data contained here (nib.Nifti1Image or nib.Nifti2Image)"""
         return type(self.nifti_image)
 
     @property

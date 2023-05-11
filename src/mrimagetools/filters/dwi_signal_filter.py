@@ -113,12 +113,12 @@ class DwiSignalFilter(BaseFilter):
         self.outputs[self.KEY_DWI].image = dwi_image
         # update metadata
         self.outputs[self.KEY_ATTENUATION].metadata.image_flavor = "DWI"
-        self.outputs[
-            self.KEY_ATTENUATION
-        ].metadata.b_values = b_values  # for now the input b_val is returned
-        self.outputs[
-            self.KEY_ATTENUATION
-        ].metadata.b_vectors = b_vectors  # for now the input b_vect is returned
+        self.outputs[self.KEY_ATTENUATION].metadata.b_values = (
+            b_values  # for now the input b_val is returned
+        )
+        self.outputs[self.KEY_ATTENUATION].metadata.b_vectors = (
+            b_vectors  # for now the input b_vect is returned
+        )
         self.outputs[self.KEY_DWI].metadata.image_flavor = "DWI"
         self.outputs[self.KEY_DWI].metadata.b_values = b_values
         self.outputs[self.KEY_DWI].metadata.b_vectors = b_vectors

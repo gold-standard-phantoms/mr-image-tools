@@ -184,7 +184,7 @@ def asl_quantification(
         )
         output_json_filename = os.path.join(output_dir, output_base_filename + ".json")
 
-        nib.save(
+        nib.nifti2.save(
             asl_quantification_filter.outputs["perfusion_rate"].nifti_image,
             output_nifti_filename,
         )

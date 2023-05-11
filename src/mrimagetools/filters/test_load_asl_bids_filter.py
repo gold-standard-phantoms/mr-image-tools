@@ -34,7 +34,7 @@ def data_fixture() -> BaseImageContainer:
         elif i > 0:
             image_data[:, :, :, i] = np.ones(TEST_VOLUME_DIMENSIONS) * (i % 2 + 2)
 
-    image = NiftiImageContainer(nib.Nifti2Image(image_data, affine=np.eye(4)))
+    image = NiftiImageContainer(nib.Nifti1Image(image_data, affine=np.eye(4)))
     image.metadata = ImageMetadata(
         echo_time=0.01,
         repetition_time=[10.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0],
