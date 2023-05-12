@@ -391,7 +391,7 @@ class NiftiImageContainer(BaseImageContainer):
         nifti_img: Union[
             nib.Nifti1Image, nib.Nifti2Image, nib.Nifti1Pair, nib.Nifti2Pair
         ],
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """
         :param nifti_img: A nibabel Nifti1Image or Nifti2Image
@@ -411,7 +411,7 @@ class NiftiImageContainer(BaseImageContainer):
         type[nib.Nifti1Pair],
         type[nib.Nifti2Pair],
     ]:
-        """Return the type of NIFTI data contained here (nib.Nifti1Image or nib.Nifti2Image)"""
+        """Return the type of NIFTI data contained here"""
         return type(self.nifti_image)
 
     @property

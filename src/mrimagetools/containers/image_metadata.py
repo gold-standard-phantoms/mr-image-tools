@@ -1,7 +1,7 @@
 """ImageMetadata class"""
 from collections.abc import Sequence
 from copy import copy
-from typing import Any, Callable, Dict, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Literal, Optional, Union
 
 from pydantic import BaseModel
 
