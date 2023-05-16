@@ -2,19 +2,18 @@
 
 import logging
 from dataclasses import dataclass
-from typing import Final, Union
 from typing import Final, Optional, Union
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy.optimize import least_squares
-from scipy.optimize._lsq.least_squares import OptimizeResult
 from pydantic import Field, root_validator, validator
 from scipy.optimize import OptimizeResult, least_squares
+from scipy.optimize._lsq.least_squares import OptimizeResult
 
 from mrimagetools.validators.parameter_model import ParameterModel
 
 logger = logging.getLogger(__name__)
+
 
 class T1MappingParameters(ParameterModel):
     """The parameters for T1 mapping."""
@@ -34,6 +33,7 @@ class T1MappingParameters(ParameterModel):
         if v != sorted(v):
             raise ValueError("The inversion times must be in ascending order.")
         return v
+
     @root_validator
     def check_list_lengths(cls, values: dict) -> dict:
         """If the repetition is a list, check that it is the same length as the
@@ -106,7 +106,6 @@ def t1_mapping(
     :param signal: The signal intensity. Must be an ND NumPy array, where the last
         dimension corresponds to the data from the individual inversion time (in
         ascending order).
-
     :param parameters: The parameters for the T1 mapping.
         See :class:`T1MappingParameters`.
     :param mask: An optional mask. Must be a NumPy array with the same dimensions as
@@ -165,6 +164,40 @@ def t1_mapping(
         voxel_count += 1
         print(f"Fitting T1 to voxel {voxel_count} of {n_voxels}", end="\r")
         # Iterate over the inversion times
+
+        # The best fit is the one with the lowest residual
+        best_fit = np.inf
+        for ti_idx in range(len(parameters.inversion_times) + 1):
+            # Perform the polarity restoration. For all inversion times, before the
+            # value - invert the polarity
+            voxel_values = np.copy(flattened_signal[voxel_idx, :])
+            voxel_values[:ti_idx] = -voxel_values[:ti_idx]
+            logger.debug("Fitting voxel %s of %s", voxel_idx, flattened_signal.shape[0])
+            # Perform the optimisation
+            result: OptimizeResult = least_squares(
+                fun=_optimise,
+                method="lm",  # Levenberg-Marquardt
+                # Initial guess for the parameters:
+                # the T1 is 1 second, the S0 is the first signal intensity,
+                max_nfev=100000,
+                x0=[1.0, voxel_values[-1], 1.0],
+                kwargs={
+                    "signal": voxel_values,
+                    "parameters": parameters,
+                },
+            )
+            if not isinstance(result, OptimizeResult):
+                # raise ValueError("Optimisation failed")
+                continue
+            if not result["success"]:
+                # raise ValueError(f"Optimisation failed: {result['message']}")
+                continue
+            sum_of_residuals = np.sum(abs(result["fun"]))
+
+            if sum_of_residuals < best_fit:
+                best_fit = sum_of_residuals
+                # The solution found
+                flattened_result[voxel_idx, :] = result["x"]
 
     # Remove T1 values that are NaN, Inf, negative or greater than 20
     flattened_result[..., 0][flattened_result[..., 0] < 0] = 0
