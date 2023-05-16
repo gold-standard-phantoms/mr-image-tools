@@ -5,3 +5,4 @@ nilearn==0.*
 gitpython==3.*
 pydantic==1.*
 pint==0.*
+typer[all]==0.*

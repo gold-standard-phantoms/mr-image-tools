@@ -20,15 +20,19 @@ def nifti_reader(
     :return: The nifti image object
     :raises nibabel.filebasedimages.ImageFileError: If the file is not a nifti file
     """
+    # Disable the logging for the nibabel package as it may throw a lot of warnings
+    # when trying to load a nifti1 file as a nifti2 file, as we explictly handle this
+    logging.getLogger("nibabel").setLevel(logging.CRITICAL)
     try:
         nii = nib.nifti2.load(filepath)
-        logger.info("Loaded %s as a nifti2 file", filepath)
+        logger.info("Loaded %s as a NIfTI2 file", filepath)
         return nii
     except nib.filebasedimages.ImageFileError:
         pass
     except nib.spatialimages.HeaderDataError:
         pass
 
+    logging.getLogger("nibabel").setLevel(logging.WARNING)
     nii = nib.nifti1.load(filepath)
-    logger.info("Loaded %s as a nifti1 file", filepath)
+    logger.info("Loaded %s as a NIfTI1 file", filepath)
     return nii

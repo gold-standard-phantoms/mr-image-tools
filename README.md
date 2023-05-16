@@ -26,7 +26,7 @@ way please see [https://docs.python.org/3/installing/index.html](https://docs.py
 ## Python Version
 
 We recommend using the latest version of Python. MRImageTools supports Python
-3.8 and newer.
+3.9 and newer.
 
 ## Dependencies
 
@@ -105,9 +105,20 @@ $ pip install mrimagetools
 
 MRImageTools is now installed. Go to the [Documentation Overview](../index.md).
 
+# Command-line tools
+
+There are some WIP command-line tools. After installing the `mrimagetools`
+package, you can find these by running `mrimagetools --help`, or
+mrimagetools2 –help. This will list the commands that are available with a short
+description. To get more information about a command, run
+`mrimagetools <command> --help` or `mrimagetools2 <command> --help`.
+
+The newer commands can be found in `mrimagetools2`, and the older ones in
+`mrimagetools`. These will be merged in the future.
+
 # Development
 
-Development should be carried out using Python 3.8. Development must comply with a few code styling/quality rules and processes:
+Development of this software project must comply with a few code styling/quality rules and processes:
 
 
 * Before pushing any code, make sure the CHANGELOG.md is updated as per the instructions in the CHANGELOG.md file. tox should also be run to ensure that tests and code-quality checks pass.

@@ -1,15 +1,19 @@
 """A module for T1 mapping."""
 
+import json
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Final, Optional, Union
 
+import nibabel as nib
 import numpy as np
 from numpy.typing import NDArray
 from pydantic import Field, root_validator, validator
 from scipy.optimize import OptimizeResult, least_squares
-from scipy.optimize._lsq.least_squares import OptimizeResult
 
+from mrimagetools.containers.image import NiftiImageContainer
+from mrimagetools.utils.io import nifti_reader
 from mrimagetools.validators.parameter_model import ParameterModel
 
 logger = logging.getLogger(__name__)
@@ -216,3 +220,164 @@ def t1_mapping(
         s0=result[..., 1],
         inv_eff=result[..., 2],
     )
+
+
+@dataclass
+class NiftiJsonPair:
+    """A NIfTI and JSON pair."""
+
+    nifti: NiftiImageContainer
+    json: dict
+
+
+def t1_mapping_from_files(
+    filepaths: list[Path],
+    output_t1_file: Path,
+    output_s0_file: Optional[Path] = None,
+    output_inv_eff_file: Optional[Path] = None,
+    mask_file: Optional[Path] = None,
+) -> None:
+    """T1 mapping from files.
+
+    :param filepaths: The filepaths to the NIfTI files. Assumed that there are
+        associated JSON files with the same names and a .json extension
+    :param output_t1_file: The file to save the results of the T1 mapping.
+        The dimensions of the arrays are the same as the input signal.
+    :param output_s0_file: The file to save the results of the S0 mapping.
+        The dimensions of the arrays are the same as the input signal. Optional.
+    :param output_inv_eff_file: The file to save the results of the inversion
+        efficiency mapping. The dimensions of the arrays are the same as the
+        input signal. Optional.
+    :param mask_file: The mask file. Optional.
+        See :class:`T1MappingResults`.
+    """
+    # Generate the JSON filenames
+    json_filenames: list[Path] = []
+
+    for filepath in filepaths:
+        json_filenames.append(
+            Path(str(filepath).replace(".nii.gz", ".json").replace("nii.gz", ".json"))
+        )
+
+    # Read the NIfTI files
+    image_containers = [
+        NiftiJsonPair(
+            NiftiImageContainer(nifti_img=nifti_reader(filepath)),
+            # Read the JSON file
+            json.loads(metapath.read_text()),
+        )
+        for filepath, metapath in zip(filepaths, json_filenames)
+    ]
+
+    # Load the mask (if provided)
+    mask: Optional[np.ndarray] = None
+    if mask_file is not None:
+        mask = nifti_reader(mask_file).get_fdata() > 0
+
+    # Check the images are all IR
+    if any(
+        image_container.json["ScanningSequence"] != "IR"
+        for image_container in image_containers
+    ):
+        raise ValueError("All images must be inversion recovery")
+
+    # Check the images have an inversion time
+    if any(
+        image_container.json["InversionTime"] is None
+        for image_container in image_containers
+    ):
+        raise ValueError("All images must have an inversion time")
+
+    # Check the images have a repetition time
+    if any(
+        image_container.json["RepetitionTime"] is None
+        for image_container in image_containers
+    ):
+        raise ValueError("All images must have a repetition time")
+
+    # Sort by inversion time
+    image_containers.sort(key=lambda x: x.json["InversionTime"])  # type: ignore
+
+    logger.info(
+        (
+            "Performing T1 mapping on %s images, with inversion times: %s, and"
+            " repetition times: %s"
+        ),
+        len(image_containers),
+        [image_container.json["InversionTime"] for image_container in image_containers],
+        [
+            image_container.json["RepetitionTime"]
+            for image_container in image_containers
+        ],
+    )
+
+    # Check that images are the same shape
+    if any(
+        image_container.nifti.nifti_image.shape
+        != image_containers[0].nifti.nifti_image.shape
+        for image_container in image_containers
+    ):
+        raise ValueError("All images must be the same shape")
+
+    # Check that images are 4D or smaller in dimension
+    if any(
+        image_container.nifti.nifti_image.ndim > 4
+        for image_container in image_containers
+    ):
+        raise ValueError("Input data must be 4D or less")
+
+    # Concatenate the images into a N+1D array
+    signal = np.stack(
+        [
+            image_container.nifti.nifti_image.get_fdata()
+            for image_container in image_containers
+        ],
+        axis=-1,
+    )
+
+    # Create the parameters
+    parameters = T1MappingParameters(
+        inversion_times=[
+            image_container.json["InversionTime"]
+            for image_container in image_containers
+        ],
+        repetition_times=[
+            image_container.json["RepetitionTime"]
+            for image_container in image_containers
+        ],
+    )
+
+    # Perform the T1 mapping
+    t1_mapping_results = t1_mapping(signal=signal, parameters=parameters, mask=mask)
+
+    # Save the results
+    logger.info("Saving T1 map to %s", output_t1_file)
+    nib.nifti1.save(
+        nib.Nifti1Image(
+            t1_mapping_results.t1,
+            image_containers[0].nifti.nifti_image.affine,
+        ),
+        output_t1_file,
+    )
+
+    # If the S0 output is requested, save it
+    if output_s0_file is not None:
+        logger.info("Saving S0 map to %s", output_s0_file)
+        nib.nifti1.save(
+            nib.Nifti1Image(
+                t1_mapping_results.s0,
+                image_containers[0].nifti.nifti_image.affine,
+            ),
+            output_s0_file,
+        )
+
+    # If the inversion efficiency output is requested, save it
+    if output_inv_eff_file is not None:
+        logger.info("Saving inversion efficiency map to %s", output_inv_eff_file)
+        nib.nifti1.save(
+            nib.Nifti1Image(
+                t1_mapping_results.inv_eff,
+                image_containers[0].nifti.nifti_image.affine,
+            ),
+            output_inv_eff_file,
+        )

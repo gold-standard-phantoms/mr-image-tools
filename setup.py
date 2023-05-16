@@ -100,6 +100,7 @@ setup(
     entry_points={
         "console_scripts": [
             "mrimagetools = mrimagetools.cli:main",
+            "mrimagetools2 = mrimagetools.cli2:main",
         ],
     },
     classifiers=[

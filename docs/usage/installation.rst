@@ -9,7 +9,7 @@ Python Version
 --------------
 
 We recommend using the latest version of Python. MRImageTools supports Python
-3.8 and newer.
+3.9 and newer.
 
 Dependencies
 ------------

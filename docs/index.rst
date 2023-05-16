@@ -9,6 +9,7 @@ Welcome to MRImageTool's documentation
 
    usage/overview
    usage/installation
+   usage/command_line_tools
    usage/development
    usage/references
    api
