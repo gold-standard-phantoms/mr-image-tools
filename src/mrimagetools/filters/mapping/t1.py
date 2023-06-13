@@ -3,6 +3,7 @@
 import json
 import logging
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Final, Optional, Union
 
@@ -19,8 +20,24 @@ from mrimagetools.validators.parameter_model import ParameterModel
 logger = logging.getLogger(__name__)
 
 
+class T1Model(str, Enum):
+    """Model to use for T1 mapping"""
+
+    GENERAL = "general"
+    CLASSICAL = "classical"
+
+
 class T1MappingParameters(ParameterModel):
     """The parameters for T1 mapping."""
+
+    model: T1Model = Field(
+        T1Model.GENERAL,
+        description=(
+            "The model to use for the T1 mapping. The classical model is "
+            ":math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1))`. The general model is "
+            ":math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))`."
+        ),
+    )
 
     repetition_times: Union[float, list[float]] = Field(..., gt=0.0)
     """The repetition time(s) (TR) in seconds. May be a scalar or a list of floats.
@@ -69,12 +86,40 @@ class T1MappingResults:
     """An ND NumPy array with the estimated inversion efficiency values."""
 
 
-def _optimise(
+def _optimise_classical(
     x: NDArray[np.floating],
     signal: NDArray[np.floating],
     parameters: T1MappingParameters,
 ) -> NDArray:
-    """The optimisation routine for T1 mapping.
+    """The optimisation routine for T1 mapping. Uses the classical model:
+        :math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1))`
+
+    :param x: The parameters to be optimised. This is a 1D NumPy array with the
+        parameters in the following order: T1, S0, inv_eff.
+
+    :param signal: The signal intensity. Must be a 1D NumPy array. The values correspond
+        to the signal intensity at the inversion times.
+
+    :param parameters: The parameters for the T1 mapping.
+        See :class:`T1MappingParameters`.
+
+    :return: The residual between the model and the data.
+    """
+    residuals = signal - x[1] * (
+        1 - 2 * x[2] * np.exp(-np.array(parameters.inversion_times) / x[0])
+    )
+    if not isinstance(residuals, np.ndarray):
+        raise ValueError(f"Residuals must be an ndarray, is {type(residuals)}")
+    return residuals
+
+
+def _optimise_general(
+    x: NDArray[np.floating],
+    signal: NDArray[np.floating],
+    parameters: T1MappingParameters,
+) -> NDArray:
+    """The optimisation routine for T1 mapping. Uses the general model:
+        :math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))`
 
     :param x: The parameters to be optimised. This is a 1D NumPy array with the
         parameters in the following order: T1, S0, inv_eff.
@@ -179,7 +224,11 @@ def t1_mapping(
             logger.debug("Fitting voxel %s of %s", voxel_idx, flattened_signal.shape[0])
             # Perform the optimisation
             result: OptimizeResult = least_squares(
-                fun=_optimise,
+                fun=(
+                    _optimise_general
+                    if parameters.model == T1Model.GENERAL
+                    else _optimise_classical
+                ),
                 method="lm",  # Levenberg-Marquardt
                 # Initial guess for the parameters:
                 # the T1 is 1 second, the S0 is the first signal intensity,
@@ -236,6 +285,7 @@ def t1_mapping_from_files(
     output_s0_file: Optional[Path] = None,
     output_inv_eff_file: Optional[Path] = None,
     mask_file: Optional[Path] = None,
+    model: T1Model = T1Model.GENERAL,
 ) -> None:
     """T1 mapping from files.
 
@@ -249,7 +299,8 @@ def t1_mapping_from_files(
         efficiency mapping. The dimensions of the arrays are the same as the
         input signal. Optional.
     :param mask_file: The mask file. Optional.
-        See :class:`T1MappingResults`.
+    :param model: The model to use. If not provided, the model is inferred from
+        the defaults of :class:`T1MappingParameters`.
     """
     # Generate the JSON filenames
     json_filenames: list[Path] = []
@@ -334,9 +385,9 @@ def t1_mapping_from_files(
         ],
         axis=-1,
     )
-
     # Create the parameters
     parameters = T1MappingParameters(
+        model=model,
         inversion_times=[
             image_container.json["InversionTime"]
             for image_container in image_containers

@@ -3,9 +3,10 @@
 from typing import Union
 
 import numpy as np
+import pytest
 from numpy.typing import NDArray
 
-from mrimagetools.filters.mapping.t1 import T1MappingParameters, t1_mapping
+from mrimagetools.filters.mapping.t1 import T1MappingParameters, T1Model, t1_mapping
 
 
 def _t1_mapping_forward_model(
@@ -14,6 +15,7 @@ def _t1_mapping_forward_model(
     inv_eff: NDArray[np.floating],
     repetition_times: Union[float, list[float]],
     inversion_times: list[float],
+    model: T1Model = T1Model.GENERAL,
 ) -> NDArray[np.floating]:
     """The forward model for T1 mapping.
 
@@ -43,21 +45,25 @@ def _t1_mapping_forward_model(
         result[..., inversion_time_index] = s0 * (
             1
             - 2 * inv_eff * np.exp(-inversion_time / t1)
-            + np.exp(-repetition_time / t1)
+            + (np.exp(-repetition_time / t1) if model == T1Model.GENERAL else 0)
         )
     if not isinstance(result, np.ndarray):
         raise TypeError("The result must be a NumPy array.")
     return result
 
 
-def test_t1_mapping() -> None:
+@pytest.mark.parametrize("model", [T1Model.GENERAL, T1Model.CLASSICAL])
+def test_t1_mapping(model: T1Model) -> None:
     """Some basic tests to check the T1 mapping is calculating the correct values."""
     t1 = np.array([[1.1, 1.2], [1.3, 1.4]])
     s0 = np.array([[2.1, 2.2], [2.3, 2.4]])
     inv_eff = np.array([[0.98, 0.99], [1.0, 0.97]])
+
+    # Create the parameters
     parameters = T1MappingParameters(
         repetition_times=[0.1, 0.2, 0.3, 1, 2, 3],
         inversion_times=[0.05, 0.1, 0.2, 1, 2, 3],
+        model=model,
     )
 
     # Calculate the signal intensity
@@ -67,6 +73,7 @@ def test_t1_mapping() -> None:
         inv_eff=inv_eff,
         repetition_times=parameters.repetition_times,
         inversion_times=parameters.inversion_times,
+        model=model,
     )
     t1_mapping_results = t1_mapping(signal=signal, parameters=parameters)
 
@@ -76,7 +83,8 @@ def test_t1_mapping() -> None:
     assert np.allclose(t1_mapping_results.t1, t1, rtol=1e-3, atol=1e-3)
 
 
-def test_t1_mapping_constant_repetition_time() -> None:
+@pytest.mark.parametrize("model", [T1Model.GENERAL, T1Model.CLASSICAL])
+def test_t1_mapping_constant_repetition_time(model: T1Model) -> None:
     """Some basic tests to check the T1 mapping is calculating the correct values.
     Uses a constant repetition time."""
     t1 = np.array([[1.1, 1.2], [1.3, 1.4]])
@@ -86,6 +94,7 @@ def test_t1_mapping_constant_repetition_time() -> None:
         # Use the same repetition time for all inversion times
         repetition_times=3,
         inversion_times=[0.05, 0.1, 0.2, 1, 2, 3],
+        model=model,
     )
 
     # Calculate the signal intensity
@@ -95,6 +104,7 @@ def test_t1_mapping_constant_repetition_time() -> None:
         inv_eff=inv_eff,
         repetition_times=parameters.repetition_times,
         inversion_times=parameters.inversion_times,
+        model=model,
     )
     t1_mapping_results = t1_mapping(signal=signal, parameters=parameters)
 
@@ -102,7 +112,8 @@ def test_t1_mapping_constant_repetition_time() -> None:
     assert np.allclose(t1_mapping_results.t1, t1, rtol=1e-3, atol=1e-3)
 
 
-def test_t1_mapping_invert_polarity() -> None:
+@pytest.mark.parametrize("model", [T1Model.GENERAL, T1Model.CLASSICAL])
+def test_t1_mapping_invert_polarity(model: T1Model) -> None:
     """Check that, when the polarity of the signal is inverted (in the early inversion
     times), the T1 mapping still works."""
     t1 = np.array([[1.1, 1.2], [1.3, 1.4]])
@@ -112,6 +123,7 @@ def test_t1_mapping_invert_polarity() -> None:
         # Use the same repetition time for all inversion times
         repetition_times=3,
         inversion_times=[0.05, 0.1, 0.2, 1, 2, 3],
+        model=model,
     )
 
     # Calculate the signal intensity
@@ -121,6 +133,7 @@ def test_t1_mapping_invert_polarity() -> None:
         inv_eff=inv_eff,
         repetition_times=parameters.repetition_times,
         inversion_times=parameters.inversion_times,
+        model=model,
     )
     # Invert the polarity of the signal
     signal[..., :1] *= -1

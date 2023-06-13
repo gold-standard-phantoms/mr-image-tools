@@ -6,7 +6,7 @@ from typing import Annotated, Optional
 
 import typer
 
-from mrimagetools.filters.mapping.t1 import t1_mapping_from_files
+from mrimagetools.filters.mapping.t1 import T1Model, t1_mapping_from_files
 
 from . import __version__
 
@@ -87,6 +87,17 @@ def t1_mapping(
             help="Mask (NIfTI) filename. Used to mask the input T1w images.",
         ),
     ] = None,
+    model: Annotated[
+        T1Model,
+        typer.Option(
+            help="Model to use for T1 mapping. "
+            "The 'general' model is the default and uses the general equation "
+            "`S = S_0 (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))` "
+            "for inversion recovery. "
+            "The 'classical' model uses the classical equation "
+            "`S = S_0 (1 - 2 inv_eff exp(-TI/T1))` for inversion recovery.",
+        ),
+    ] = T1Model.GENERAL,
 ) -> None:
     """T1 mapping"""
     typer.echo(
@@ -95,6 +106,7 @@ def t1_mapping(
     typer.echo(f"Output T1 filename: {output_t1_filename}")
     t1_mapping_from_files(
         filepaths=input_t1w_filenames,
+        model=model,
         output_t1_file=output_t1_filename,
         output_s0_file=output_s0_filename,
         output_inv_eff_file=output_inv_eff_filename,
