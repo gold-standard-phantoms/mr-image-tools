@@ -45,7 +45,10 @@ def map(
         Optional[Path],
         typer.Option(
             ...,
-            help="Output S0 map (NIfTI) filename",
+            help=(
+                "Output S0 map (NIfTI) filename. Is only relevant for inversion"
+                " recovery fitting."
+            ),
             exists=False,
             file_okay=True,
             dir_okay=False,
@@ -58,7 +61,10 @@ def map(
         Optional[Path],
         typer.Option(
             ...,
-            help="Output inversion efficiency map (NIfTI) filename",
+            help=(
+                "Output inversion efficiency map (NIfTI) filename. Is only"
+                " relevant for inversion recovery fitting."
+            ),
             exists=False,
             file_okay=True,
             dir_okay=False,
@@ -82,12 +88,14 @@ def map(
     model: Annotated[
         T1Model,
         typer.Option(
-            help="Model to use for T1 mapping. "
-            "The 'general' model is the default and uses the general equation "
-            "`S = S_0 (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))` "
-            "for inversion recovery. "
-            "The 'classical' model uses the classical equation "
-            "`S = S_0 (1 - 2 inv_eff exp(-TI/T1))` for inversion recovery.",
+            help="Model to use for T1 mapping."
+            " The 'general' model is the default and uses the general equation"
+            " `S = S_0 (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))`"
+            " for inversion recovery."
+            " The 'classical' model uses the classical equation"
+            " `S = S_0 (1 - 2 inv_eff exp(-TI/T1))` for inversion recovery."
+            " The 'vtr' (variable TR) model uses the equation:"
+            " `S = M (1 - exp(-TR/T1))`"
         ),
     ] = T1Model.GENERAL,
 ) -> None:

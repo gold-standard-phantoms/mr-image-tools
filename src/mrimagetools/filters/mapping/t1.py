@@ -5,10 +5,11 @@ import logging
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Final, Optional, Union
+from typing import Optional, Union
 
 import nibabel as nib
 import numpy as np
+from nibabel.nifti1 import Nifti1Image
 from numpy.typing import NDArray
 from pydantic import Field, root_validator, validator
 from scipy.optimize import OptimizeResult, least_squares
@@ -24,20 +25,32 @@ class T1Model(str, Enum):
     """Model to use for T1 mapping"""
 
     GENERAL = "general"
+    """:math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))`"""
+
     CLASSICAL = "classical"
+    """:math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1))`"""
+
+    VTR = "vtr"
+    """:math:`S = M (1 - exp(-TR/T1))`"""
 
 
-class T1MappingParameters(ParameterModel):
+class InversionRecoveryParameters(ParameterModel):
     """The parameters for T1 mapping."""
 
     model: T1Model = Field(
         T1Model.GENERAL,
         description=(
-            "The model to use for the T1 mapping. The classical model is "
-            ":math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1))`. The general model is "
-            ":math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))`."
+            "The model to use for the T1 mapping. The classical model is :math:`S ="
+            " S_0 (1 - 2 inv_eff exp(-TI/T1))`. The general model is :math:`S = S_0"
+            " (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))`. The VTR model is :math:`S"
+            " = M (1 - exp(-TR/T1))`."
         ),
     )
+
+    @property
+    def n_model_parameters(self) -> int:
+        """Returns the number of model parameters used in the fitting"""
+        return 3
 
     repetition_times: Union[float, list[float]] = Field(..., gt=0.0)
     """The repetition time(s) (TR) in seconds. May be a scalar or a list of floats.
@@ -72,12 +85,38 @@ class T1MappingParameters(ParameterModel):
         return values
 
 
+class VtrParameters(ParameterModel):
+    """The parameters for VTR T1 mapping."""
+
+    repetition_times: Union[float, list[float]] = Field(..., gt=0.0)
+    """The repetition time(s) (TR) in seconds. May be a scalar or a list of floats.
+    In the first instance, the same TR is used for all inversion times.
+    In the second, the TRs are used in the same order as the inversion times."""
+
+    @validator("repetition_times")
+    def check_repetition_times_order(cls, v: list[float]) -> list[float]:
+        """Check that the TRs are in ascending order."""
+        if v != sorted(v):
+            raise ValueError("The repetition times must be in ascending order.")
+        return v
+
+    @property
+    def n_model_parameters(self) -> int:
+        """Returns the number of model parameters used in the fitting"""
+        return 2
+
+
 @dataclass
 class T1MappingResults:
     """The results of the T1 mapping."""
 
     t1: NDArray[np.floating]
     """An ND NumPy array with the estimated T1 values in seconds."""
+
+
+@dataclass
+class InversionRecoveryResults(T1MappingResults):
+    """The results of the inversion recovery T1 mapping."""
 
     s0: NDArray[np.floating]
     """An ND NumPy array with the estimated S0 values."""
@@ -86,10 +125,18 @@ class T1MappingResults:
     """An ND NumPy array with the estimated inversion efficiency values."""
 
 
+@dataclass
+class VtrResults(T1MappingResults):
+    """The results of the variable TR T1 mapping."""
+
+    m: Optional[NDArray[np.floating]] = None
+    """An ND NumPy array with the estimated M values. """
+
+
 def _optimise_classical(
     x: NDArray[np.floating],
     signal: NDArray[np.floating],
-    parameters: T1MappingParameters,
+    parameters: InversionRecoveryParameters,
 ) -> NDArray:
     """The optimisation routine for T1 mapping. Uses the classical model:
         :math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1))`
@@ -116,7 +163,7 @@ def _optimise_classical(
 def _optimise_general(
     x: NDArray[np.floating],
     signal: NDArray[np.floating],
-    parameters: T1MappingParameters,
+    parameters: InversionRecoveryParameters,
 ) -> NDArray:
     """The optimisation routine for T1 mapping. Uses the general model:
         :math:`S = S_0 (1 - 2 inv_eff exp(-TI/T1) + exp(-TR/T1))`
@@ -142,42 +189,152 @@ def _optimise_general(
     return residuals
 
 
+def _optimise_vtr(
+    x: NDArray[np.floating],
+    signal: NDArray[np.floating],
+    parameters: VtrParameters,
+) -> NDArray:
+    """The optimisation routine for VTR T1 mapping. Uses the variable TR model:
+        :math:`S = M (1 - exp(-TR/T1))`
+
+    :param x: The parameters to be optimised. This is a 1D NumPy array with the
+        parameters in the following order: T1, M.
+
+    :param signal: The signal intensity. Must be a 1D NumPy array. The values correspond
+        to the signal intensity at the inversion times.
+
+    :param parameters: The parameters for the T1 mapping.
+        See :class:`VtrParameters`.
+
+    :return: The residual between the model and the data.
+    """
+    residuals = signal - x[1] * (
+        1 - np.exp(-np.array(parameters.repetition_times) / x[0])
+    )
+    if not isinstance(residuals, np.ndarray):
+        raise ValueError(f"Residuals must be an ndarray, is {type(residuals)}")
+    return residuals
+
+
+def fit_voxel_inversion_recovery(
+    signal: NDArray, parameters: InversionRecoveryParameters
+) -> Optional[NDArray]:
+    """Fit the inversion recovery model to a voxel.
+
+    :param signal: The signal intensity. Must be a 1D NumPy array. The values correspond
+        to the signal intensity at the inversion times.
+    :param parameters: The parameters for the inversion recovery T1 mapping.
+        See :class:`InversionRecoveryParameters`.
+
+    :return: An 1D numpy array with the values of t1, s0 and inv_eff.
+    """
+    # The best fit is the one with the lowest residual
+    best_fit = np.inf
+    result: Optional[NDArray] = None
+    for ti_idx in range(len(parameters.inversion_times) + 1):
+        # Perform the polarity restoration. For all inversion times, before the
+        # value - invert the polarity
+        voxel_values = np.copy(signal)
+        voxel_values[:ti_idx] = -voxel_values[:ti_idx]
+        # Perform the optimisation
+        lsq_result: OptimizeResult = least_squares(
+            fun=(
+                _optimise_general
+                if parameters.model == T1Model.GENERAL
+                else _optimise_classical
+            ),
+            method="lm",  # Levenberg-Marquardt
+            # Initial guess for the parameters:
+            # the T1 is 1 second, the S0 is the last signal intensity, the inversion
+            # efficiency is 1
+            max_nfev=100000,
+            x0=[1.0, voxel_values[-1], 1.0],
+            kwargs={
+                "signal": voxel_values,
+                "parameters": parameters,
+            },
+        )
+        if not isinstance(lsq_result, OptimizeResult):
+            return None
+        if not lsq_result["success"]:
+            return None
+        sum_of_residuals = np.sum(abs(lsq_result["fun"]))
+
+        if sum_of_residuals < best_fit:
+            best_fit = sum_of_residuals
+            # The solution found
+            result = lsq_result["x"]
+
+    return result
+
+
+def fit_voxel_variable_tr(
+    signal: NDArray, parameters: VtrParameters
+) -> Optional[NDArray]:
+    """Fit the Variable TR model to a voxel.
+
+    :param signal: The signal intensity. Must be a 1D NumPy array. The values correspond
+        to the signal intensity at the different TRs.
+    :param parameters: The parameters for the VTR T1 mapping.
+        See :class:`VtrParameters`.
+
+    :return: An 1D numpy array with the values of T1, and M.
+    """
+    # Perform the optimisation
+    lsq_result: OptimizeResult = least_squares(
+        fun=_optimise_vtr,
+        method="lm",  # Levenberg-Marquardt
+        # Initial guess for the parameters:
+        # the T1 is 1 second, M is the first signal intensity
+        max_nfev=100000,
+        x0=[1.0, signal[0]],
+        kwargs={
+            "signal": signal,
+            "parameters": parameters,
+        },
+    )
+    if not isinstance(lsq_result, OptimizeResult):
+        return None
+    if not lsq_result["success"]:
+        return None
+
+    return lsq_result["x"]
+
+
 def t1_mapping(
     signal: NDArray,
-    parameters: T1MappingParameters,
+    parameters: Union[InversionRecoveryParameters, VtrParameters],
     mask: Optional[NDArray] = None,
-) -> T1MappingResults:
-    """The method is known as inversion recovery T1 mapping (IR), and it consists of
-    inverting the longitudinal magnetization Mz and sampling the MR signal as it
-    recovers with an exponential recovery time T1.
+) -> Union[InversionRecoveryResults, VtrResults]:
+    """Performs either an inversion recovery or variable TR T1 mapping.
     With all models, the fit is performed using a Levenberg-Marquardt (LM) algorithm.
 
     :param signal: The signal intensity. Must be an ND NumPy array, where the last
         dimension corresponds to the data from the individual inversion time (in
         ascending order).
-    :param parameters: The parameters for the T1 mapping.
-        See :class:`T1MappingParameters`.
+    :param parameters: The parameters for the T1 mapping. Either an
+        :class:`InversionRecoveryParameters` or a :class:`VtrParameters` instance.
     :param mask: An optional mask. Must be a NumPy array with the same dimensions as
         the input signal. If provided, the T1 mapping is only performed on the voxels
         where the mask is True.
 
     :return: The results of the T1 mapping. The dimensions of the arrays are the same
-        as the input signal. See :class:`T1MappingResults`.
+        as the input signal. The results are either an :class:`InversionRecoveryResults`
+        or a :class:`VtrResults` instance.
     """
 
     # Check the parameters
     assert isinstance(signal, np.ndarray), "Signal must be a NumPy array"
     assert isinstance(
-        parameters, T1MappingParameters
-    ), "Parameters must be a T1MappingParameters instance"
+        parameters, (InversionRecoveryParameters, VtrParameters)
+    ), "Parameters must be a InversionRecoveryParameters or VtrParameters instance"
 
-    if signal.shape[-1] != len(parameters.inversion_times):
-        raise ValueError(
-            f"Signal has {signal.shape[-1]} inversion times, but"
-            f" {len(parameters.inversion_times)} are required"
-        )
-
-    n_parameters: Final[int] = 3
+    if isinstance(parameters, InversionRecoveryParameters):
+        if signal.shape[-1] != len(parameters.inversion_times):
+            raise ValueError(
+                f"Signal has {signal.shape[-1]} inversion times, but"
+                f" {len(parameters.inversion_times)} are required"
+            )
 
     # Reshape the signal to a 2D array, where the first dimension corresponds to the
     # voxels and the last dimension corresponds to the data from the individual
@@ -197,7 +354,7 @@ def t1_mapping(
     # Create the results array. The first dimension is the number of voxels, the second
     # is the number of parameters.
     flattened_result = np.zeros(
-        flattened_signal.shape[:-1] + (n_parameters,), dtype=np.float64
+        flattened_signal.shape[:-1] + (parameters.n_model_parameters,), dtype=np.float64
     )
 
     # Loop over the voxels
@@ -214,41 +371,23 @@ def t1_mapping(
         print(f"Fitting T1 to voxel {voxel_count} of {n_voxels}", end="\r")
         # Iterate over the inversion times
 
-        # The best fit is the one with the lowest residual
-        best_fit = np.inf
-        for ti_idx in range(len(parameters.inversion_times) + 1):
-            # Perform the polarity restoration. For all inversion times, before the
-            # value - invert the polarity
-            voxel_values = np.copy(flattened_signal[voxel_idx, :])
-            voxel_values[:ti_idx] = -voxel_values[:ti_idx]
-            logger.debug("Fitting voxel %s of %s", voxel_idx, flattened_signal.shape[0])
-            # Perform the optimisation
-            result: OptimizeResult = least_squares(
-                fun=(
-                    _optimise_general
-                    if parameters.model == T1Model.GENERAL
-                    else _optimise_classical
-                ),
-                method="lm",  # Levenberg-Marquardt
-                # Initial guess for the parameters:
-                # the T1 is 1 second, the S0 is the first signal intensity,
-                max_nfev=100000,
-                x0=[1.0, voxel_values[-1], 1.0],
-                kwargs={
-                    "signal": voxel_values,
-                    "parameters": parameters,
-                },
+        lsq_result: Optional[NDArray] = None
+        if isinstance(parameters, InversionRecoveryParameters):
+            lsq_result = fit_voxel_inversion_recovery(
+                flattened_signal[voxel_idx, :], parameters
             )
-            if not isinstance(result, OptimizeResult):
-                continue
-            if not result["success"]:
-                continue
-            sum_of_residuals = np.sum(abs(result["fun"]))
 
-            if sum_of_residuals < best_fit:
-                best_fit = sum_of_residuals
-                # The solution found
-                flattened_result[voxel_idx, :] = result["x"]
+        elif isinstance(parameters, VtrParameters):
+            lsq_result = fit_voxel_variable_tr(
+                flattened_signal[voxel_idx, :], parameters
+            )
+        else:
+            raise TypeError(f"Unknown parameters type: {type(parameters)}")
+
+        # This is currently just allowing the optimisation to fail, in which case,
+        # all values are set to zero
+        if lsq_result is not None:
+            flattened_result[voxel_idx, :] = lsq_result
 
     # Remove T1 values that are NaN, Inf, negative or greater than 20
     flattened_result[..., 0][flattened_result[..., 0] < 0] = 0
@@ -257,16 +396,25 @@ def t1_mapping(
     flattened_result[..., 0][flattened_result[..., 0] > 20] = 0
 
     # Reshape the results to the original shape
-    result = flattened_result.reshape(signal.shape[:-1] + (n_parameters,))
+    result = flattened_result.reshape(
+        signal.shape[:-1] + (parameters.n_model_parameters,)
+    )
 
     if mask is not None:
         print(f"ROI mean {np.sum(result[...,0]/np.sum(mask))}")
 
-    return T1MappingResults(
-        t1=result[..., 0],
-        s0=result[..., 1],
-        inv_eff=result[..., 2],
-    )
+    if isinstance(parameters, InversionRecoveryParameters):
+        return InversionRecoveryResults(
+            t1=result[..., 0],
+            s0=result[..., 1],
+            inv_eff=result[..., 2],
+        )
+    if isinstance(parameters, VtrParameters):
+        return VtrResults(
+            t1=result[..., 0],
+            m=result[..., 1],
+        )
+    raise TypeError(f"Unknown parameters type: {type(parameters)}")
 
 
 @dataclass
@@ -291,11 +439,12 @@ def t1_mapping_from_files(
         associated JSON files with the same names and a .json extension
     :param output_t1_file: The file to save the results of the T1 mapping.
         The dimensions of the arrays are the same as the input signal.
-    :param output_s0_file: The file to save the results of the S0 mapping.
+    :param output_s0_file: The file to save the results of the S0 mapping. Is only
+        relevant for inversion recovery fitting.
         The dimensions of the arrays are the same as the input signal. Optional.
     :param output_inv_eff_file: The file to save the results of the inversion
-        efficiency mapping. The dimensions of the arrays are the same as the
-        input signal. Optional.
+        efficiency mapping. Is only relevant for inversion recovery fitting.
+        The dimensions of the arrays are the same as the input signal. Optional.
     :param mask_file: The mask file. Optional.
     :param model: The model to use. If not provided, the model is inferred from
         the defaults of :class:`T1MappingParameters`.
@@ -305,7 +454,7 @@ def t1_mapping_from_files(
 
     for filepath in filepaths:
         json_filenames.append(
-            Path(str(filepath).replace(".nii.gz", ".json").replace("nii.gz", ".json"))
+            Path(str(filepath).replace(".nii.gz", ".json").replace(".nii", ".json"))
         )
 
     # Read the NIfTI files
@@ -383,18 +532,31 @@ def t1_mapping_from_files(
         ],
         axis=-1,
     )
-    # Create the parameters
-    parameters = T1MappingParameters(
-        model=model,
-        inversion_times=[
-            image_container.json["InversionTime"]
-            for image_container in image_containers
-        ],
-        repetition_times=[
-            image_container.json["RepetitionTime"]
-            for image_container in image_containers
-        ],
-    )
+
+    parameters: Union[InversionRecoveryParameters, VtrParameters]
+    if model in (T1Model.GENERAL, T1Model.CLASSICAL):
+        # Create the parameters
+        parameters = InversionRecoveryParameters(
+            model=model,
+            inversion_times=[
+                image_container.json["InversionTime"]
+                for image_container in image_containers
+            ],
+            repetition_times=[
+                image_container.json["RepetitionTime"]
+                for image_container in image_containers
+            ],
+        )
+    elif model == T1Model.VTR:
+        # Create the parameters
+        parameters = VtrParameters(
+            repetition_times=[
+                image_container.json["RepetitionTime"]
+                for image_container in image_containers
+            ],
+        )
+    else:
+        raise ValueError(f"Unknown model: {model}")
 
     # Perform the T1 mapping
     t1_mapping_results = t1_mapping(signal=signal, parameters=parameters, mask=mask)
@@ -402,31 +564,32 @@ def t1_mapping_from_files(
     # Save the results
     logger.info("Saving T1 map to %s", output_t1_file)
     nib.nifti1.save(
-        nib.Nifti1Image(
+        Nifti1Image(
             t1_mapping_results.t1,
             image_containers[0].nifti.nifti_image.affine,
         ),
         output_t1_file,
     )
 
-    # If the S0 output is requested, save it
-    if output_s0_file is not None:
-        logger.info("Saving S0 map to %s", output_s0_file)
-        nib.nifti1.save(
-            nib.Nifti1Image(
-                t1_mapping_results.s0,
-                image_containers[0].nifti.nifti_image.affine,
-            ),
-            output_s0_file,
-        )
+    if isinstance(t1_mapping_results, InversionRecoveryResults):
+        # If the S0 output is requested, save it
+        if output_s0_file is not None:
+            logger.info("Saving S0 map to %s", output_s0_file)
+            nib.nifti1.save(
+                Nifti1Image(
+                    t1_mapping_results.s0,
+                    image_containers[0].nifti.nifti_image.affine,
+                ),
+                output_s0_file,
+            )
 
-    # If the inversion efficiency output is requested, save it
-    if output_inv_eff_file is not None:
-        logger.info("Saving inversion efficiency map to %s", output_inv_eff_file)
-        nib.nifti1.save(
-            nib.Nifti1Image(
-                t1_mapping_results.inv_eff,
-                image_containers[0].nifti.nifti_image.affine,
-            ),
-            output_inv_eff_file,
-        )
+        # If the inversion efficiency output is requested, save it
+        if output_inv_eff_file is not None:
+            logger.info("Saving inversion efficiency map to %s", output_inv_eff_file)
+            nib.nifti1.save(
+                Nifti1Image(
+                    t1_mapping_results.inv_eff,
+                    image_containers[0].nifti.nifti_image.affine,
+                ),
+                output_inv_eff_file,
+            )
