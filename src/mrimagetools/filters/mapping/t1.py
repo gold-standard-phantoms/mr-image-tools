@@ -240,10 +240,8 @@ def t1_mapping(
                 },
             )
             if not isinstance(result, OptimizeResult):
-                # raise ValueError("Optimisation failed")
                 continue
             if not result["success"]:
-                # raise ValueError(f"Optimisation failed: {result['message']}")
                 continue
             sum_of_residuals = np.sum(abs(result["fun"]))
 
