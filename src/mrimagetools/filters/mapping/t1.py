@@ -472,42 +472,58 @@ def t1_mapping_from_files(
     if mask_file is not None:
         mask = nifti_reader(mask_file).get_fdata() > 0
 
-    # Check the images are all IR
-    if any(
-        image_container.json["ScanningSequence"] != "IR"
-        for image_container in image_containers
-    ):
-        raise ValueError("All images must be inversion recovery")
-
-    # Check the images have an inversion time
-    if any(
-        image_container.json["InversionTime"] is None
-        for image_container in image_containers
-    ):
-        raise ValueError("All images must have an inversion time")
-
-    # Check the images have a repetition time
+    # Check the images have a repetition time (IR and VTR should)
     if any(
         image_container.json["RepetitionTime"] is None
         for image_container in image_containers
     ):
         raise ValueError("All images must have a repetition time")
 
-    # Sort by inversion time
-    image_containers.sort(key=lambda x: x.json["InversionTime"])  # type: ignore
-
-    logger.info(
-        (
-            "Performing T1 mapping on %s images, with inversion times: %s, and"
-            " repetition times: %s"
-        ),
-        len(image_containers),
-        [image_container.json["InversionTime"] for image_container in image_containers],
-        [
-            image_container.json["RepetitionTime"]
+    # Checks to perform if the model is IR
+    if model == T1Model.GENERAL:
+        # Checks the images are all IR
+        if any(
+            image_container.json["ScanningSequence"] != "IR"
             for image_container in image_containers
-        ],
-    )
+        ):
+            raise ValueError("All images must be inversion recovery")
+
+        # Check the images have an inversion time
+        if any(
+            image_container.json["InversionTime"] is None
+            for image_container in image_containers
+        ):
+            raise ValueError("All images must have an inversion time")
+
+        # Sort by inversion time (relevant for inversion recovery fitting)
+        image_containers.sort(key=lambda x: x.json["InversionTime"])  # type: ignore
+
+        logger.info(
+            (
+                "Performing T1 mapping on %s images, with inversion times: %s, and"
+                " repetition times: %s"
+            ),
+            len(image_containers),
+            [
+                image_container.json["InversionTime"]
+                for image_container in image_containers
+            ],
+            [
+                image_container.json["RepetitionTime"]
+                for image_container in image_containers
+            ],
+        )
+
+    # Checks to perform if the model is VTR for bruker data
+    if model == T1Model.VTR:
+        if any(
+            image_container.json["ScanningSequence"] != "Bruker:RAREVTR"
+            for image_container in image_containers
+        ):
+            raise ValueError("All images must be variable TR.")
+
+        # Sort by repetition time (relevant for VTR fitting)
+        image_containers.sort(key=lambda x: x.json["RepetitionTime"])  # type: ignore
 
     # Check that images are the same shape
     if any(
