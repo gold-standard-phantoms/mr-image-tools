@@ -1,11 +1,22 @@
 """Setup for MrImageTools"""
 import os
 import re
+from pathlib import Path
 
 from setuptools import find_packages, setup
 
 with open(os.path.join("requirements", "base.txt"), encoding="utf-8") as f:
     requirements = f.read().splitlines()
+
+extras = {}
+extras_dir = Path("requirements") / "extras"
+
+if extras_dir.is_dir():
+    for extra in extras_dir.iterdir():
+        with extra.open(encoding="utf-8") as f:
+            extras[extra.stem] = f.read().splitlines()
+if len(extras) > 1 and "all" not in extras:
+    extras["all"] = sum(extras.values(), [])
 
 
 with open("README.md", encoding="utf-8") as fh:
@@ -113,5 +124,6 @@ setup(
     ],
     python_requires=">=3.9",
     install_requires=requirements,
+    extras_require=extras,
     include_package_data=True,
 )

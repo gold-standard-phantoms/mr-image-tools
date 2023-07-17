@@ -1,4 +1,5 @@
 -r base.txt
+-r extras/web.txt
 
 pytest==7.*
 pytest-mock==3.*

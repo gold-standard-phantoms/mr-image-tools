@@ -116,6 +116,22 @@ description. To get more information about a command, run
 The newer commands can be found in `mrimagetools2`, and the older ones in
 `mrimagetools`. These will be merged in the future.
 
+# Web UI
+
+The newer commands found in `mrimagetools2` can be accessed through the web browser.
+
+Install the dependencies for the web UI support as follows.
+
+```sh
+$ pip install mrimagetools[web]
+```
+
+Launch the web server by calling the `mrimagetools.web2` module as follows:
+
+```sh
+$ python -m mrimagetools.web2
+```
+
 # Development
 
 Development of this software project must comply with a few code styling/quality rules and processes:
