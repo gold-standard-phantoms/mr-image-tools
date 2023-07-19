@@ -176,7 +176,7 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
         output_image.metadata.excitation_flip_angle = None
 
         output_image.metadata.asl_context = "cbf"
-        output_image.metadata.units = UnitField("ml/100g/min")
+        output_image.metadata.units = UnitField.model_validate("ml/100g/min")
         output_image.metadata.image_type = (
             "DERIVED",
             "PRIMARY",

@@ -7,10 +7,10 @@ import shutil
 from collections.abc import Sequence
 from copy import deepcopy
 from tempfile import TemporaryDirectory
-from typing import Annotated, Dict, List, Literal, Optional, Union
+from typing import Annotated, Literal, Optional, Union
 
 import numpy as np
-from pydantic import Field, validator
+from pydantic import Field, RootModel, field_validator
 from typing_extensions import TypeAlias
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
@@ -59,7 +59,7 @@ SUPPORTED_EXTENSIONS = [".zip", ".tar.gz"]
 EXTENSION_MAPPING = {".zip": "zip", ".tar.gz": "gztar"}
 
 
-SnakeCaseStr: TypeAlias = Annotated[str, Field(regex="^[A-Za-z_][A-Za-z0-9_]*$")]
+SnakeCaseStr: TypeAlias = Annotated[str, Field(pattern="^[A-Za-z_][A-Za-z0-9_]*$")]
 
 
 class ScaleOffset(ParameterModel):
@@ -83,7 +83,7 @@ class GeneralImageSeriesParameters(ParameterModel):
     random_seed: int = Field(0, ge=0)
 
     acq_matrix: list[Annotated[int, Field(gt=0)]] = Field(
-        [64, 64, 40], min_items=3, max_items=3
+        [64, 64, 40], min_length=3, max_length=3
     )
     """A matrix dimension size must have 3 element, each greater than 0"""
 
@@ -91,7 +91,8 @@ class GeneralImageSeriesParameters(ParameterModel):
 
     acq_contrast: Literal["ge", "se", "ir"] = "se"
 
-    @validator("acq_contrast")
+    @field_validator("acq_contrast")
+    @classmethod
     def case_insensitve(cls, value: str) -> str:
         """Turn the acq_contrast to lowercase"""
         return value.lower()
@@ -215,7 +216,8 @@ class AslSeriesParameters(GeneralImageSeriesParameters):
         Annotated[Sequence[float], Field(min_length=1)], AslContextValues
     ] = AslContextValues(M0SCAN=10.0, CONTROL=5.0, LABEL=5.0)
 
-    @validator("background_suppression")
+    @field_validator("background_suppression")
+    @classmethod
     def set_defaults_if_true(
         cls, value: Union[bool, BackgroundSuppressionParameters]
     ) -> Union[bool, BackgroundSuppressionParameters]:
@@ -230,7 +232,8 @@ class AslSeriesParameters(GeneralImageSeriesParameters):
             )
         return value
 
-    @validator("asl_context")
+    @field_validator("asl_context")
+    @classmethod
     def check_valid_asl_context(cls, value: str) -> str:
         """Check the ASL context is valid"""
         string_validator = reserved_string_list_validator(
@@ -255,7 +258,8 @@ class AslSeriesParameters(GeneralImageSeriesParameters):
     label_type: Literal["casl", "pcasl", "pasl"] = "pcasl"
     """ASL label type"""
 
-    @validator("label_type")
+    @field_validator("label_type")
+    @classmethod
     def case_insensitve(cls, value: str) -> str:
         """Turn the label_type to lowercase"""
         return value.lower()
@@ -316,16 +320,26 @@ class GlobalConfiguration(ParameterModel):
     used to override a parameter with the same name."""
     ground_truth_modulate: dict[SnakeCaseStr, ScaleOffset] = Field(default_factory=dict)
     """Used to modulate (with a scale and offset) a ground truth image"""
-    subject_label: Optional[Annotated[str, Field(regex="^[A-Za-z0-9\\-]+$")]] = None
+    subject_label: Optional[Annotated[str, Field(pattern="^[A-Za-z0-9\\-]+$")]] = None
 
 
-class GenericImageSeries(ParameterModel):
+class GenericImageSeries(RootModel):
     """A generic image series (helps to discriminate between the different types based
     on the `series_type` field)"""
 
-    __root__: Union[AslImageSeries, StructuralImageSeries, GroundTruthImageSeries] = (
-        Field(..., discriminator="series_type")
+    root: Union[AslImageSeries, StructuralImageSeries, GroundTruthImageSeries] = Field(
+        ..., discriminator="series_type"
     )
+
+
+#
+# class GenericImageSeries(ParameterModel):
+#     """A generic image series (helps to discriminate between the different types based
+#     on the `series_type` field)"""
+#
+#     __root__: Union[AslImageSeries, StructuralImageSeries, GroundTruthImageSeries] = (
+#         Field(..., discriminator="series_type")
+#     )
 
 
 class InputParameters(ParameterModel):
@@ -883,11 +897,9 @@ def run_full_asl_dro_pipeline(
     # Loop over "image_series" in input_params
     # Take the asl image series and pass it to the remainder of the pipeline
     # update the input_params variable so it contains the asl series parameters
-    for series_index, image_series in enumerate(
-        [i.__root__ for i in input_parameters.image_series]
-    ):
+    for series_index, image_series in enumerate(input_parameters.image_series):
         if not isinstance(
-            image_series,
+            image_series.root,
             (AslImageSeries, GroundTruthImageSeries, StructuralImageSeries),
         ):
             raise TypeError(
@@ -896,29 +908,29 @@ def run_full_asl_dro_pipeline(
             )
         series_number = series_index + 1
 
-        if isinstance(image_series, AslImageSeries):
+        if isinstance(image_series.root, AslImageSeries):
             output_image_list.append(
                 asl_pipeline(
-                    image_series=image_series,
+                    image_series=image_series.root,
                     ground_truth_filter=ground_truth_filter,
                     series_number=series_number,
                 )
             )
 
-        if isinstance(image_series, StructuralImageSeries):
+        if isinstance(image_series.root, StructuralImageSeries):
             output_image_list.append(
                 structural_pipeline(
-                    image_series=image_series,
+                    image_series=image_series.root,
                     ground_truth_filter=ground_truth_filter,
                     series_number=series_number,
                 )
             )
 
         ############################################################################################
-        if isinstance(image_series, GroundTruthImageSeries):
+        if isinstance(image_series.root, GroundTruthImageSeries):
             output_image_list.extend(
                 ground_truth_pipeline(
-                    image_series=image_series,
+                    image_series=image_series.root,
                     ground_truth_filter=ground_truth_filter,
                     series_number=series_number,
                 )

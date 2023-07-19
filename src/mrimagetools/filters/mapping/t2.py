@@ -15,7 +15,7 @@ import nibabel as nib
 import numpy as np
 from nibabel.nifti1 import Nifti1Image
 from numpy.typing import NDArray
-from pydantic import Field, validator
+from pydantic import Field, PositiveFloat, field_validator
 from scipy.optimize import OptimizeResult, least_squares
 
 from mrimagetools.containers.image import NiftiImageContainer
@@ -56,7 +56,7 @@ class T2MappingParameters(ParameterModel):
             return 3
         return 2
 
-    echo_times: list[float] = Field(..., gt=0.0)
+    echo_times: list[PositiveFloat]
     """The echo time (TE) in seconds. May be a scalar or a list of floats.
     and must in ascending order, corresponding with the order of the loaded spin
     echo images."""
@@ -71,7 +71,8 @@ class T2MappingParameters(ParameterModel):
         ),
     )
 
-    @validator("echo_times")
+    @field_validator("echo_times")
+    @classmethod
     def check_echo_times_order(cls, v: list[float]) -> list[float]:
         """Check that the echo times are in ascending order."""
         if v != sorted(v):

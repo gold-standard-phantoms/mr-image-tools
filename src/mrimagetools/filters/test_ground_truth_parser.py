@@ -1,10 +1,11 @@
 """Tests from GroundTruthParser"""
 from copy import deepcopy
-from typing import Final, List
+from typing import Final
 
 import numpy as np
 import pytest
 from nibabel import Nifti1Image
+from pydantic import ValidationError
 
 from mrimagetools.containers.image import NiftiImageContainer, NumpyImageContainer
 from mrimagetools.filters.basefilter import FilterInputValidationError
@@ -76,9 +77,11 @@ def test_basic_validation_and_run(valid_dict_input: dict) -> None:
     parser.run()
     assert parser.parsed_inputs.image == valid_dict_input["image"]
     assert parser.parsed_inputs.config.quantities == [
-        Quantity(name="t1", units=UnitField("s"), cast_to=None),
-        Quantity(name="adc", units=UnitField("mm**2/s"), cast_to=None),
-        Quantity(name="segmentation_a", cast_to=NiftiDataTypeField("uint8")),
+        Quantity(name="t1", units=UnitField.model_validate("s"), cast_to=None),
+        Quantity(name="adc", units=UnitField.model_validate("mm**2/s"), cast_to=None),
+        Quantity(
+            name="segmentation_a", cast_to=NiftiDataTypeField.model_validate("uint8")
+        ),
     ]
     np.testing.assert_array_equal(parser.outputs["t1"].image, np.ones((2, 2, 2)))
     np.testing.assert_array_equal(parser.outputs["adc"].image, 2.0 * np.ones((2, 2, 2)))
@@ -99,9 +102,9 @@ def test_complex_validation_and_run(complex_dict_input: dict) -> None:
     parser.run()
     assert parser.parsed_inputs.image == complex_dict_input["image"]
     assert parser.parsed_inputs.config.quantities == [
-        Quantity(name="t1", units=UnitField("s")),
-        Quantity(name="adc", units=UnitField("mm**2/s")),
-        Quantity(name="inty", cast_to=NiftiDataTypeField("uint64")),
+        Quantity(name="t1", units=UnitField.model_validate("s")),
+        Quantity(name="adc", units=UnitField.model_validate("mm**2/s")),
+        Quantity(name="inty", cast_to=NiftiDataTypeField.model_validate("uint64")),
     ]
     np.testing.assert_array_equal(parser.outputs["t1"].image, np.ones((2, 2, 2, 2)))
     np.testing.assert_array_equal(
@@ -140,13 +143,13 @@ def test_parameter_validation(valid_dict_input: dict) -> None:
 
     parser = GroundTruthParser(parameter_model=ParaModel)
     parser.add_inputs(valid_dict_input)
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()  # missing all required parameters
 
     valid_dict_input["config"]["parameters"] = {"a": "bar", "b": "foo"}
     parser = GroundTruthParser(parameter_model=ParaModel)
     parser.add_inputs(valid_dict_input)
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()  # a cannot be coerced into an int
 
     valid_dict_input["config"]["parameters"] = {"a": 1, "b": "foo"}
@@ -169,7 +172,7 @@ def test_duplicate_quantity_names_validation(valid_dict_input: dict) -> None:
             ]
         },
     )
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()
 
 
@@ -196,7 +199,7 @@ def test_negative_segmentation_label(valid_dict_input: dict) -> None:
         },
     )
 
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()
 
 
@@ -223,7 +226,7 @@ def test_duplicate_segmentation_label(valid_dict_input: dict) -> None:
         },
     )
 
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()
 
 
@@ -233,7 +236,7 @@ def test_bad_image_type_validation() -> None:
     image_container = "not_an_image_container"
     parser.add_input("image", image_container)
     parser.add_input("config", {"quantities": []})
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()
 
 
@@ -241,7 +244,7 @@ def test_missing_config_validation(valid_dict_input: dict) -> None:
     """The config is missing"""
     parser = GroundTruthParser()
     parser.add_input("image", valid_dict_input["image"])
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()
 
 
@@ -250,7 +253,7 @@ def test_bad_shape_image_validation() -> None:
     parser = GroundTruthParser()
     parser.add_input("image", NumpyImageContainer(image=np.ones(shape=(2, 2))))
     parser.add_input("config", {"quantities": []})
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()
 
 
@@ -279,7 +282,7 @@ def test_duplicate_quantity_calculated_names_validation(valid_dict_input: dict) 
     }
 
     parser.add_input("config", deepcopy(config))
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()
 
     parser = GroundTruthParser()
@@ -319,7 +322,7 @@ def test_corresponding_entries_segmentation_label(valid_dict_input: dict) -> Non
             }
         },
     )
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((FilterInputValidationError, ValidationError)):
         parser.run()
 
 

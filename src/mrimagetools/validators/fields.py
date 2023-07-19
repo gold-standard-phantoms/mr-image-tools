@@ -1,50 +1,88 @@
 """Custom Pydantic fields"""
 
 import typing
-from typing import Any, Dict, Final, Literal, Tuple
+from dataclasses import dataclass
+from typing import Annotated, Any, Callable, Dict, Final, Literal, Tuple
+
+from pydantic import (
+    BaseModel,
+    GetCoreSchemaHandler,
+    GetJsonSchemaHandler,
+    RootModel,
+    TypeAdapter,
+    ValidationError,
+)
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema, core_schema
 
 from mrimagetools.validators.checkers import is_a_unit
 
 
-class UnitField(str):
-    """A unit. Uses 'pint' to determine whether the given string is
-    a valid representation of a unit. For example:
-    - meters
-    - m
-    - mm^2*s^-1
-    - mm**2*s**-1
-    - Nm
-    - gigapascals/kilometers**3
-    are all valid."""
+# _UnitField = RootModel[str]
+class _UnitField(RootModel[str]):
+    root: str
 
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, _UnitField):
+            return False
+        return self.root == other.root
 
+
+"""A unit. Uses 'pint' to determine whether the given string is
+a valid representation of a unit. For example:
+- meters
+- m
+- mm^2*s^-1
+- mm**2*s**-1
+- Nm
+- gigapascals/kilometers**3
+are all valid."""
+
+
+class _UnitFieldPydanticAnnotation:
     @classmethod
-    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
-        field_schema.update(
-            pattern=r"^[A-Za-z0-9-\/*^]*$",
-            examples=[
-                "ml/100g/min",
-                "meters",
-                "m",
-                "mm^2*s^-1",
-                "Nm",
-                "gigapascals/kilometers**3",
-                "mm**2*s**-1",
-            ],
+    def __get_pydantic_core_schema__(
+        cls,
+        _source_type: Any,
+        _handler: Callable[[Any], core_schema.CoreSchema],
+    ) -> core_schema.CoreSchema:
+        """
+        We return a pydantic_core.CoreSchema that behaves in the following ways:
+
+        * strs will be parsed as `_UnitField` instances
+        * `_UnitField` instances will be parsed as `_UnitField` instances without any
+        changes
+        * Nothing else will pass validation
+        * Serialization will always return just an str
+        """
+
+        def validate_from_str(value: str) -> _UnitField:
+            if not is_a_unit(value):
+                raise ValueError(f"{str} is not a valid unit")
+            return _UnitField(root=value)
+
+        from_str_schema = core_schema.chain_schema(
+            [
+                core_schema.str_schema(),
+                core_schema.no_info_plain_validator_function(
+                    function=validate_from_str
+                ),
+            ]
         )
 
-    @classmethod
-    def validate(cls, value: Any) -> "UnitField":
-        """Validate the unit"""
-        if not isinstance(value, str):
-            raise TypeError(f"String required and a {type(value)} was supplied.")
+        return core_schema.json_or_python_schema(
+            json_schema=from_str_schema,
+            python_schema=core_schema.union_schema(
+                [
+                    # check if it's an instance first before doing any further work
+                    core_schema.is_instance_schema(_UnitField),
+                    from_str_schema,
+                ]
+            ),
+        )
 
-        if not is_a_unit(value):
-            raise ValueError(f"{value} is an invalid unit.")
-        return cls(value)
+
+UnitField = Annotated[_UnitField, _UnitFieldPydanticAnnotation]
 
 
 NiftiDataType = Literal[
@@ -99,33 +137,78 @@ NIFTI_DATATYPE_MAP: Final[dict[NiftiDataType, int]] = {
 }
 
 
-class NiftiDataTypeField(str):
-    """A nifti data type. Must be one of :attr:`NiftiDataType`."""
+def type_code(value: NiftiDataType) -> int:
+    """Return the associated NIFTI data type code"""
+    return NIFTI_DATATYPE_MAP[str(value)]  # type: ignore
 
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
 
-    @classmethod
-    def __modify_schema__(cls, field_schema: dict[str, Any]) -> None:
-        field_schema.update(
-            # the full list of allowed types
-            examples=list(NIFTI_DATATYPES)
-        )
-
-    @classmethod
-    def validate(cls, value: Any) -> "NiftiDataTypeField":
-        """Validate the NIFTI data type"""
-        if not isinstance(value, str):
-            raise TypeError(f"String required and a {type(value)} was supplied.")
-
-        if value not in NIFTI_DATATYPES:
-            raise ValueError(
-                f"{value} is an invalid NIFTI datatype. Options are: {NIFTI_DATATYPES}"
-            )
-        return cls(value)
+class _NiftiDataTypeField(RootModel[str]):
+    root: str
 
     @property
     def type_code(self) -> int:
         """Return the associated NIFTI data type code"""
-        return NIFTI_DATATYPE_MAP[self]  # type: ignore
+        return NIFTI_DATATYPE_MAP[self.root]  # type: ignore
+
+    def __hash__(self) -> int:
+        return hash(self.root)
+
+    @property
+    def value(self) -> str:
+        return self.root
+
+    def __eq__(self, other: Any) -> bool:
+        if not isinstance(other, _NiftiDataTypeField):
+            return False
+        return self.root == other.root
+
+    def __str__(self) -> str:
+        return self.root
+
+
+class _NiftiDataTypePydanticAnnotation:
+    """A nifti data type. Must be one of :attr:`NiftiDataType`."""
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls,
+        _source_type: Any,
+        _handler: Callable[[Any], core_schema.CoreSchema],
+    ) -> core_schema.CoreSchema:
+        """
+        We return a pydantic_core.CoreSchema that behaves in the following ways:
+
+        * strs will be parsed as `_NiftiDataTypeField` instances
+        * `_NiftiDataTypeField` instances will be parsed as `_NiftiDataTypeField` instances without any changes
+        * Nothing else will pass validation
+        * Serialization will always return just a str
+        """
+
+        def validate_from_str(value: str) -> _NiftiDataTypeField:
+            if value not in NIFTI_DATATYPES:
+                raise ValueError(
+                    f"{value} is an invalid NIFTI datatype. Options are:"
+                    f" {NIFTI_DATATYPES}"
+                )
+            return _NiftiDataTypeField.model_validate(value)
+
+        from_str_schema = core_schema.chain_schema(
+            [
+                core_schema.str_schema(),
+                core_schema.no_info_plain_validator_function(validate_from_str),
+            ]
+        )
+
+        return core_schema.json_or_python_schema(
+            json_schema=from_str_schema,
+            python_schema=core_schema.union_schema(
+                [
+                    # check if it's an instance first before doing any further work
+                    core_schema.is_instance_schema(_NiftiDataTypeField),
+                    from_str_schema,
+                ]
+            ),
+        )
+
+
+NiftiDataTypeField = Annotated[_NiftiDataTypeField, _NiftiDataTypePydanticAnnotation]

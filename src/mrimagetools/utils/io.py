@@ -5,8 +5,10 @@ from os import PathLike
 from typing import Union
 
 import nibabel as nib
+from nibabel.filebasedimages import ImageFileError
 from nibabel.nifti1 import Nifti1Image, Nifti1Pair
 from nibabel.nifti2 import Nifti2Image, Nifti2Pair
+from nibabel.spatialimages import HeaderDataError
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +29,9 @@ def nifti_reader(
         nii = nib.nifti2.load(filepath)
         logger.info("Loaded %s as a NIfTI2 file", filepath)
         return nii
-    except nib.filebasedimages.ImageFileError:
+    except ImageFileError:
         pass
-    except nib.spatialimages.HeaderDataError:
+    except HeaderDataError:
         pass
 
     logging.getLogger("nibabel").setLevel(logging.WARNING)

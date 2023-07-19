@@ -104,7 +104,7 @@ class MtrQuantificationFilter(BaseFilter):
         )
         output_image.metadata.modality = "MTRmap"
         output_image.metadata.quantity = "MTR"
-        output_image.metadata.units = UnitField("pu")
+        output_image.metadata.units = UnitField.model_validate("pu")
         output_image.metadata.image_type = ("DERIVED", "PRIMARY", "MTRmap", "NONE")
         self.outputs[self.KEY_MTR] = output_image
 

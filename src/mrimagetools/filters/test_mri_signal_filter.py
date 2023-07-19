@@ -649,7 +649,7 @@ def test_mri_signal_filter_metadata_inheritence(mock_data) -> None:
     # and that nothing from t1 gets pushed across
     test_data["m0"].metadata = ImageMetadata(
         segmentation="m0",
-        units=UnitField("a.u"),
+        units=UnitField.model_validate("a.u"),
         quantity="longitudinal magnetisation",
     )
     test_data["t1"].metadata = ImageMetadata(segmentation="t1")

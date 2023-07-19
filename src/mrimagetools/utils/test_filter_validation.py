@@ -4,7 +4,7 @@ from typing import Dict, Final
 
 import numpy as np
 import pytest
-from pydantic import StrictFloat
+from pydantic import StrictFloat, ValidationError
 
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.utils.filter_validation import (
@@ -73,16 +73,16 @@ def test_non_optional_field_needs_valid_values() -> None:
         is_optional=False, valid_values=["foo"], invalid_values=[1]
     )
     # We need a valid input as the input is not optional
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((ValidationError, FilterInputValidationError)):
         FilterValidationModelParameter[str](is_optional=False, invalid_values=[1])
     # The default is non-optional, so test that too
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((ValidationError, FilterInputValidationError)):
         FilterValidationModelParameter[str](invalid_values=[1])
 
 
 def test_generic_filter_validation_parameter() -> None:
     """Test the generic type checking. Use the "Strict" versions to prevent type coercion"""
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((ValidationError, FilterInputValidationError)):
         FilterValidationModelParameter[StrictFloat](
             valid_values=[0.0, "1.0"]  # type:ignore
         )
@@ -106,7 +106,7 @@ def test_validate_filter_inputs_function_with_model() -> None:
     # should pass
     FilterValidationModel(filter_type=ProductFilter, parameters=valid_inputs)
 
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((ValidationError, FilterInputValidationError)):
         FilterValidationModel(
             filter_type=ProductFilter,
             parameters={
@@ -118,7 +118,7 @@ def test_validate_filter_inputs_function_with_model() -> None:
                 ),
             },
         )
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((ValidationError, FilterInputValidationError)):
         FilterValidationModel(
             filter_type=ProductFilter,
             parameters={
@@ -130,7 +130,7 @@ def test_validate_filter_inputs_function_with_model() -> None:
                 ),
             },
         )
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((ValidationError, FilterInputValidationError)):
         FilterValidationModel(
             filter_type=ProductFilter,
             parameters={
@@ -142,7 +142,7 @@ def test_validate_filter_inputs_function_with_model() -> None:
                 ),
             },
         )
-    with pytest.raises(FilterInputValidationError):
+    with pytest.raises((ValidationError, FilterInputValidationError)):
         FilterValidationModel(
             filter_type=ProductFilter,
             parameters={

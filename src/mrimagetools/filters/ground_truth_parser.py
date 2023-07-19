@@ -1,9 +1,12 @@
 """Ground truth parser"""
+from __future__ import annotations
+
 from copy import deepcopy
-from typing import Dict, Final, List, Optional, Tuple, Type
+from typing import Final, Generic, Optional, TypeVar
 
 import numpy as np
-from pydantic import BaseModel, Field, root_validator, validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
+from typing_extensions import Self
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
 from mrimagetools.containers.image_metadata import ImageMetadata
@@ -45,7 +48,8 @@ class GroundTruthConfig(GenericParameterModel):
     # Any segmentation_labels - defaults to an empty dict
     segmentation_labels: dict[str, dict[str, int]] = Field(default_factory=dict)
 
-    @validator("quantities", "calculated_quantities")
+    @field_validator("quantities", "calculated_quantities")
+    @classmethod
     def quantity_names_are_unique(cls, value: list[Quantity]) -> list[Quantity]:
         """To check the quantity names are unique"""
 
@@ -55,7 +59,8 @@ class GroundTruthConfig(GenericParameterModel):
             raise ValueError(f"Quantity names must be unique but {names} was supplied")
         return value
 
-    @validator("segmentation_labels")
+    @field_validator("segmentation_labels")
+    @classmethod
     def segmentation_label_checks(
         cls, value: dict[str, dict[str, int]]
     ) -> dict[str, dict[str, int]]:
@@ -73,55 +78,58 @@ class GroundTruthConfig(GenericParameterModel):
         return value
 
 
-class GroundTruthInput(GenericParameterModel):
+_BaseModelT = TypeVar("_BaseModelT", bound=BaseModel)
+
+
+class GroundTruthInput(ParameterModel, Generic[_BaseModelT]):
     """All of the inputs for the GroundTruthParser"""
 
     image: NiftiImageContainer
     config: GroundTruthConfig
     # parameter_validator
-    parameter_validator_type: Optional[type[BaseModel]] = None
+    parameter_validator_type: Optional[type[_BaseModelT]] = None
 
     # Any required quantities. These should be supplied in the `config.quantities` or
     # `self.calculated_quantities` field
-    required_quantities: Optional[tuple[str, ...]]
+    required_quantities: Optional[tuple[str, ...]] = None
 
-    @root_validator(skip_on_failure=True)
-    def check_parameters_match_model(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def check_parameters_match_model(self, info: ValidationInfo) -> GroundTruthInput:
         """Check that the parameters are validated by the parameter_validator"""
-        parameter_validator_type: Optional[type[BaseModel]] = values.get(
-            "parameter_validator_type", None
-        )
+        parameter_validator_type = self.parameter_validator_type
         if parameter_validator_type is not None:
-            parameters: dict = values["config"].parameters
-            parameter_validator_type(**parameters)
-        return values
+            parameters: dict = self.config.parameters
+            parameter_validator_type.model_validate(parameters)
+        return self
 
-    @validator("image")
+    @field_validator("image")
     def image_must_be_5d(cls, value: NiftiImageContainer) -> NiftiImageContainer:
         """The input image must be 5D"""
         if len(value.image.shape) != 5:
             raise ValueError(f"Image must be 5D but has shape {value.image.shape}")
         return value
 
-    @root_validator(skip_on_failure=True)
-    def check_num_image_match_quantities(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def check_num_image_match_quantities(
+        self, info: ValidationInfo
+    ) -> GroundTruthInput:
         """The size of the fifth dimension of the images should
         match the number of defined quantities"""
-        quantity_names = [quantity.name for quantity in values["config"].quantities]
-        image_shape = values["image"].image.shape
+        quantity_names = [quantity.name for quantity in self.config.quantities]
+        image_shape = self.image.image.shape
         if image_shape[4] != len(quantity_names):
             raise ValueError(
                 f"The number of images in the ground truth ({image_shape[4]}) "
                 f"does not match the number of defined quantities: {quantity_names}"
             )
 
-        return values
+        return self
 
-    @root_validator(skip_on_failure=True)
-    def check_duplicate_quantity_names(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def check_duplicate_quantity_names(self, info: ValidationInfo) -> GroundTruthInput:
         """Checks for duplicates between quantities and calculated_quantities"""
-        quantity_names = [quantity.name for quantity in values["config"].quantities] + [
-            quantity.name for quantity in values["config"].calculated_quantities
+        quantity_names = [quantity.name for quantity in self.config.quantities] + [
+            quantity.name for quantity in self.config.calculated_quantities
         ]
         # to check all unique list elements
         if not len(set(quantity_names)) == len(quantity_names):
@@ -129,40 +137,44 @@ class GroundTruthInput(GenericParameterModel):
                 "Quantity and calculatd quantity names must be unique "
                 f"but {quantity_names} was supplied"
             )
-        return values
+        return self
 
-    @root_validator(skip_on_failure=True)
-    def corresponding_entries_segmentation_labels(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def corresponding_entries_segmentation_labels(
+        self, info: ValidationInfo
+    ) -> GroundTruthInput:
         """check that that each entry corresponds to a quantity in quantities or
         calculated_quantities"""
-        quantity_names = [quantity.name for quantity in values["config"].quantities] + [
-            quantity.name for quantity in values["config"].calculated_quantities
+        quantity_names = [quantity.name for quantity in self.config.quantities] + [
+            quantity.name for quantity in self.config.calculated_quantities
         ]
-        for key, _ in values["config"].segmentation_labels.items():
+        for key, _ in self.config.segmentation_labels.items():
             if key not in quantity_names:
                 raise ValueError(
                     f"no corresponding entry for {key} in quantities or"
                     f" calculated_quantities ({quantity_names})"
                 )
-        return values
+        return self
 
-    @root_validator(skip_on_failure=True)
-    def check_all_required_quatities_exist(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def check_all_required_quatities_exist(
+        self, info: ValidationInfo
+    ) -> GroundTruthInput:
         """Check that all `required_quantities` exist in either `config.quantities`
         or `config.calculated_quantities`"""
-        quantity_names = [quantity.name for quantity in values["config"].quantities] + [
-            quantity.name for quantity in values["config"].calculated_quantities
+        quantity_names = [quantity.name for quantity in self.config.quantities] + [
+            quantity.name for quantity in self.config.calculated_quantities
         ]
-        required_quantities: Optional[tuple[str, ...]] = values["required_quantities"]
+        required_quantities: Optional[tuple[str, ...]] = self.required_quantities
         if required_quantities is None:
-            return values
+            return self
         for quantity in required_quantities:
             if quantity not in quantity_names:
                 raise ValueError(
                     f"Required quantity '{quantity}' has not been supplied in "
                     f"{required_quantities}"
                 )
-        return values
+        return self
 
 
 class GroundTruthOutput(ParameterModel):
@@ -205,13 +217,13 @@ class GroundTruthParser(BaseFilter):
     def __init__(
         self,
         required_quantities: Optional[tuple[str, ...]] = None,
-        parameter_model: type[BaseModel] = BaseModel,
+        parameter_model: Optional[type[BaseModel]] = None,
     ) -> None:
         super().__init__(name="Ground Truth Parser")
         self.required_quantities: Final[Optional[tuple[str, ...]]] = required_quantities
         self.parsed_inputs: GroundTruthInput
         self.parsed_outputs: GroundTruthOutput
-        self.parameter_model: type[BaseModel] = parameter_model
+        self.parameter_model: Optional[type[BaseModel]] = parameter_model
 
     def _get_parsed_inputs(self) -> GroundTruthInput:
         return GroundTruthInput(
@@ -252,7 +264,7 @@ class GroundTruthParser(BaseFilter):
             if quantity.cast_to is not None:
                 header["datatype"] = quantity.cast_to.type_code
 
-                image_data = np.around(image_data).astype(quantity.cast_to)
+                image_data = np.around(image_data).astype(quantity.cast_to.value)
                 metadata.data_type = quantity.cast_to
 
             metadata.quantity = quantity.name

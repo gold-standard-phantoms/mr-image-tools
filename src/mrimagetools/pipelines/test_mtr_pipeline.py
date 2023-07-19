@@ -16,7 +16,6 @@ from mrimagetools.filters.load_bids_filter import LoadBidsFilter
 from mrimagetools.filters.test_mtr_quantification_filter import data_fixture
 from mrimagetools.pipelines.mtr_pipeline import mtr_pipeline
 from mrimagetools.utils.general import splitext
-from mrimagetools.validators.parameter_model import ParameterModel
 
 
 @pytest.fixture(name="pipeline_test_data")

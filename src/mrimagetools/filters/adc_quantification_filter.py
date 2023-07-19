@@ -1,6 +1,5 @@
 """Apparent Diffusion Coefficient Quantification filter"""
 
-from typing import List
 
 import numpy as np
 
@@ -121,7 +120,7 @@ class AdcQuantificationFilter(BaseFilter):
         output_metadata: ImageMetadata = self.outputs[self.KEY_ADC].metadata
         output_metadata.modality = "ADCmap"
         output_metadata.quantity = "ADC"
-        output_metadata.units = UnitField("mm^2/s")
+        output_metadata.units = UnitField.model_validate("mm^2/s")
         output_metadata.image_type = (
             "DERIVED",
             "PRIMARY",

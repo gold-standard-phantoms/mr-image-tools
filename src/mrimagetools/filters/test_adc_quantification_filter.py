@@ -93,7 +93,7 @@ def test_adc_quantification_filter_mock_data(test_data: dict) -> None:
     assert adc_quantification_filter.outputs["adc"].metadata == ImageMetadata(
         modality="ADCmap",
         quantity="ADC",
-        units=UnitField("mm^2/s"),
+        units=UnitField.model_validate("mm^2/s"),
         image_type=("DERIVED", "PRIMARY", "ADCmap", "NONE"),
         series_type="structural",
         series_number=1,

@@ -447,7 +447,7 @@ def test_asl_quantification_filter_with_mock_data_casl(test_data_wp) -> None:
         post_label_delay=1.8,
         label_efficiency=0.85,
         asl_context="cbf",
-        units=UnitField("ml/100g/min"),
+        units=UnitField.model_validate("ml/100g/min"),
         estimation_algorithm="""Calculated using the single subtraction simplified model for
 CBF quantification from the ASL White Paper:
 
@@ -581,7 +581,7 @@ def test_asl_quantification_filter_with_mock_data_pasl(test_data_wp) -> None:
         post_label_delay=1.8,
         label_efficiency=0.85,
         asl_context="cbf",
-        units=UnitField("ml/100g/min"),
+        units=UnitField.model_validate("ml/100g/min"),
         estimation_algorithm="""Calculated using the single subtraction simplified model for
 CBF quantification from the ASL White Paper:
 
@@ -659,7 +659,7 @@ def test_asl_quantification_filter_full_mock_data(
             post_label_delay=test_data_full["post_label_delay"],
             label_efficiency=test_data_full["label_efficiency"],
             asl_context="cbf",
-            units=UnitField("ml/100g/min"),
+            units=UnitField.model_validate("ml/100g/min"),
             estimation_algorithm="""Least Squares fit to the General Kinetic Model for
 Arterial Spin Labelling:
 

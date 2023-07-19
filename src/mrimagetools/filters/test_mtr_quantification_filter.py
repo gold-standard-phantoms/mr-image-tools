@@ -107,7 +107,7 @@ def test_mtr_quantification_filter_mock_data(test_data) -> None:
     assert mtr_quantification_filter.outputs["mtr"].metadata == ImageMetadata(
         modality="MTRmap",
         quantity="MTR",
-        units=UnitField("pu"),
+        units=UnitField.model_validate("pu"),
         image_type=("DERIVED", "PRIMARY", "MTRmap", "NONE"),
         series_type="structural",
         series_number=1,

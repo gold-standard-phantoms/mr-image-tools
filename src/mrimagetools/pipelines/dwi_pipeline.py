@@ -1,5 +1,5 @@
 """Diffusion Weighted Image (DWI) Pipeline"""
-
+from __future__ import annotations
 
 import json
 import logging
@@ -11,7 +11,7 @@ from typing import Final, Optional
 
 import nibabel as nib
 import numpy as np
-from pydantic import root_validator
+from pydantic import model_validator
 from typing_extensions import TypeAlias
 
 from mrimagetools.containers.image import BaseImageContainer, NiftiImageContainer
@@ -59,17 +59,17 @@ class DwiInputParameters(ParameterModel):
     the middle of the excitation pulse to the peak of the echo that is used to cover
     the center of k-space (i.e.-kx=0, ky=0)."""
 
-    @root_validator(pre=False, skip_on_failure=True)
-    def check_b_arrays_same_length(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def check_b_arrays_same_length(self) -> DwiInputParameters:
         """Check the b_values and b_vectors have the same length"""
-        b_values: Sequence = values.get("b_values")  # type: ignore
-        b_vectors: Sequence = values.get("b_vectors")  # type: ignore
+        b_values = self.b_values
+        b_vectors = self.b_vectors
         if len(b_values) != len(b_vectors):
             raise ValueError(
                 f"Length of b_values {b_values} must equal the length of"
                 f" b_vectors {b_vectors}"
             )
-        return values
+        return self
 
 
 class Filename(ParameterModel):
@@ -90,7 +90,7 @@ class DwiPipelineOutput(ParameterModel):
     image: BaseImageContainer
     """The image resulting from running the full pipeline"""
 
-    filename: Optional[Filename]
+    filename: Optional[Filename] = None
     """The filenames resulting from running the full pipeline, is empty if no output
     directory was specified"""
 

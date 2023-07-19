@@ -1,9 +1,7 @@
 """ImageMetadata tests"""
-from typing import List, Optional, TypeVar, Union
 
-from pydantic import BaseModel, Field, confloat, dataclasses
 
-from mrimagetools.containers.bids_metadata import BidsMetadata, Type
+from mrimagetools.containers.bids_metadata import BidsMetadata
 from mrimagetools.containers.image_metadata import ImageMetadata
 
 
@@ -27,5 +25,5 @@ def test_simple_bids_conversion() -> None:
 
     bids_metadata = image_metadata.to_bids()
     assert bids_metadata == BidsMetadata(
-        EchoTime=5.0, BolusCutOffFlag=True, LabelingDuration=1.0
+        EchoTime=5.0, BolusCutOffFlag=True, LabelingDuration=1.0  # type: ignore
     )

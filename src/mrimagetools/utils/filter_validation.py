@@ -1,11 +1,13 @@
 """Utility functions for testing filters"""
+from __future__ import annotations
+
 from collections.abc import Generator
 from copy import copy, deepcopy
 from dataclasses import dataclass
-from typing import Any, Dict, Generic, List, Tuple, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
 import pytest
-from pydantic import Field, root_validator
+from pydantic import Field, ValidationError, model_validator
 
 from mrimagetools.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.validators.parameter_model import GenericParameterModel
@@ -84,13 +86,13 @@ class FilterValidationModelParameter(GenericParameterModel, Generic[DataT]):
         for value in self.invalid_values:
             yield InvalidParameterPermutation(parameter=value)
 
-    @root_validator(skip_on_failure=True)
-    def validated_parameters(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def validated_parameters(self) -> FilterValidationModelParameter:
         """Is "is_optional" is False, we need at least one
         valid value to use in the testing"""
-        if not values["is_optional"] and len(values["valid_values"]) == 0:
+        if not self.is_optional and len(self.valid_values) == 0:
             raise ValueError("valid_values cannot be empty if is_optional is False")
-        return values
+        return self
 
 
 def _recursive_parameter_solver(
@@ -165,15 +167,13 @@ class FilterValidationModel(GenericParameterModel, Generic[FilterT]):
     parameters: dict[str, FilterValidationModelParameter] = Field(default_factory=dict)
     run_filter: bool = False
 
-    @root_validator(skip_on_failure=True)
-    def validate_model(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def validate_model(self) -> FilterValidationModel:
         """Perform the validation on the filter_type with all permutations of inputs."""
-        filter_type: type[BaseFilter] = values.get("filter_type")  # type:ignore
-        parameters: dict[str, FilterValidationModelParameter] = values.get(
-            "parameters"
-        )  # type:ignore
-        filter_arguments: dict[str, Any] = values.get("filter_arguments")  # type:ignore
-        run_filter: bool = values.get("run_filter")  # type: ignore
+        filter_type = self.filter_type
+        parameters = self.parameters
+        filter_arguments = self.filter_arguments
+        run_filter = self.run_filter
 
         all_permutations = _recursive_parameter_solver(
             validation_tuple_list=list(parameters.items()), current_parameters={}
@@ -211,6 +211,8 @@ class FilterValidationModel(GenericParameterModel, Generic[FilterT]):
                 )  # Should raise a validation error
             except FilterInputValidationError:
                 continue
+            except ValidationError:
+                continue
             raise FilterInputValidationError(
                 f"Parameters {parameters} did not raise an "
                 f"exception with filter: {test_filter.name}"
@@ -220,7 +222,7 @@ class FilterValidationModel(GenericParameterModel, Generic[FilterT]):
             test_filter.add_inputs(parameters)
             test_filter.run(validate_only=not run_filter)
 
-        return values
+        return self
 
 
 def validate_filter_inputs(

@@ -76,12 +76,15 @@ def generate_hrgt(
     ]
 
     ground_truth_parser = GroundTruthParser()
-    ground_truth_parser_input = GroundTruthInput(
+    ground_truth_parser_input: GroundTruthInput = GroundTruthInput(
         image=create_volume_filter.outputs["image"],
         config=GroundTruthConfig(
             quantities=[
                 Quantity(
-                    name=name, units=(UnitField(unit) if unit is not None else None)
+                    name=name,
+                    units=(
+                        UnitField.model_validate(unit) if unit is not None else None
+                    ),
                 )
                 for name, unit in zip(
                     create_volume_filter.outputs["image_info"]["quantities"],

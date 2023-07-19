@@ -1,4 +1,5 @@
 """A module for T1 mapping."""
+from __future__ import annotations
 
 import json
 import logging
@@ -11,7 +12,13 @@ import nibabel as nib
 import numpy as np
 from nibabel.nifti1 import Nifti1Image
 from numpy.typing import NDArray
-from pydantic import Field, root_validator, validator
+from pydantic import (
+    Field,
+    PositiveFloat,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 from scipy.optimize import OptimizeResult, least_squares
 
 from mrimagetools.containers.image import NiftiImageContainer
@@ -52,48 +59,48 @@ class InversionRecoveryParameters(ParameterModel):
         """Returns the number of model parameters used in the fitting"""
         return 3
 
-    repetition_times: Union[float, list[float]] = Field(..., gt=0.0)
+    repetition_times: Union[PositiveFloat, list[PositiveFloat]]
     """The repetition time(s) (TR) in seconds. May be a scalar or a list of floats.
     In the first instance, the same TR is used for all inversion times.
     In the second, the TRs are used in the same order as the inversion times."""
 
-    inversion_times: list[float] = Field(..., gt=0.0)
+    inversion_times: list[PositiveFloat]
     """The inversion time(s) (TI) in seconds. Must be a list of floats. The inversion
     times must be in ascending order."""
 
-    @validator("inversion_times")
+    @field_validator("inversion_times")
+    @classmethod
     def check_inversion_times_order(cls, v: list[float]) -> list[float]:
         """Check that the inversion times are in ascending order."""
         if v != sorted(v):
             raise ValueError("The inversion times must be in ascending order.")
         return v
 
-    @root_validator
-    def check_list_lengths(cls, values: dict) -> dict:
+    @model_validator(mode="after")
+    def check_list_lengths(self, info: ValidationInfo) -> InversionRecoveryParameters:
         """If the repetition is a list, check that it is the same length as the
         inversion times list."""
-        repetition_times: Union[float, list[float]] = values.get(
-            "repetition_times"
-        )  # type:ignore
-        inversion_times: list[float] = values.get("inversion_times")  # type:ignore
+        repetition_times = self.repetition_times
+        inversion_times = self.inversion_times
         if isinstance(repetition_times, list):
             if len(repetition_times) != len(inversion_times):
                 raise ValueError(
                     "If repetition_times is a list, it must be the same length as "
                     "inversion_times"
                 )
-        return values
+        return self
 
 
 class VtrParameters(ParameterModel):
     """The parameters for VTR T1 mapping."""
 
-    repetition_times: Union[float, list[float]] = Field(..., gt=0.0)
+    repetition_times: Union[PositiveFloat, list[PositiveFloat]]
     """The repetition time(s) (TR) in seconds. May be a scalar or a list of floats.
     In the first instance, the same TR is used for all inversion times.
     In the second, the TRs are used in the same order as the inversion times."""
 
-    @validator("repetition_times")
+    @field_validator("repetition_times")
+    @classmethod
     def check_repetition_times_order(cls, v: list[float]) -> list[float]:
         """Check that the TRs are in ascending order."""
         if v != sorted(v):
