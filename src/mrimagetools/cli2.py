@@ -4,7 +4,7 @@ import logging
 
 import typer
 
-from mrimagetools.filters.mapping import t1_cli, t2_cli
+from mrimagetools.v2.filters.mapping import t1_cli, t2_cli
 
 from . import __version__
 

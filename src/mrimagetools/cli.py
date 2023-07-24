@@ -8,16 +8,16 @@ from enum import Enum
 
 from pydantic import DirectoryPath, FilePath
 
-from mrimagetools import pipelines
-from mrimagetools.pipelines.adc_pipeline import adc_pipeline
-from mrimagetools.pipelines.asl_dro_pipeline import (
+from mrimagetools.v2 import pipelines
+from mrimagetools.v2.pipelines.adc_pipeline import adc_pipeline
+from mrimagetools.v2.pipelines.asl_dro_pipeline import (
     PipelineReturnVariables,
     run_full_asl_dro_pipeline,
 )
-from mrimagetools.pipelines.generate_ground_truth import generate_hrgt
-from mrimagetools.pipelines.mtr_pipeline import mtr_pipeline
-from mrimagetools.utils.cli_types import DirType, FileType
-from mrimagetools.validators.parameter_model import ParameterModel
+from mrimagetools.v2.pipelines.generate_ground_truth import generate_hrgt
+from mrimagetools.v2.pipelines.mtr_pipeline import mtr_pipeline
+from mrimagetools.v2.utils.cli_types import DirType, FileType
+from mrimagetools.v2.validators.parameter_model import ParameterModel
 
 logging.basicConfig(
     stream=sys.stdout, format="%(asctime)s %(message)s", level=logging.INFO

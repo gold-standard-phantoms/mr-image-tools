@@ -14,17 +14,19 @@ We recommend using the latest version of Python. MRImageTools supports Python
 Dependencies
 ------------
 
-These distributions will be installed automatically when installing MRImageTools.
+These distributions will be installed automatically when installing MRImageTools:
 
 * `nibabel`_ provides read / write access to some common neuroimaging file formats
 * `numpy`_ provides efficient calculations with arrays and matrices
 * `jsonschema`_ provides an implementation of JSON Schema validation for Python
 * `nilearn`_ provides image manipulation tools and statistical learning for neuroimaging data
+* `pydantic` - provides data validation and settings management using python type annotations
 
 .. _nibabel: https://nipy.org/nibabel/
 .. _numpy: https://numpy.org/
 .. _jsonschema: https://python-jsonschema.readthedocs.io/en/stable/
 .. _nilearn: https://nipy.org/packages/nilearn/index.html
+.. _pydantic: https://pydantic-docs.helpmanual.io/
 
 Virtual environments
 --------------------
