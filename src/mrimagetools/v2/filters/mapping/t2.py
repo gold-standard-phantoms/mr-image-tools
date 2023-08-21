@@ -300,12 +300,16 @@ def t2_mapping_from_files(
         reduce T2 fitting errors.
     """
     # Generate the JSON filenames
-    json_filenames: list[Path] = []
+    file_pairs: list[tuple[Path, Path]] = []
 
     for filepath in filepaths:
-        json_filenames.append(
-            Path(str(filepath).replace(".nii.gz", ".json").replace(".nii", ".json"))
-        )
+        s = str(filepath)
+        if not s.endswith(".nii.gz") and not s.endswith(".nii"):
+            continue
+        jsonpath = s.replace(".nii.gz", ".json").replace(".nii", ".json")
+        file_pairs.append((filepath, Path(jsonpath)))
+
+    # Read the NIfTI files
 
     # Read the NIfTI files
     image_containers = [
@@ -314,7 +318,7 @@ def t2_mapping_from_files(
             # Read the JSON file
             json.loads(metapath.read_text()),
         )
-        for filepath, metapath in zip(filepaths, json_filenames)
+        for filepath, metapath in file_pairs
     ]
 
     # Load the mask (if provided)
