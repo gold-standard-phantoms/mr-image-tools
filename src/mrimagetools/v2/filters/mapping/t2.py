@@ -71,6 +71,14 @@ class T2MappingParameters(ParameterModel):
         ),
     )
 
+    max_t2: PositiveFloat = Field(
+        default=10.0,
+        description=(
+            "The maximum T2 value to use for the fitting. Any T2 values which are"
+            " greater than this value will be set to this value."
+        ),
+    )
+
     @field_validator("echo_times")
     @classmethod
     def check_echo_times_order(cls, v: list[float]) -> list[float]:
@@ -257,6 +265,14 @@ def t2_mapping(
     flattened_result[..., 0][np.isnan(flattened_result[..., 0])] = 0
     flattened_result[..., 0][np.isinf(flattened_result[..., 0])] = 0
 
+    # Cap the T2 values to the maximum T2 value
+    flattened_result[..., 0][
+        flattened_result[..., 0] >= parameters.max_t2
+    ] = parameters.max_t2
+
+    # Set negative T2 values to 0
+    flattened_result[..., 0][flattened_result[..., 0] <= 0.0] = 0.0
+
     # Reshape the results to the original shape
     fitting_result = flattened_result.reshape(
         signal.shape[:-1] + (parameters.n_model_parameters,)
@@ -308,8 +324,6 @@ def t2_mapping_from_files(
             continue
         jsonpath = s.replace(".nii.gz", ".json").replace(".nii", ".json")
         file_pairs.append((filepath, Path(jsonpath)))
-
-    # Read the NIfTI files
 
     # Read the NIfTI files
     image_containers = [
