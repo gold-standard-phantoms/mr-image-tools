@@ -297,7 +297,7 @@ def test_value(test_data) -> None:
         dwi_signal_filter.outputs["dwi"].image, test_data["dwi"]
     )
     # check metadata #TODO update metadata
-    assert dwi_signal_filter.outputs["attenuation"].metadata.dict(
+    assert dwi_signal_filter.outputs["attenuation"].metadata.model_dump(
         exclude_none=True
     ) == {
         "image_flavor": "DWI",
@@ -305,7 +305,7 @@ def test_value(test_data) -> None:
         "b_vectors": test_data["b_vectors"],
     }
 
-    assert dwi_signal_filter.outputs["dwi"].metadata.dict(exclude_none=True) == {
+    assert dwi_signal_filter.outputs["dwi"].metadata.model_dump(exclude_none=True) == {
         "image_flavor": "DWI",
         "b_values": test_data["b_values"],
         "b_vectors": test_data["b_vectors"],

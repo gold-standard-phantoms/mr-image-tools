@@ -1,10 +1,10 @@
 """Diffusion weighting signal generation filter"""
 
-import copy
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 
+from mrimagetools.filters.dwi_signal_filter import dwi_signal_filter_function
 from mrimagetools.v2.containers.image import BaseImageContainer
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.v2.validators.parameters import (
@@ -43,7 +43,7 @@ class DwiSignalFilter(BaseFilter):
 
     **Metadata**
     :class:`DwiSignalFilter.outputs["attenuation"].metadata` will be derived
-    from the input ``'adc'``, with the following entries appended/updated:
+        from the input ``'adc'``, with the following entries appended/updated:
 
     *``image_flavor`` = "dwi"
     * ``b_values`` = ``b_values``
@@ -68,47 +68,12 @@ class DwiSignalFilter(BaseFilter):
         b_vectors: list[list[float]] = self.inputs[self.KEY_B_VECTORS]
         adc: BaseImageContainer = self.inputs[self.KEY_ADC]
         s0: Union[BaseImageContainer, None] = self.inputs.get(self.KEY_S0, None)
+        attenuation_image, dwi_image = dwi_signal_filter_function(
+            adc=adc, b_values=b_values, b_vectors=b_vectors, s0=s0
+        )
 
         self.outputs[self.KEY_ATTENUATION] = adc.clone()
         self.outputs[self.KEY_DWI] = adc.clone()
-
-        true_b_values = copy.deepcopy(b_values)
-        normalized_b_vectors = copy.deepcopy(b_vectors)
-        for i, b_value in enumerate(b_values):
-            true_b_values[i] = b_value * np.linalg.norm(
-                b_vectors[i]
-            )  # calculating true b values
-            normalized_b_vectors[i] = b_vectors[i] / np.linalg.norm(
-                b_vectors[i]
-            )  # type: ignore # normalizing b vectors
-
-        attenuation_shape = np.shape(adc.image)
-        attenuation_image = np.zeros(
-            [
-                attenuation_shape[0],
-                attenuation_shape[1],
-                attenuation_shape[2],
-                len(b_values),
-            ]
-        )
-        dwi_image = copy.deepcopy(attenuation_image)
-
-        for i, true_b_value in enumerate(true_b_values):
-            sum_for_exp = 0
-            for dimension in range(0, 3):
-                sum_for_exp += (
-                    true_b_value
-                    * normalized_b_vectors[i][dimension]
-                    * adc.image[:, :, :, dimension]
-                )
-            attenuation_image[:, :, :, i] = np.exp(-sum_for_exp)
-            if s0 is not None:
-                dwi_image[:, :, :, i] = np.multiply(
-                    s0.image[:, :, :], attenuation_image[:, :, :, i]
-                )
-            if s0 is None:
-                dwi_image[:, :, :, i] = attenuation_image[:, :, :, i]
-
         self.outputs[self.KEY_ATTENUATION].image = attenuation_image
         self.outputs[self.KEY_DWI].image = dwi_image
         # update metadata
