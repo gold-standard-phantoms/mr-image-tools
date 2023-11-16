@@ -43,17 +43,15 @@ def dwi_signal_filter_function(
     for i, b_value in enumerate(b_values):
         scaling_factor = float(np.linalg.norm(b_vectors[i]))
 
-        true_b_values[i] = b_value * (
-            scaling_factor
-            # calculating true b values
-        )
+        # calculating true b values
+        true_b_values[i] = b_value * scaling_factor
 
         array_format_normalized_b_vector: NDArray[np.floating] = np.divide(
             b_vectors[i], scaling_factor
         )
 
-        normalized_b_vectors[i] = list(array_format_normalized_b_vector)
         # normalizing b vectors
+        normalized_b_vectors[i] = list(array_format_normalized_b_vector)
 
     attenuation_shape = np.shape(adc.image)
     attenuation_image = np.zeros(

@@ -1,8 +1,9 @@
 """Apparent Diffusion Coefficient Quantification filter"""
 
 
-import numpy as np
-
+from mrimagetools.filters.adc_quantification_filter import (
+    adc_quantification_filter_function,
+)
 from mrimagetools.v2.containers.image import BaseImageContainer
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
@@ -85,35 +86,7 @@ class AdcQuantificationFilter(BaseFilter):
         dwi: BaseImageContainer = self.inputs[self.KEY_DWI]
         self.outputs[self.KEY_ADC] = dwi.clone()
 
-        # determine which DWI volume is corresponds with b = 0
-        index_b0 = b_values.index(0)
-        index_b = list(range(0, len(b_values)))
-        index_b.pop(index_b0)  # remove the b = 0 index
-        dwi_b0 = dwi.image[:, :, :, index_b0]
-
-        safelog = lambda x: np.log(x, np.zeros_like(x), where=x > 0)
-
-        adc = np.stack(
-            [
-                (
-                    -(
-                        safelog(
-                            np.divide(
-                                dwi.image[:, :, :, idx],
-                                dwi_b0,
-                                out=np.zeros_like(dwi_b0),
-                                where=dwi_b0 > 0,
-                            )
-                        )
-                        / b_values[idx]
-                    )
-                    if b_values[idx] != 0
-                    else 0
-                )
-                for idx in index_b
-            ],
-            axis=3,
-        )
+        adc = adc_quantification_filter_function(dwi=dwi, b_values=b_values)
 
         self.outputs[self.KEY_ADC].image = adc
         # update metadata
@@ -132,11 +105,12 @@ class AdcQuantificationFilter(BaseFilter):
 
     def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria
-        'dwi' must be derived from BaseImageContainer and have length of at least 2
-          in the 4th dimension.
-        'b_values' must be a list, the same length as the length of 'dwi' along the
-          4th dimension. One value exclusively should be equal to 0.
-        'b_vectors' must be a list of List[float, float, float], the same as the length of 'dwi'
+        'dwi' must be derived from BaseImageContainer and have length of at least 2 in
+         the 4th dimension.
+        'b_values' must be a list, the same length as the length of 'dwi' along the 4th
+         dimension. One value exclusively should be equal to 0.
+        'b_vectors' must be a list of List[float, float, float], the same as the length
+         of 'dwi'.
         """
         # first validate the input image
         input_image_validator = ParameterValidator(
