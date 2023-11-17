@@ -20,8 +20,12 @@ RANDOM_SEED = 1234
 @pytest.fixture(name="validation_data")
 def input_validation_data_fixture() -> dict:
     """Returns a dictionary containing test data for the filter input validation"""
-    test_image = NiftiImageContainer(nib.Nifti1Image(np.ones((4, 4, 4)), np.eye(4)))
-    test_image2 = NiftiImageContainer(nib.Nifti1Image(np.ones((3, 4, 4)), np.eye(4)))
+    test_image = NiftiImageContainer(
+        nib.nifti1.Nifti1Image(np.ones((4, 4, 4)), np.eye(4))
+    )
+    test_image2 = NiftiImageContainer(
+        nib.nifti1.Nifti1Image(np.ones((3, 4, 4)), np.eye(4))
+    )
     return {
         "input_validation_dict_snr_finite": {
             "image": [False, test_image, "str", np.ones((4, 4, 4))],

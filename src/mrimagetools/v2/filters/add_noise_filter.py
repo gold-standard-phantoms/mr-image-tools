@@ -1,13 +1,8 @@
 """ Add noise filter """
 import logging
 
-import numpy as np
-
-from mrimagetools.v2.containers.image import (
-    INVERSE_DOMAIN,
-    SPATIAL_DOMAIN,
-    BaseImageContainer,
-)
+from mrimagetools.filters.add_noise_filter import add_noise_filter_function
+from mrimagetools.v2.containers.image import BaseImageContainer
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.v2.validators.parameters import (
     Parameter,
@@ -86,62 +81,20 @@ class AddNoiseFilter(BaseFilter):
         if snr == 0:
             self.outputs[self.KEY_IMAGE] = input_image
         else:
-            # If present load the reference image, if not
-            # copy the input_image
-            reference_image: BaseImageContainer
+            # If present load the reference image, if not omit the argument.
+            # The add_noise_function will use the input_image as the reference image.
             if self.KEY_REF_IMAGE in self.inputs:
                 reference_image = self.inputs[self.KEY_REF_IMAGE]
-            else:
-                reference_image = input_image
-
-            noise_amplitude_scaling: float = 1.0  # default if domains match
-            # Otherwise correct for differences in scaling due to fourier transform
-            logger.debug("input image domain is %s", input_image.data_domain)
-            logger.debug("reference_image domain is %s", reference_image.data_domain)
-            if (
-                input_image.data_domain == SPATIAL_DOMAIN
-                and reference_image.data_domain == INVERSE_DOMAIN
-            ):
-                noise_amplitude_scaling = 1.0 / np.sqrt(reference_image.image.size)
-            if (
-                input_image.data_domain == INVERSE_DOMAIN
-                and reference_image.data_domain == SPATIAL_DOMAIN
-            ):
-                noise_amplitude_scaling = np.sqrt(reference_image.image.size)
-
-            # Calculate the noise amplitude (i.e. its standard deviation) using the non-zero voxels
-            # in the magnitude of the reference image (in case it is complex)
-            logger.debug("Noise amplitude scaling: %s", noise_amplitude_scaling)
-            noise_amplitude = (
-                noise_amplitude_scaling
-                * np.mean(
-                    np.abs(reference_image.image[reference_image.image.nonzero()])
-                )
-                / (snr)
-            )
-
-            logger.debug("Noise amplitude: %s", noise_amplitude)
-
-            # Make an image container for the image with noise
-            image_with_noise: BaseImageContainer = input_image.clone()
-
-            # Create noise arrays with mean=0, sd=noise_amplitude, and same dimensions
-            # as the input image.
-            if input_image.image.dtype in [np.complex128, np.complex64]:
-                # Data are complex, create the real and imaginary components separately
-                image_with_noise.image = (
-                    np.real(input_image.image)
-                    + np.random.normal(0, noise_amplitude, input_image.shape)
-                ) + 1j * (
-                    np.imag(input_image.image)
-                    + np.random.normal(0, noise_amplitude, input_image.shape)
+                image_with_noise = add_noise_filter_function(
+                    input_image=input_image,
+                    snr=snr,
+                    reference_image=reference_image,
                 )
             else:
-                # Data are not complex
-                image_with_noise.image = input_image.image + np.random.normal(
-                    0, noise_amplitude, input_image.shape
+                image_with_noise = add_noise_filter_function(
+                    input_image=input_image,
+                    snr=snr,
                 )
-
             self.outputs[self.KEY_IMAGE] = image_with_noise
 
     def _validate_inputs(self) -> None:
