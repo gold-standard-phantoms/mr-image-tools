@@ -1,9 +1,9 @@
 """ Affine Matrix Filter """
 
-from typing import Tuple
 
 import numpy as np
 
+from mrimagetools.filters.affine_matrix_filter import affine_matrix_filter_function
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.v2.validators.parameters import (
     Parameter,
@@ -108,77 +108,17 @@ class AffineMatrixFilter(BaseFilter):
         translation: tuple[float, float, float] = self.inputs[self.KEY_TRANSLATION]
         scale: tuple[float, float, float] = self.inputs[self.KEY_SCALE]
 
-        scale_matrix = np.array(
-            (
-                (scale[0], 0, 0, 0),
-                (0, scale[1], 0, 0),
-                (0, 0, scale[2], 0),
-                (0, 0, 0, 1),
-            )
-        )
-        translation_matrix = np.array(
-            (
-                (1, 0, 0, translation[0]),
-                (0, 1, 0, translation[1]),
-                (0, 0, 1, translation[2]),
-                (0, 0, 0, 1),
-            )
-        )
-        rotation_origin_translation_matrix = np.array(
-            (
-                (1, 0, 0, rotation_origin[0]),
-                (0, 1, 0, rotation_origin[1]),
-                (0, 0, 1, rotation_origin[2]),
-                (0, 0, 0, 1),
-            )
-        )
-
-        rotation_x_matrix = np.array(
-            (
-                (1, 0, 0, 0),
-                (0, np.cos(rotation_angles[0]), -np.sin(rotation_angles[0]), 0),
-                (0, np.sin(rotation_angles[0]), np.cos(rotation_angles[0]), 0),
-                (0, 0, 0, 1),
-            )
-        )
-        rotation_y_matrix = np.array(
-            (
-                (np.cos(rotation_angles[1]), 0, np.sin(rotation_angles[1]), 0),
-                (0, 1, 0, 0),
-                (-np.sin(rotation_angles[1]), 0, np.cos(rotation_angles[1]), 0),
-                (0, 0, 0, 1),
-            )
-        )
-        rotation_z_matrix = np.array(
-            (
-                (np.cos(rotation_angles[2]), -np.sin(rotation_angles[2]), 0, 0),
-                (np.sin(rotation_angles[2]), np.cos(rotation_angles[2]), 0, 0),
-                (0, 0, 1, 0),
-                (0, 0, 0, 1),
-            )
-        )
-
-        # inverse of rotation_origin_translation_matrix  doesn't need to be inverted,
-        # it is simply 2*np.eye(4) - rotation_origin_translation_matrix
-        inv_rotation_origin_translation_matrix = (
-            2 * np.eye(4) - rotation_origin_translation_matrix
-        )
-
-        # combine
-        output_affine: np.ndarray = (
-            affine_last
-            @ scale_matrix
-            @ translation_matrix
-            @ rotation_origin_translation_matrix
-            @ rotation_z_matrix
-            @ rotation_y_matrix
-            @ rotation_x_matrix
-            @ inv_rotation_origin_translation_matrix
-            @ input_affine
+        output_affine, inverse_output_affine = affine_matrix_filter_function(
+            input_affine=input_affine,
+            affine_last=affine_last,
+            scale=scale,
+            translation=translation,
+            rotation_angles=rotation_angles,
+            rotation_origin=rotation_origin,
         )
 
         self.outputs[self.KEY_AFFINE] = output_affine
-        self.outputs[self.KEY_AFFINE_INVERSE] = np.linalg.inv(output_affine)
+        self.outputs[self.KEY_AFFINE_INVERSE] = inverse_output_affine
 
     def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria
