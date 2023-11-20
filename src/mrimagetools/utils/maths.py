@@ -3,7 +3,7 @@
 import ast
 from copy import copy
 from dataclasses import dataclass, field
-from typing import Callable, Dict, Final, Literal, Type, Union, get_args
+from typing import Callable, Final, Literal, Union, get_args
 
 import numpy as np
 
@@ -47,7 +47,8 @@ class VariableMissingError(ExpressionEvaluatorError):
 
 
 class BadVariableTypeError(ExpressionEvaluatorError):
-    """Raised if a variable is not a supported type (int, float, complex, numpy array)"""
+    """Raised if a variable is not a supported type
+    (int, float, complex, numpy array)"""
 
 
 class UnsupportedNodeError(ExpressionEvaluatorError):
@@ -75,7 +76,8 @@ class ExpressionEvaluator:
     """A general expression evalutator that allows calculations to be performed
     using equations.
     The expression evalutator must first be created, then it can be used. For example:
-    `result = ExpressionEvaluator()(expression="(A+B)/5", A=np.array([1.0, 2.0]), B=1.0)`
+    `result = ExpressionEvaluator()(expression="(A+B)/5",
+    A=np.array([1.0, 2.0]), B=1.0)`
     you can also change the operations supported, for example:
     ```
     e = ExpressionEvaluator(unary_operators={ast.USub: lambda x: np.subtract(0, x)})
@@ -97,18 +99,23 @@ class ExpressionEvaluator:
 
     and the following binary operations:
 
-    - Add. e.g. A+B or delta+4 or 123+1, using numpy.add with the default optional arguments
-    - Subtract. e.g. C-D or 5-beta or 1-2, using numpy.subtract with the default optional arguments
-    - Divide. e.g. E/F or 5/G or 9/2 using numpy.divide. NOTE: this can be a "safe_divide",
-    by setting the "safe_divide" config flag. This will ensure that, when the divisor is a numpy
-    array, a division by zero = zero)
-    - Multiply. e.g. H*I or image*7 or 7*9, using numpy.multiply with the default optional arguments
-    - Power. e.g. J**K or image**2 or 2**3, using numpy.power with the default optional arguments
+    - Add. e.g. A+B or delta+4 or 123+1, using numpy.add with the default optional
+      arguments
+    - Subtract. e.g. C-D or 5-beta or 1-2, using numpy.subtract with the default
+      optional arguments
+    - Divide. e.g. E/F or 5/G or 9/2 using numpy.divide. NOTE: this can be a
+      "safe_divide", by setting the "safe_divide" config flag. This will ensure that,
+      when the divisor is a numpy array, a division by zero = zero)
+    - Multiply. e.g. H*I or image*7 or 7*9, using numpy.multiply with the default
+      optional arguments
+    - Power. e.g. J**K or image**2 or 2**3, using numpy.power with the default optional
+      arguments
 
     Operations should work on both numpy arrays, float, integers, complexes,
     and a combination of all the above.
-    Operations can be nested in expressions and parenthesis used, for example, (A**B+2)/C
-    Once run, the filter will return the result, which may be a numpy array, float, int or complex.
+    Operations can be nested in expressions and parenthesis used, for example,
+    (A**B+2)/C Once run, the filter will return the result, which may be a numpy array,
+    float, int or complex.
     """
 
     unary_operators: dict[type[ast.AST], Callable[[InputType], InputType]] = field(
@@ -124,7 +131,8 @@ class ExpressionEvaluator:
         :param node: The ast node
         :param variables: The variables to be substituted into the expression
         :return: The result of the node (solving the child tree)
-        :raises: a subclass of :class:`ExpressionEvaluatorError` if an exception is encountered
+        :raises: a subclass of :class:`ExpressionEvaluatorError` if an exception is
+            encountered
         """
         # Check the tree and raise exceptions is any issues are found
         self._valid(node=node, variables=variables, raise_exception=True)
@@ -148,17 +156,21 @@ class ExpressionEvaluator:
 
     # pylint: disable=too-many-return-statements
     def _valid(
-        self, node: ast.AST, variables: dict[str, InputType], raise_exception=False
+        self,
+        node: ast.AST,
+        variables: dict[str, InputType],
+        raise_exception: bool = False,
     ) -> bool:
         """Determines whether the expression can be evaluated with the given variables.
         Optionally, raises an exception if the expression cannot be evaluated
         Evaluates the node using the supplied variables and the supported operators
         :param node: The ast node
         :param variables: The variables to be substituted into the expression
-        :param raise_exception: Raise an exception if an error is found (will be a subclass of
-         :class:`ExpressionEvaluatorError`)
+        :param raise_exception: Raise an exception if an error is found (will be a
+            subclass of :class:`ExpressionEvaluatorError`)
         :return: if the node can be evaluated with the given variables
-        :raises: a subclass of :class:`ExpressionEvaluatorError` if raise_exception is True
+        :raises: a subclass of :class:`ExpressionEvaluatorError` if raise_exception is
+            True
         """
         conditional_raise = _conditional_raiser(raise_exception)
         if isinstance(node, ast.Num):  # Node is a number (int, float, complex)
@@ -218,8 +230,6 @@ class ExpressionEvaluator:
         Evaluates the node using the supplied variables and the supported operators
         :param expression: The expression to validate
         :param variables: The variables to be substituted into the expression
-        :param raise_exception: Raise an exception if an error is found (will be a subclass of
-         :class:`ExpressionEvaluatorError`)
         :return: if the node can be evaluated with the given variables
         """
         try:
@@ -234,8 +244,6 @@ class ExpressionEvaluator:
         Evaluates the node using the supplied variables and the supported operators
         :param expression: The expression to validate
         :param variables: The variables to be substituted into the expression
-        :param raise_exception: Raise an exception if an error is found (will be a subclass of
-         :class:`ExpressionEvaluatorError`)
         """
         tree = self._generate_tree(expression=expression)
         self._eval(node=tree.body, variables=variables)
@@ -243,14 +251,14 @@ class ExpressionEvaluator:
     def __call__(self, expression: str, **variables: InputType) -> InputType:
         """Operations should work on both numpy arrays, float, integers, complexes,
         and a combination of all the above.
-        Operations can be nested in expressions and parenthesis used, for example, (A**B+2)/C
-        Once run, the filter will return the result, which may be a numpy array, float,
-        int or complex.
+        Operations can be nested in expressions and parenthesis used, for example,
+        (A**B+2)/C Once run, the filter will return the result, which may be a numpy
+        array, float, int or complex.
 
         :param 'expression': A string representation of the expression to be evaluated,
         e.g. `(A+B)+5`
-        :param 'variables' : The remaining variables, which must be in the expression. These are
-        numpy arrays, floats, ints or complex types.
+        :param 'variables' : The remaining variables, which must be in the expression.
+        These are numpy arrays, floats, ints or complex types.
 
         :return: A numpy array, float, int or complex with the result of the expression.
         """
@@ -269,8 +277,10 @@ def expression_evaluator(
     The expression evalutator must first be created, then it can be used. For example:
     `expression_evaluator()(expression=(A+B)/5, A=np.array([1.0, 2.0]), B=1.0)`
     you can also use different default, for example:
-    `expression_evaluator('save_divide')(expression=(A+B)/5, A=np.array([1.0, 2.0]), B=1.0)`
-    Will perform a safe divide IF the divisor is a numpy array (see below for more details)
+    `expression_evaluator('save_divide')(expression=(A+B)/5,
+    A=np.array([1.0, 2.0]), B=1.0)`
+    Will perform a safe divide IF the divisor is a numpy array (see below for more
+    details)
 
     The variables may be a numpy array, or be floats, integers or complex.
     The expression will be evaluated using an abstract syntax tree.
@@ -281,25 +291,32 @@ def expression_evaluator(
 
     and the following binary operations:
 
-    - Add. e.g. A+B or delta+4 or 123+1, using numpy.add with the default optional arguments
-    - Subtract. e.g. C-D or 5-beta or 1-2, using numpy.subtract with the default optional arguments
-    - Divide. e.g. E/F or 5/G or 9/2 using numpy.true_divide. NOTE: this can be a "safe_divide",
-    by setting the "safe_divide" config flag, a division by zero = zero
-    - Multiply. e.g. H*I or image*7 or 7*9, using numpy.multiply with the default optional arguments
-    - Power. e.g. J**K or image**2 or 2**3, using numpy.power with the default optional arguments
+    - Add. e.g. A+B or delta+4 or 123+1, using numpy.add with the default optional
+      arguments
+    - Subtract. e.g. C-D or 5-beta or 1-2, using numpy.subtract with the default
+      optional arguments
+    - Divide. e.g. E/F or 5/G or 9/2 using numpy.true_divide. NOTE: this can be a
+      "safe_divide", by setting the "safe_divide" config flag, a division by
+      zero = zero
+    - Multiply. e.g. H*I or image*7 or 7*9, using numpy.multiply with the default
+      optional arguments
+    - Power. e.g. J**K or image**2 or 2**3, using numpy.power with the default optional
+      arguments
 
     Operations should work on both numpy arrays, float, integers, complexes,
     and a combination of all the above.
-    Operations can be nested in expressions and parenthesis used, for example, (A**B+2)/C
-    Once run, the filter will return the result, which may be a numpy array, float, int or complex.
+    Operations can be nested in expressions and parenthesis used, for example,
+    (A**B+2)/C Once run, the filter will return the result, which may be a numpy array,
+    float, int or complex.
 
     :param config: can be set to "safe_divide" to perform a safe division operation
     :return: an ExpressionEvaluator. Can be called with the following parameters:
 
     The parameters of the return of this function (a callable) are:
-    :param 'expression': A string representation of the expression to be evaluated, e.g. `(A+B)+5`
-    :param 'variables' : The remaining variables, which must be in the expression. These are
-    numpy arrays, floats, ints or complex types.
+    :param 'expression': A string representation of the expression to be evaluated,
+        e.g. `(A+B)+5`
+    :param 'variables' : The remaining variables, which must be in the expression.
+        These are numpy arrays, floats, ints or complex types.
 
     :return: A numpy array, float, int or complex with the result of the expression."""
 

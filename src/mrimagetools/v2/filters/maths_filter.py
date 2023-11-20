@@ -1,19 +1,19 @@
 """ MathsFilter Class"""
 
 from copy import copy
-from typing import Dict, Final, Union
+from typing import Final, Union
 
 import numpy as np
 
-from mrimagetools.v2.containers.image import BaseImageContainer
-from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
-from mrimagetools.v2.utils.maths import (
+from mrimagetools.utils.maths import (
     ExpressionEvaluator,
     ExpressionEvaluatorConfig,
     ExpressionEvaluatorError,
     InputType,
     expression_evaluator,
 )
+from mrimagetools.v2.containers.image import BaseImageContainer
+from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.v2.validators.parameters import (
     Parameter,
     ParameterValidator,
