@@ -1,7 +1,8 @@
-""" AppendMetadataFilter """
+""" Append Metadata Filter """
 
-from typing import Dict, Union
+from typing import Union
 
+from mrimagetools.filters.append_metadata_filter import append_metadata_filter_function
 from mrimagetools.v2.containers.image import BaseImageContainer
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
@@ -49,20 +50,12 @@ class AppendMetadataFilter(BaseFilter):
 
     def _run(self) -> None:
         """appends the input image with the supplied metadata"""
-        # copy the reference to the input image to outputs
-        self.outputs[self.KEY_IMAGE] = self.inputs[self.KEY_IMAGE]
-        input_metadata: Union[dict, ImageMetadata] = self.inputs[self.KEY_METADATA]
-        # merge the input metadata with the existing metadata
-        self.outputs[self.KEY_IMAGE].metadata = ImageMetadata(
-            **{
-                **self.outputs[self.KEY_IMAGE].metadata.dict(exclude_none=True),
-                **(
-                    input_metadata
-                    if isinstance(input_metadata, dict)
-                    else input_metadata.dict(exclude_none=True)
-                ),
-            }
-        )
+        image = self.inputs[self.KEY_IMAGE]
+        metadata: Union[dict, ImageMetadata] = self.inputs[self.KEY_METADATA]
+
+        appended_image = append_metadata_filter_function(image=image, metadata=metadata)
+
+        self.outputs[self.KEY_IMAGE] = appended_image
 
     def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation criteria

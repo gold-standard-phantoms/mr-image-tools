@@ -14,7 +14,7 @@ from mrimagetools.v2.filters.append_metadata_filter import AppendMetadataFilter
 from mrimagetools.v2.filters.basefilter import FilterInputValidationError
 
 TEST_VOLUME_DIMENSIONS = (32, 32, 32)
-TEST_NIFTI_ONES = nib.Nifti2Image(
+TEST_NIFTI_ONES = nib.nifti2.Nifti2Image(
     np.ones(TEST_VOLUME_DIMENSIONS),
     affine=np.array(
         (
