@@ -1,13 +1,8 @@
 """Load ASL BIDS filter class"""
 
-import json
 import os
 
-import nibabel as nib
-import numpy as np
-
-from mrimagetools.v2.containers.image import NiftiImageContainer
-from mrimagetools.v2.containers.image_metadata import ImageMetadata
+from mrimagetools.filters.load_asl_bids_filter import load_asl_bids
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.v2.utils.io import nifti_reader
 from mrimagetools.v2.validators.parameters import (
@@ -55,6 +50,8 @@ class LoadAslBidsFilter(BaseFilter):
     :type 'label': BaseImageContainer
     :param 'm0': m0 volumes (as defined by aslcontext)
     :type 'm0': BaseImageContainer
+    :param 'sidecar': the sidecar metadata
+    :type 'sidecar': dict
 
     """
 
@@ -87,69 +84,18 @@ class LoadAslBidsFilter(BaseFilter):
         according to the content of the aslcontext.
         """
 
-        # load in the NIFTI image
-        image = nifti_reader(self.inputs[self.KEY_IMAGE_FILENAME])
-        # load in the sidecar
-        with open(
-            self.inputs[self.KEY_SIDECAR_FILENAME], encoding="utf-8"
-        ) as json_file:
-            sidecar = json.load(json_file)
-            json_file.close()
-        # load in the aslcontext tsv
-        with open(
-            self.inputs[self.KEY_ASLCONTEXT_FILENAME], encoding="utf-8"
-        ) as tsv_file:
-            loaded_tsv = tsv_file.readlines()
-            tsv_file.close()
-
-        # get the ASL context array
-        asl_context = [s.strip() for s in loaded_tsv][1:]
+        asl_data = load_asl_bids(
+            image_filename=self.inputs[self.KEY_IMAGE_FILENAME],
+            sidecar_filename=self.inputs[self.KEY_SIDECAR_FILENAME],
+            aslcontext_filename=self.inputs[self.KEY_ASLCONTEXT_FILENAME],
+        )
 
         # create the output source image
-        self.outputs[self.KEY_SOURCE] = NiftiImageContainer(
-            image, metadata=ImageMetadata.from_bids(sidecar)
-        )
-        self.outputs[self.KEY_SOURCE].metadata.asl_context = asl_context
-        self.outputs[self.KEY_SIDECAR] = sidecar
-
-        # iterate over 'control', 'label' and 'm0'. Determine which volumes correspond using
-        # asl_context, then place the volumes into new cloned image containers and update
-        # the metadata entry 'asl_context'
-        for key in [self.KEY_CONTROL, self.KEY_LABEL, self.KEY_M0]:
-            volume_indices = [
-                i
-                for (i, val) in enumerate(asl_context)
-                if val == self.ASL_CONTEXT_MAPPING[key]
-            ]
-            if volume_indices is not None:
-                self.outputs[key] = self.outputs[self.KEY_SOURCE].clone()
-                self.outputs[key].image = np.squeeze(
-                    self.outputs[self.KEY_SOURCE].image[:, :, :, volume_indices]
-                )
-                self.outputs[key].metadata.asl_context = [
-                    asl_context[i] for i in volume_indices
-                ]
-                # adjust any lists in the metdata that correspond to a value per volume
-                for metadata_key in (
-                    self.outputs[key].metadata.dict(exclude_none=True).keys()
-                ):
-                    if metadata_key not in self.LIST_FIELDS_TO_EXCLUDE:
-                        if isinstance(
-                            getattr(self.outputs[key].metadata, metadata_key), list
-                        ):
-                            if len(
-                                getattr(self.outputs[key].metadata, metadata_key)
-                            ) == len(asl_context):
-                                setattr(
-                                    self.outputs[key].metadata,
-                                    metadata_key,
-                                    [
-                                        getattr(
-                                            self.outputs[key].metadata, metadata_key
-                                        )[i]
-                                        for i in volume_indices
-                                    ],
-                                )
+        self.outputs[self.KEY_SOURCE] = asl_data.source
+        self.outputs[self.KEY_SIDECAR] = asl_data.sidecar
+        self.outputs[self.KEY_CONTROL] = asl_data.control
+        self.outputs[self.KEY_LABEL] = asl_data.label
+        self.outputs[self.KEY_M0] = asl_data.m0
 
     def _validate_inputs(self) -> None:
         """Checks that inputs meet their validation criteria
