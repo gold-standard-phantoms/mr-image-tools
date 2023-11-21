@@ -1,11 +1,14 @@
 """ MRI Signal Filter """
 
-from typing import Any, Dict, Type
+from typing import Any, Optional
 
-import numpy as np
-
+from mrimagetools.filters.mri_signal_filter import (
+    MriSignalFilterImages,
+    MriSignalFilterParameters,
+    mri_signal_filter,
+)
 from mrimagetools.v2.containers.image import COMPLEX_IMAGE_TYPE, BaseImageContainer
-from mrimagetools.v2.containers.image_metadata import AcqContrastType, ImageMetadata
+from mrimagetools.v2.containers.image_metadata import AcqContrastType
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
 from mrimagetools.v2.utils.typing import T
 from mrimagetools.v2.validators.parameters import (
@@ -23,13 +26,15 @@ class MriSignalFilter(BaseFilter):
 
     * Gradient echo is with arbitrary excitation flip angle.
     * Spin echo assumes perfect 90° excitation and 180° refocusing pulses.
-    * Inversion recovery can have arbitrary inversion pulse and excitation pulse flip angles.
+    * Inversion recovery can have arbitrary inversion pulse and excitation pulse flip
+        angles.
+
 
     **Inputs**
 
-    Input Parameters are all keyword arguments for the :class:`MriSignalFilter.add_inputs()`
-    member function. They are also accessible via class constants,
-    for example :class:`MriSignalFilter.KEY_T1`
+    Input Parameters are all keyword arguments for the
+    :class:`MriSignalFilter.add_inputs()` member function. They are also accessible via
+    class constants, for example :class:`MriSignalFilter.KEY_T1`
 
     :param 't1':  Longitudinal relaxation time in seconds (>=0, non-complex data)
     :type 't1': BaseImageContainer
@@ -44,28 +49,29 @@ class MriSignalFilter(BaseFilter):
         provides a means to encode another signal into the MRI signal (non-complex data)
     :type 'mag_enc': BaseImageContainer, optional.
     :param 'acq_contrast': Determines which signal model to use:
-      ``"ge"`` (case insensitive) for Gradient Echo, ``"se"`` (case insensitive) for Spin Echo,
-      ``"ir"`` (case insensitive) for Inversion Recovery.
+        ``"ge"`` (case insensitive) for Gradient Echo, ``"se"`` (case insensitive) for
+        Spin Echo, ``"ir"`` (case insensitive) for Inversion Recovery.
     :type 'acq_contrast': str
     :param 'echo_time': The echo time in seconds (>=0)
     :type 'echo_time': float
     :param 'repetition_time': The repeat time in seconds (>=0)
     :type 'repetition_time': float
-    :param 'excitation_flip_angle': Excitation pulse flip angle in degrees. Only used when
-        ``'acq_contrast'`` is ``"ge"`` or ``"ir"``.  Defaults to 90.0
+    :param 'excitation_flip_angle': Excitation pulse flip angle in degrees. Only used
+        when ``'acq_contrast'`` is ``"ge"`` or ``"ir"``.  Defaults to 90.0
     :type 'excitation_flip_angle': float, optional
     :param 'inversion_flip_angle': Inversion pulse flip angle in degrees. Only used when
         ``acq_contrast`` is ``"ir"``. Defaults to 180.0
     :type 'inversion_flip_angle': float, optional
     :param 'inversion_time': The inversion time in seconds. Only used when
         ``'acq_contrast'`` is ``"ir"``. Defaults to 1.0.
-    :param 'image_flavor': sets the metadata ``'image_flavor'`` in the output image to this.
+    :param 'image_flavor': sets the metadata ``'image_flavor'`` in the output image to
+    this.
     :type 'image_flavor': str
 
     **Outputs**
 
-    Once run, the filter will populate the dictionary :class:`MriSignalFilter.outputs` with the
-    following entries
+    Once run, the filter will populate the dictionary :class:`MriSignalFilter.outputs`
+    with the following entries
 
     :param 'image': An image of the generated MRI signal. Will be of the same class
       as the input ``'m0'``
@@ -73,9 +79,9 @@ class MriSignalFilter(BaseFilter):
 
     **Output Image Metadata**
 
-    The metadata in the output image :class:`MriSignalFilter.outputs["image"]` is derived from
-    the input ``'m0'``. If the input ``'mag_enc'`` is present, its metadata is merged with
-    precedence. In addition, following parameters are added:
+    The metadata in the output image :class:`MriSignalFilter.outputs["image"]` is
+    derived from the input ``'m0'``. If the input ``'mag_enc'`` is present, its
+    metadata is merged with precedence. In addition, following parameters are added:
 
     * ``'acq_contrast'``
     * ``'echo time'``
@@ -164,176 +170,53 @@ class MriSignalFilter(BaseFilter):
         )
 
     def _run(self) -> None:
-        t1: np.ndarray = self.inputs[self.KEY_T1].image
-        t2: np.ndarray = self.inputs[self.KEY_T2].image
-        m0: np.ndarray = self.inputs[self.KEY_M0].image
+        # Image inputs
+        t1: BaseImageContainer = self.inputs[self.KEY_T1]
+        t2: BaseImageContainer = self.inputs[self.KEY_T2]
+        t2_star: Optional[BaseImageContainer] = self.inputs.get(self.KEY_T2_STAR, None)
+        m0: BaseImageContainer = self.inputs[self.KEY_M0]
+        mag_enc: Optional[BaseImageContainer] = self.inputs.get(self.KEY_MAG_ENC, None)
 
-        metadata: ImageMetadata = ImageMetadata()
-        mag_enc: np.ndarray
-        if self.inputs.get(self.KEY_MAG_ENC) is not None:
-            mag_enc = self.inputs[self.KEY_MAG_ENC].image
-            metadata = ImageMetadata(
-                **{
-                    **metadata.dict(exclude_none=True),
-                    **self.inputs[self.KEY_MAG_ENC].metadata.dict(exclude_none=True),
-                }
-            )
-        else:
-            mag_enc = np.zeros(t1.shape)
-
-        # mag_enc might not have "image_flavor" set
-        if metadata.image_flavor is None:
-            metadata.image_flavor = "OTHER"
-
-        # if present override image_flavor with the input
-        if self.inputs.get(self.KEY_IMAGE_FLAVOR) is not None:
-            metadata.image_flavor = self.inputs.get(self.KEY_IMAGE_FLAVOR)
-
+        # Required inputs
         acq_contrast: AcqContrastType = self.inputs[self.KEY_ACQ_CONTRAST]
         echo_time: float = self.inputs[self.KEY_ECHO_TIME]
         repetition_time: float = self.inputs[self.KEY_REPETITION_TIME]
 
-        mri_signal: np.ndarray = np.zeros(t1.shape)
-
-        # pre-calculate the exponent exp(-echo_time/t2) as it is used multiple times
-        exp_te_t2 = np.exp(
-            -np.divide(echo_time, t2, out=np.zeros_like(t2), where=t2 != 0)
+        # Optional inputs
+        excitation_flip_angle: Optional[float] = self.inputs.get(
+            self.KEY_EXCITATION_FLIP_ANGLE, None
         )
-
-        # pre-calculate the exponent exp(-repetition_time/t1) as it is used multiple times
-        exp_tr_t1 = np.exp(
-            -np.divide(repetition_time, t1, out=np.zeros_like(t1), where=t1 != 0)
+        image_flavor: Optional[str] = self.inputs.get(self.KEY_IMAGE_FLAVOR, None)
+        inversion_flip_angle: Optional[float] = self.inputs.get(
+            self.KEY_INVERSION_FLIP_ANGLE, None
         )
+        inversion_time: Optional[float] = self.inputs.get(self.KEY_INVERSION_TIME, None)
 
-        # add common fields to metadata
-        metadata.acq_contrast = acq_contrast
-        metadata.echo_time = echo_time
-        metadata.repetition_time = repetition_time
-        metadata.mr_acquisition_type = (  # 2D not currently supported so everything is 3D
-            "3D"
+        images = MriSignalFilterImages(
+            t1=t1,
+            t2=t2,
+            t2_star=t2_star,
+            m0=m0,
+            mag_enc=mag_enc,
         )
-
-        # Gradient Echo Contrast. Equation is from p246 in the book MRI from Picture to Proton,
-        # second edition, 2006, McRobbie et. al.
-        if acq_contrast.lower() == self.CONTRAST_GE:
-            t2_star: np.ndarray = self.inputs[self.KEY_T2_STAR].image
-            flip_angle = np.radians(
-                self.get_typed_input(self.KEY_EXCITATION_FLIP_ANGLE, float)
-            )
-            # pre-calculate the exponent exp(-echo_time/t2_star)
-            exp_t2_star = np.exp(
-                -np.divide(
-                    echo_time, t2_star, out=np.zeros_like(t2_star), where=t2_star != 0
-                )
-            )
-            # pre-calculate the exponent exp(-repetition_time/t2)
-            exp_tr_t2 = np.exp(
-                -np.divide(repetition_time, t2, out=np.zeros_like(t2), where=t2 != 0)
-            )
-
-            # pre-calculate the numerator and denominator for use in np.divide to avoid runtime
-            # divide-by-zero
-            numerator = m0 * (1 - exp_tr_t1)
-            denominator = (
-                1
-                - np.cos(flip_angle) * exp_tr_t1
-                - exp_tr_t2 * (exp_tr_t1 - np.cos(flip_angle))
-            )
-
-            mri_signal = (
-                np.sin(flip_angle)
-                * (
-                    np.divide(
-                        numerator,
-                        denominator,
-                        out=np.zeros_like(denominator),
-                        where=denominator != 0,
-                    )
-                    + mag_enc
-                )
-                * exp_t2_star
-            )
-            metadata.excitation_flip_angle = self.inputs.get(
-                self.KEY_EXCITATION_FLIP_ANGLE
-            )
-
-        # Spin Echo Contrast, equation is the standard spin-echo signal equation assuming a 90°
-        # excitation pulse and 180° refocusing pulse. Equation is from p69 in the book
-        # MRI from Picture to Proton, second edition, 2006, McRobbie et. al.
-        elif acq_contrast.lower() == self.CONTRAST_SE:
-            mri_signal = (
-                m0
-                * (
-                    1
-                    - np.exp(
-                        -np.divide(
-                            repetition_time, t1, out=np.zeros_like(t1), where=t1 != 0
-                        )
-                    )
-                )
-                + mag_enc
-            ) * exp_te_t2
-            # for spin echo the flip angle is assumed to be 90°
-            metadata.excitation_flip_angle = 90.0
-
-        # Inversion Recovery contrast.  Equation is from equation 7 in
-        # http://www.paul-tofts-phd.org.uk/talks/ismrm2009_rt.pdf
-        elif acq_contrast.lower() == self.CONTRAST_IR:
-            flip_angle = np.radians(
-                self.get_typed_input(self.KEY_EXCITATION_FLIP_ANGLE, float)
-            )
-            inversion_time = self.get_typed_input(self.KEY_INVERSION_TIME, float)
-            inversion_flip_angle = np.radians(
-                self.get_typed_input(self.KEY_INVERSION_FLIP_ANGLE, float)
-            )
-            # pre-calculate the exponent exp(-inversion_time/t1)
-            exp_ti_t1 = np.exp(
-                -np.divide(inversion_time, t1, out=np.zeros_like(t1), where=t1 != 0)
-            )
-            numerator = m0 * (
-                1
-                - (1 - np.cos(inversion_flip_angle)) * exp_ti_t1
-                - np.cos(inversion_flip_angle) * exp_tr_t1
-            )
-
-            denominator = (
-                1 - np.cos(flip_angle) * np.cos(inversion_flip_angle) * exp_tr_t1
-            )
-
-            mri_signal = (
-                np.sin(flip_angle)
-                * (
-                    np.divide(
-                        numerator,
-                        denominator,
-                        out=np.zeros_like(denominator),
-                        where=denominator != 0,
-                    )
-                    + mag_enc
-                )
-                * exp_te_t2
-            )
-            # add ir specific metadata
-            metadata.excitation_flip_angle = self.inputs.get(
-                self.KEY_EXCITATION_FLIP_ANGLE
-            )
-            metadata.inversion_flip_angle = self.inputs.get(
-                self.KEY_INVERSION_FLIP_ANGLE
-            )
-            metadata.inversion_time = inversion_time
-
-        self.outputs[self.KEY_IMAGE] = self.inputs[self.KEY_M0].clone()
-        self.outputs[self.KEY_IMAGE].image = mri_signal
-        # merge the metadata field with the constructed one (we don't want to merge)
-        self.outputs[self.KEY_IMAGE].metadata = ImageMetadata(
-            **{
-                **self.outputs[self.KEY_IMAGE].metadata.dict(exclude_none=True),
-                **metadata.dict(exclude_none=True),
-            }
+        parameters = MriSignalFilterParameters(
+            acq_contrast=acq_contrast,
+            echo_time=echo_time,
+            repetition_time=repetition_time,
         )
-        self.outputs[self.KEY_IMAGE].metadata.units = None
-        self.outputs[self.KEY_IMAGE].metadata.quantity = None
-        # pdb.set_trace()
+        if inversion_flip_angle is not None:
+            parameters.inversion_flip_angle = inversion_flip_angle
+
+        if inversion_time is not None:
+            parameters.inversion_time = inversion_time
+
+        if image_flavor is not None:
+            parameters.image_flavor = image_flavor  # type: ignore
+
+        if excitation_flip_angle is not None:
+            parameters.excitation_flip_angle = excitation_flip_angle
+
+        self.outputs["image"] = mri_signal_filter(images=images, parameters=parameters)
 
     def _validate_inputs(self) -> None:
         """Checks that the inputs meet their validation critera
