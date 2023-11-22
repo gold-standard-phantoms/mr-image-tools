@@ -1,9 +1,13 @@
 """ASL quantification filter class"""
-from typing import List, Union
+from typing import Union
 
 import numpy as np
 from scipy.optimize import curve_fit
 
+from mrimagetools.filters.gkm_filter import (
+    calculate_delta_m_gkm,
+    check_and_make_image_from_value,
+)
 from mrimagetools.v2.containers.image import BaseImageContainer
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
@@ -235,10 +239,10 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
             # `lambda_blood_brain` to be np.ndarrays (same dimensions as m0), so
             # first create arrays of these if they are not
             shape = self.inputs[self.KEY_M0].shape
-            t1_tissue = GkmFilter.check_and_make_image_from_value(
+            t1_tissue = check_and_make_image_from_value(
                 self.inputs[self.KEY_T1_TISSUE], shape, ImageMetadata(), None
             )
-            lambda_blood_brain = GkmFilter.check_and_make_image_from_value(
+            lambda_blood_brain = check_and_make_image_from_value(
                 self.inputs[self.KEY_LAMBDA_BLOOD_BRAIN], shape, ImageMetadata(), None
             )
             # The input `post_label_delay` is values of PLD's corresponding to
@@ -658,7 +662,7 @@ sep 1998. doi:10.1002/mrm.1910400308.""",
                     # create an anonymous version of the function to solve
                     func = lambda plds, perf, att: np.array(
                         [
-                            GkmFilter.calculate_delta_m_gkm(
+                            calculate_delta_m_gkm(
                                 perf,
                                 att,
                                 (

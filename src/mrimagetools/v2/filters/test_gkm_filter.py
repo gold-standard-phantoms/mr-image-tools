@@ -8,6 +8,7 @@ import numpy as np
 import numpy.testing
 import pytest
 
+from mrimagetools.filters.gkm_filter import check_and_make_image_from_value
 from mrimagetools.v2.containers.image import BaseImageContainer, NumpyImageContainer
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
 from mrimagetools.v2.filters.asl_quantification_filter import AslQuantificationFilter
@@ -591,14 +592,14 @@ def test_check_and_make_image_from_value() -> None:
     key_name = "echo_time"
     shape = (3, 3, 3)
 
-    out = GkmFilter.check_and_make_image_from_value(arg, shape, metadata, key_name)
+    out = check_and_make_image_from_value(arg, shape, metadata, key_name)
 
     assert metadata.dict(exclude_none=True) == {"echo_time": 1.0}
     numpy.testing.assert_array_equal(out, np.ones((3, 3, 3)))
 
     arg = NumpyImageContainer(np.ones((3, 3, 3)) * 4.56)
     key_name = "m0"
-    out = GkmFilter.check_and_make_image_from_value(arg, shape, metadata, key_name)
+    out = check_and_make_image_from_value(arg, shape, metadata, key_name)
 
     assert metadata.dict(exclude_none=True) == {
         "echo_time": 1.0,
@@ -609,7 +610,7 @@ def test_check_and_make_image_from_value() -> None:
     np.random.seed(12345)
     arg.image = np.random.normal(0, 1, shape)
     key_name = "key_3"
-    out = GkmFilter.check_and_make_image_from_value(arg, shape, metadata, key_name)
+    out = check_and_make_image_from_value(arg, shape, metadata, key_name)
     assert metadata.dict(exclude_none=True) == {
         "echo_time": 1.0,
         "m0": 4.56,

@@ -9,6 +9,7 @@ import numpy.testing
 import pytest
 from numpy.random import default_rng
 
+from mrimagetools.filters.gkm_filter import calculate_delta_m_gkm
 from mrimagetools.v2.containers.image import NiftiImageContainer
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
 from mrimagetools.v2.filters.asl_quantification_filter import AslQuantificationFilter
@@ -109,7 +110,7 @@ def fixture_multiphase() -> dict:
     delta_m = {
         label_type: np.stack(
             [
-                GkmFilter.calculate_delta_m_gkm(
+                calculate_delta_m_gkm(
                     perfusion_rate,
                     transit_time,
                     m0_tissue,
