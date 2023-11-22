@@ -1,10 +1,13 @@
 """Magnetisation Transfer Ratio Quantification Filter"""
 
-import numpy as np
+from collections.abc import Sequence
 
+from mrimagetools.filters.mtr_quantification_filter import (
+    MtrQuantificationParameters,
+    mtr_quantification_filter,
+)
 from mrimagetools.v2.containers.image import BaseImageContainer
 from mrimagetools.v2.filters.basefilter import BaseFilter, FilterInputValidationError
-from mrimagetools.v2.validators.fields import UnitField
 from mrimagetools.v2.validators.parameters import (
     Parameter,
     ParameterValidator,
@@ -12,22 +15,33 @@ from mrimagetools.v2.validators.parameters import (
     isinstance_validator,
 )
 
-image_shape_validator_generator = lambda images: Validator(
-    func=lambda d: all([image in d for image in images])
-    and all([isinstance(d[image], BaseImageContainer) for image in images])
-    and [d[image].shape for image in images].count(d[images[0]].shape) == len(images),
-    criteria_message=f"{images} must all have the same shapes",
-)
 
-image_affine_validator_generator = lambda images: Validator(
-    func=lambda data: all([image in data for image in images])
-    and all([isinstance(data[image], BaseImageContainer) for image in images])
-    and [
-        (data[image].affine == data[images[0]].affine).all() for image in images
-    ].count(True)
-    == len(images),
-    criteria_message=f"{images} must all have the same shapes",
-)
+def image_shape_validator_generator(images: Sequence[str]) -> Validator:
+    """Generates a validator that checks that all images in a dictionary have the same
+    shape"""
+
+    return Validator(
+        func=lambda d: all(image in d for image in images)
+        and all(isinstance(d[image], BaseImageContainer) for image in images)
+        and [d[image].shape for image in images].count(d[images[0]].shape)
+        == len(images),
+        criteria_message=f"{images} must all have the same shapes",
+    )
+
+
+def image_affine_validator_generator(images: Sequence[str]) -> Validator:
+    """Generates a validator that checks that all images in a dictionary have the same
+    affine"""
+
+    return Validator(
+        func=lambda data: all(image in data for image in images)
+        and all(isinstance(data[image], BaseImageContainer) for image in images)
+        and [
+            (data[image].affine == data[images[0]].affine).all() for image in images
+        ].count(True)
+        == len(images),
+        criteria_message=f"{images} must all have the same shapes",
+    )
 
 
 class MtrQuantificationFilter(BaseFilter):
@@ -95,18 +109,12 @@ class MtrQuantificationFilter(BaseFilter):
         image_nosat: BaseImageContainer = self.inputs[self.KEY_IMAGE_NOSAT]
         image_sat: BaseImageContainer = self.inputs[self.KEY_IMAGE_SAT]
 
-        output_image = image_sat.clone()
-        output_image.image = 100.0 * np.divide(
-            image_nosat.image - image_sat.image,
-            image_nosat.image,
-            out=np.zeros_like(image_nosat.image),
-            where=image_nosat.image != 0,
+        self.outputs[self.KEY_MTR] = mtr_quantification_filter(
+            parameters=MtrQuantificationParameters(
+                image_nosat=image_nosat,
+                image_sat=image_sat,
+            )
         )
-        output_image.metadata.modality = "MTRmap"
-        output_image.metadata.quantity = "MTR"
-        output_image.metadata.units = UnitField.model_validate("pu")
-        output_image.metadata.image_type = ("DERIVED", "PRIMARY", "MTRmap", "NONE")
-        self.outputs[self.KEY_MTR] = output_image
 
     def _validate_inputs(self) -> None:
         """Checks the inputs meet their validation criteria
