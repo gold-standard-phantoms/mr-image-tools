@@ -8,10 +8,13 @@ import numpy as np
 import numpy.testing
 import pytest
 
+from mrimagetools.filters.asl_quant_functions import (
+    asl_quant_wp_casl,
+    asl_quant_wp_pasl,
+)
 from mrimagetools.filters.gkm_filter import check_and_make_image_from_value
 from mrimagetools.v2.containers.image import BaseImageContainer, NumpyImageContainer
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
-from mrimagetools.v2.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.v2.filters.basefilter import BaseFilter
 from mrimagetools.v2.filters.gkm_filter import GkmFilter
 from mrimagetools.v2.utils.filter_validation import validate_filter_inputs
@@ -670,7 +673,7 @@ def test_gkm_filter_wp_casl(casl_input) -> None:
     assert gkm_filter.outputs["delta_m"].metadata.gkm_model == "whitepaper"
 
     # check that quantification is correct
-    quantified_f = AslQuantificationFilter.asl_quant_wp_casl(
+    quantified_f = asl_quant_wp_casl(
         control=casl_input["m0"].image,
         label=casl_input["m0"].image - gkm_filter.outputs["delta_m"].image,
         m0=casl_input["m0"].image,
@@ -715,7 +718,7 @@ def test_gkm_filter_wp_pasl(pasl_input) -> None:
     assert gkm_filter.outputs["delta_m"].metadata.gkm_model == "whitepaper"
 
     # check that quantification is correct
-    quantified_f = AslQuantificationFilter.asl_quant_wp_pasl(
+    quantified_f = asl_quant_wp_pasl(
         control=pasl_input["m0"].image,
         label=pasl_input["m0"].image - gkm_filter.outputs["delta_m"].image,
         m0=pasl_input["m0"].image,

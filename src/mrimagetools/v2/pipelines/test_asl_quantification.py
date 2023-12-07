@@ -10,9 +10,12 @@ import numpy as np
 import numpy.testing
 import pytest
 
+from mrimagetools.filters.asl_quant_functions import (
+    asl_quant_wp_casl,
+    asl_quant_wp_pasl,
+)
 from mrimagetools.v2.containers.image import NiftiImageContainer
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
-from mrimagetools.v2.filters.asl_quantification_filter import AslQuantificationFilter
 from mrimagetools.v2.filters.bids_output_filter import BidsOutputFilter
 from mrimagetools.v2.pipelines.asl_quantification import asl_quantification
 from mrimagetools.v2.utils.io import nifti_reader
@@ -214,7 +217,7 @@ def test_asl_quantification_pcasl(test_pcasl_data) -> None:
     # check the output has been correctly calculated
     numpy.testing.assert_array_equal(
         out["image"].image,
-        AslQuantificationFilter.asl_quant_wp_casl(
+        asl_quant_wp_casl(
             control=np.ones(TEST_VOLUME_DIMS),
             label=(1 - 0.001) * np.ones(TEST_VOLUME_DIMS),
             m0=np.ones(TEST_VOLUME_DIMS),
@@ -270,7 +273,7 @@ def test_asl_quantification_pcasl_missing_params(
     # check the output has been correctly calculated
     numpy.testing.assert_array_equal(
         out["image"].image,
-        AslQuantificationFilter.asl_quant_wp_casl(
+        asl_quant_wp_casl(
             control=np.ones(TEST_VOLUME_DIMS),
             label=(1 - 0.001) * np.ones(TEST_VOLUME_DIMS),
             m0=np.ones(TEST_VOLUME_DIMS),
@@ -317,7 +320,7 @@ def test_asl_quantification_pcasl_param_file(test_pcasl_data, tmp_path) -> None:
     # check the output has been correctly calculated
     numpy.testing.assert_array_equal(
         out["image"].image,
-        AslQuantificationFilter.asl_quant_wp_casl(
+        asl_quant_wp_casl(
             control=np.ones(TEST_VOLUME_DIMS),
             label=(1 - 0.001) * np.ones(TEST_VOLUME_DIMS),
             m0=np.ones(TEST_VOLUME_DIMS),
@@ -352,7 +355,7 @@ def test_asl_quantification_pasl(test_pasl_data) -> None:
     # check the output has been correctly calculated
     numpy.testing.assert_array_equal(
         out["image"].image,
-        AslQuantificationFilter.asl_quant_wp_pasl(
+        asl_quant_wp_pasl(
             control=np.ones(TEST_VOLUME_DIMS),
             label=(1 - 0.001) * np.ones(TEST_VOLUME_DIMS),
             m0=np.ones(TEST_VOLUME_DIMS),

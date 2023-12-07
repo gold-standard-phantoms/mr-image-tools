@@ -9,6 +9,11 @@ import numpy.testing
 import pytest
 from numpy.random import default_rng
 
+from mrimagetools.filters.asl_quant_functions import (
+    asl_quant_lsq_gkm,
+    asl_quant_wp_casl,
+    asl_quant_wp_pasl,
+)
 from mrimagetools.filters.gkm_filter import calculate_delta_m_gkm
 from mrimagetools.v2.containers.image import NiftiImageContainer
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
@@ -315,7 +320,7 @@ def test_asl_quantification_verify_casl_numeric(
 ):
     """Verifies the numerical output of the asl_quant_wp_casl static method"""
     actual = (
-        AslQuantificationFilter.asl_quant_wp_casl(
+        asl_quant_wp_casl(
             m0,
             m0 - delta_m,
             m0,
@@ -341,7 +346,7 @@ def test_asl_quantification_filter_verify_pasl_numeric(
 ):
     """Verifies the numerical output of the asl_quant_wp_pasl static method"""
     actual = (
-        AslQuantificationFilter.asl_quant_wp_pasl(
+        asl_quant_wp_pasl(
             m0,
             m0 - delta_m,
             m0,
@@ -369,7 +374,7 @@ def test_asl_quantification_filter_asl_quant_wp_casl() -> None:
     post_label_delay = 1.8
     label_efficiency = 0.85
     t1_arterial_blood = 1.65
-    calc_cbf = AslQuantificationFilter.asl_quant_wp_casl(
+    calc_cbf = asl_quant_wp_casl(
         control,
         label,
         m0,
@@ -419,7 +424,7 @@ def test_asl_quantification_filter_with_mock_data_casl(test_data_wp) -> None:
 
     numpy.testing.assert_array_equal(
         asl_quantification_filter.outputs["perfusion_rate"].image,
-        AslQuantificationFilter.asl_quant_wp_casl(
+        asl_quant_wp_casl(
             test_data_wp["control_3d"].image,
             test_data_wp["label_3d"].image,
             test_data_wp["m0"].image,
@@ -483,7 +488,7 @@ def test_asl_quantification_filter_with_mock_timeseries(test_data_wp) -> None:
 
     numpy.testing.assert_array_equal(
         asl_quantification_filter.outputs["perfusion_rate"].image,
-        AslQuantificationFilter.asl_quant_wp_casl(
+        asl_quant_wp_casl(
             test_data_wp["control_4d"].image[:, :, :, 0],
             test_data_wp["label_4d"].image[:, :, :, 0],
             test_data_wp["m0"].image,
@@ -507,7 +512,7 @@ def test_asl_quantification_filter_asl_quant_wp_pasl() -> None:
     inversion_time = 1.8
     label_efficiency = 0.85
     t1_arterial_blood = 1.65
-    calc_cbf = AslQuantificationFilter.asl_quant_wp_pasl(
+    calc_cbf = asl_quant_wp_pasl(
         control,
         label,
         m0,
@@ -553,7 +558,7 @@ def test_asl_quantification_filter_with_mock_data_pasl(test_data_wp) -> None:
 
     numpy.testing.assert_array_equal(
         asl_quantification_filter.outputs["perfusion_rate"].image,
-        AslQuantificationFilter.asl_quant_wp_pasl(
+        asl_quant_wp_pasl(
             test_data_wp["control_3d"].image,
             test_data_wp["label_3d"].image,
             test_data_wp["m0"].image,
@@ -602,7 +607,7 @@ def test_asl_quantification_filter_asl_quant_lsq_gkm(multiphase_data) -> None:
     """Numerically tests the least squares fitting to the general kinetic model
     for both the casl and pasl signal models."""
     for label_type in ["pasl", "casl"]:
-        results = AslQuantificationFilter.asl_quant_lsq_gkm(
+        results = asl_quant_lsq_gkm(
             multiphase_data["control"][label_type],
             multiphase_data["label"][label_type],
             multiphase_data["m0_tissue"],
