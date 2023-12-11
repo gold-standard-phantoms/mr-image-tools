@@ -450,18 +450,21 @@ def compute_arrival_state_masks(
     }
 
 
+ArrayOrFloatT = TypeVar("ArrayOrFloatT", NDArray[np.floating], float)
+
+
 def calculate_delta_m_gkm(
-    perfusion_rate: NDArray[np.floating],
-    transit_time: NDArray[np.floating],
-    m0_tissue: NDArray[np.floating],
+    perfusion_rate: ArrayOrFloatT,
+    transit_time: ArrayOrFloatT,
+    m0_tissue: ArrayOrFloatT,
     label_duration: float,
     signal_time: float,
     label_efficiency: float,
-    partition_coefficient: NDArray[np.floating],
+    partition_coefficient: ArrayOrFloatT,
     t1_arterial_blood: float,
-    t1_tissue: NDArray[np.floating],
+    t1_tissue: ArrayOrFloatT,
     label_type: str,
-) -> NDArray[np.floating]:
+) -> ArrayOrFloatT:
     r"""Calculates the difference in magnetisation between the control
     and label condition (:math:`\Delta M`) using the full solutions to the
     General Kinetic Model :cite:p:`Buxton1998`.
@@ -480,7 +483,7 @@ def calculate_delta_m_gkm(
     :return: the difference magnetisation, :math:`\Delta M`
     """
     # divide perfusion_rate by 6000 to put into SI units
-    perfusion_rate = np.asarray(perfusion_rate) / 6000
+    perfusion_rate = perfusion_rate / 6000
 
     # calculate M0b, handling runtime divide-by-zeros
     m0_arterial_blood = np.divide(
@@ -506,7 +509,7 @@ def calculate_delta_m_gkm(
     condition_masks = compute_arrival_state_masks(
         transit_time, signal_time, label_duration
     )
-    delta_m = np.zeros(perfusion_rate.shape)  # pre-allocate delta_m
+
     if label_type.lower() == PASL:
         # do GKM for PASL
         k: np.ndarray = (
@@ -604,10 +607,43 @@ def calculate_delta_m_gkm(
             )
             * q_ss_arrived
         )
-    # combine the different arrival states into delta_m
-    delta_m[condition_masks["not_arrived"]] = 0.0
-    delta_m[condition_masks["arriving"]] = delta_m_arriving[condition_masks["arriving"]]
-    delta_m[condition_masks["arrived"]] = delta_m_arrived[condition_masks["arrived"]]
+    else:
+        raise ValueError(f"Invalid label type: {label_type}")
+
+    delta_m: ArrayOrFloatT
+    if isinstance(perfusion_rate, np.ndarray):
+        if delta_m_arriving is None:
+            raise ValueError("delta_m_arriving should be set")
+        if delta_m_arrived is None:
+            raise ValueError("delta_m_arrived should be set")
+        delta_m = np.zeros(perfusion_rate.shape)
+        # combine the different arrival states into delta_m
+        delta_m[condition_masks["not_arrived"]] = 0.0
+        delta_m[condition_masks["arriving"]] = delta_m_arriving[
+            condition_masks["arriving"]
+        ]
+        delta_m[condition_masks["arrived"]] = delta_m_arrived[
+            condition_masks["arrived"]
+        ]
+    else:
+        if condition_masks["arrived"]:
+            delta_m = delta_m_arrived
+        elif condition_masks["arriving"]:
+            delta_m = delta_m_arriving
+        elif condition_masks["not_arrived"]:
+            delta_m = 0
+        else:
+            raise ValueError(
+                "Invalid combination of conditions, "
+                "should have arrived, arriving or not arrived"
+            )
+        if isinstance(delta_m, np.ndarray):
+            # We should have a single value in the array - raise an exception if not
+            if delta_m.size != 1:
+                raise ValueError("delta_m should be a single value")
+            # Extract the value
+            delta_m = delta_m[0]
+
     return delta_m
 
 

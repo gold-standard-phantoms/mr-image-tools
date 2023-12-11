@@ -261,7 +261,7 @@ def asl_quantification_filter(
     output_image.metadata.excitation_flip_angle = None
 
     output_image.metadata.asl_context = "cbf"
-    output_image.metadata.units = UnitField.model_validate("ml/100g/min")
+    output_image.metadata.units = UnitField(root="ml/100g/min")
     output_image.metadata.image_type = (
         "DERIVED",
         "PRIMARY",
