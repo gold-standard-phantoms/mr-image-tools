@@ -1,0 +1,19 @@
+outs:
+- hash: md5
+  path: json
+  files:
+  - relpath:
+      1902_SOURCE_-_Tracer_Kinetics_PLD1750_20240312122734_SOURCE_-_Tracer_Kinetics_PLD1750.json
+    md5: c54753b8bda883d3512dae1219796f1d
+    size: 2000
+    cloud:
+      datastore:
+        etag: c54753b8bda883d3512dae1219796f1d
+        version_id: ecb91854-c570-4bd0-909f-b4564f7f5aa5
+  - relpath: JSON-FIXTURES
+    md5: d41d8cd98f00b204e9800998ecf8427e
+    size: 0
+    cloud:
+      datastore:
+        etag: d41d8cd98f00b204e9800998ecf8427e
+        version_id: 9b789714-4b99-4f01-a2b0-2a8defdc856c

@@ -27,6 +27,25 @@ python:
       - coverage_html_report
     expire_in: 1 day
 
+regression-tests:
+  stage: test
+  script:
+    - python -m venv env
+    - env/bin/pip install -U pip setuptools wheel
+    - env/bin/pip install -U dvc dvc-s3
+    - env/bin/pip install -r requirements/test.txt
+    - env/bin/pip install .
+    - env/bin/dvc pull --force
+    - PATH="$PWD/env/bin:$PATH" env/bin/pytest --regression-tests -o junit_logging=all --junitxml=regression.xml data
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  artifacts:
+    paths:
+      - regression.xml
+      - regression.html
+    reports:
+      junit: regression.xml
+    expire_in: 1 week
+
 deploy_development:
   stage: deploy
   variables:

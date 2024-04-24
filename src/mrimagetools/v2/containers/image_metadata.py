@@ -3,7 +3,7 @@ from collections.abc import Sequence
 from copy import copy
 from typing import Any, Callable, Literal, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Extra
+from pydantic import BaseModel, ConfigDict
 
 from mrimagetools.v2.containers.bids_metadata import BidsMetadata
 from mrimagetools.v2.utils.general import (
@@ -11,7 +11,6 @@ from mrimagetools.v2.utils.general import (
     camel_to_snake_case_keys_converter,
 )
 from mrimagetools.v2.validators.fields import NiftiDataTypeField, UnitField
-from mrimagetools.v2.validators.parameter_model import ParameterModel
 
 AslSingleContext = Literal["m0scan", "control", "label", "cbf"]
 AslContext = Union[AslSingleContext, Sequence[AslSingleContext]]
@@ -20,9 +19,39 @@ AcqContrastType = Literal["ge", "ir", "se"]
 
 ImageFlavorType = Literal["PERFUSION", "DIFFUSION", "OTHER"]
 
-ImageType = tuple[
-    Literal["ORIGINAL", "DERIVED"], Literal["PRIMARY"], str, Literal["NONE", "RCBF"]
+ImageType = Union[
+    tuple[
+        Literal["ORIGINAL", "DERIVED"],
+        Literal["PRIMARY", "SECONDARY"],
+    ],
+    tuple[
+        Literal["ORIGINAL", "DERIVED"],
+        Literal["PRIMARY", "SECONDARY"],
+        str,
+    ],
+    tuple[
+        Literal["ORIGINAL", "DERIVED"],
+        Literal["PRIMARY", "SECONDARY"],
+        str,
+        str,
+    ],
+    tuple[
+        Literal["ORIGINAL", "DERIVED"],
+        Literal["PRIMARY", "SECONDARY"],
+        str,
+        str,
+        str,
+    ],
+    tuple[
+        Literal["ORIGINAL", "DERIVED"],
+        Literal["PRIMARY", "SECONDARY"],
+        str,
+        str,
+        str,
+        str,
+    ],
 ]
+
 ComplexImageComponent = Literal["REAL", "IMAGINARY"]
 
 PostLabelDelay = Union[float, None]
@@ -316,8 +345,99 @@ class ImageMetadata(BaseModel):
     """Description of the type of data acquired. Corresponds to DICOM Tag 0018, 0020
     Scanning Sequence."""
 
+    imaging_frequency: Optional[float] = None
+
+    manufacturers_model_name: Optional[str] = None
+
+    institution_name: Optional[str] = None
+
+    institutional_department_name: Optional[str] = None
+
+    institution_address: Optional[str] = None
+
+    device_serial_number: Optional[str] = None
+
+    station_name: Optional[str] = None
+
+    series_instance_uid: Optional[str] = None
+
+    study_instance_uid: Optional[str] = None
+
+    study_id: Optional[str] = None
+
+    patient_name: Optional[str] = None
+
+    patient_id: Optional[str] = None
+
+    patient_birth_date: Optional[str] = None
+
+    patient_sex: Optional[str] = None
+
+    patient_weight: Optional[float] = None
+
+    body_part_examined: Optional[str] = None
+
+    patient_position: Optional[str] = None
+
+    procedure_step_description: Optional[str] = None
+
+    software_versions: Optional[str] = None
+
+    protocol_name: Optional[str] = None
+
+    sequence_variant: Optional[str] = None
+
+    scan_options: Optional[str] = None
+
+    acquisition_time: Optional[str] = None
+
+    acquisition_number: Optional[int] = None
+
+    philips_rescale_slope: Optional[float] = None
+
+    philips_rescale_intercept: Optional[float] = None
+
+    philips_scale_slope: Optional[float] = None
+
+    use_philips_float_not_display_scaling: Optional[int] = None
+
+    slice_thickness: Optional[float] = None
+
+    spacing_between_slices: Optional[float] = None
+
+    coil_string: Optional[str] = None
+
+    partial_fourier: Optional[float] = None
+
+    percent_phase_fov: Optional[float] = None
+
+    echo_train_length: Optional[int] = None
+
+    phase_encoding_steps: Optional[int] = None
+
+    acquisition_matrix_pe: Optional[int] = None
+
+    recon_matrix_pe: Optional[int] = None
+
+    pixel_bandwidth: Optional[float] = None
+
+    phase_encoding_axis: Optional[str] = None
+
+    image_orientation_patient_dicom: Optional[tuple[int, int, int, int, int, int]] = (
+        None
+    )
+
+    in_plane_phase_encoding_direction_dicom: Optional[str] = None
+
+    conversion_software: Optional[str] = None
+
+    conversion_software_version: Optional[str] = None
+
     @classmethod
-    def from_bids(cls, bids: dict[str, Any]) -> "ImageMetadata":
+    def from_bids(
+        cls,
+        bids: dict[str, Any],
+    ) -> "ImageMetadata":
         """Converts a BIDS-like dictionary to ImageMetadata"""
         semi_converted = copy(bids)
 
@@ -330,7 +450,9 @@ class ImageMetadata(BaseModel):
         for old_key, new_key in _BIDS_KEY_CONVERSION.items():
             if old_key in semi_converted:
                 semi_converted[new_key] = semi_converted.pop(old_key)
-        return ImageMetadata(**camel_to_snake_case_keys_converter(semi_converted))
+        return ImageMetadata(
+            **camel_to_snake_case_keys_converter(semi_converted),
+        )
 
     def to_bids(self) -> BidsMetadata:
         """Converts ImageMetadata to a BIDS metadata dictionary"""
@@ -351,5 +473,5 @@ class ImageMetadata(BaseModel):
             **converted,
             **camel_to_snake_case_keys_converter(
                 to_convert, SnakeCamelConvertType.SNAKE_TO_CAMEL
-            )
+            ),
         )

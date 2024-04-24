@@ -1,0 +1,6 @@
+[core]
+    remote = datastore
+['remote "datastore"']
+    url = s3://dvc/json-sidecar
+    endpointurl = https://minio.gsphantoms.com
+    version_aware = true
