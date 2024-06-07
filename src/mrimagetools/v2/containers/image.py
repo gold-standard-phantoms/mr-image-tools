@@ -2,6 +2,9 @@
 Used to create a standard interface for ND images which can
 be instantiated with either NIFTI files or using numpy arrays """
 
+from __future__ import annotations
+
+import pathlib
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from typing import Any, Optional, Union
@@ -9,6 +12,14 @@ from typing import Any, Optional, Union
 import nibabel as nib
 import numpy as np
 import numpy.typing as npt
+from dicom_core.nifti.dcm2niix import Dcm2NiixConfig
+from dicom_core.nifti.load import (
+    DicomToNiftiConfig,
+    SeriesInstanceUID,
+    SeriesSelection,
+    SingleSeriesData,
+    dicom_to_nifti,
+)
 
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
 
@@ -119,17 +130,17 @@ class BaseImageContainer(ABC):
                 f"BaseImageContainer received unexpected arguments {kwargs}"
             )
 
-    def clone(self) -> "BaseImageContainer":
+    def clone(self) -> BaseImageContainer:
         """Makes a deep copy of all member variables in a new ImageContainer"""
         return deepcopy(self)
 
     @abstractmethod
-    def as_numpy(self) -> "NumpyImageContainer":
+    def as_numpy(self) -> NumpyImageContainer:
         """Return the image container as a NumpyImageContainer. If the container
         is already a NumpyImageContainer, return self"""
 
     @abstractmethod
-    def as_nifti(self) -> "NiftiImageContainer":
+    def as_nifti(self) -> NiftiImageContainer:
         """Return the image container as a NiftiImageContainer. If the container
         is already a NiftiImageContainer, return self"""
 
@@ -250,8 +261,8 @@ class NumpyImageContainer(BaseImageContainer):
         space_units: str = UNITS_MILLIMETERS,
         time_units: str = UNITS_SECONDS,
         voxel_size: VoxelSizeType = np.array([1.0, 1.0, 1.0]),
-        time_step=1.0,
-        **kwargs,
+        time_step: float = 1.0,
+        **kwargs: Any,
     ):
         """Creates an image container from a numpy array. May
         provide one or more additional arguments.
@@ -271,11 +282,11 @@ class NumpyImageContainer(BaseImageContainer):
         self._time_step: float = time_step
         super().__init__(**kwargs)  # Call super last as we check member variables
 
-    def as_numpy(self) -> "NumpyImageContainer":
+    def as_numpy(self) -> NumpyImageContainer:
         """Returns self"""
         return self
 
-    def as_nifti(self) -> "NiftiImageContainer":
+    def as_nifti(self) -> NiftiImageContainer:
         """Return the NumpyImageContainer as a NiftiImageContainer."""
         new_image_container = NiftiImageContainer(
             nifti_img=nib.Nifti2Image(dataobj=self.image, affine=self._affine),
@@ -382,6 +393,139 @@ class NumpyImageContainer(BaseImageContainer):
         return self._image.shape
 
 
+class DicomImageContainer(BaseImageContainer):
+    """A container for a DICOM image"""
+
+    def __init__(
+        self,
+        directory: pathlib.Path | str,
+        series_instance_uid: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
+        """Load a DICOM image series from DICOM files in a given directory.
+        The resulting NIfTI conversion must create a single NIfTI file, otherwise this
+        process will fail.
+
+        The DICOM information (including metadata) can be accessed using the
+        `self.dicom_series` attribute. See :class:`dicom_core.nifti.load.SingleSeriesData`
+        for more information.
+
+        :param directory: the directory containing the DICOM files
+        :param series_instance_uid: the DICOM series instance UID (optional - assumes
+            the directory contains a single series if not specified)
+
+        :raises ValueError: if more than one, or zero series, are found using the
+            supplied config
+        :raises DicomToNiftiError: if the DICOM to NIfTI conversion fails
+        """
+        if isinstance(directory, pathlib.Path):
+            directory = directory.resolve()
+        else:
+            directory = pathlib.Path(directory).resolve()
+
+        dicom_to_nifti_config = DicomToNiftiConfig(
+            dcm2niix_config=Dcm2NiixConfig(),
+            series_selection=SeriesSelection(
+                whitelist=(
+                    [SeriesInstanceUID(series_instance_uid)]
+                    if series_instance_uid is not None
+                    else []
+                )
+            ),
+        )
+        series_list = dicom_to_nifti(directory, dicom_to_nifti_config)
+        if len(series_list) == 0:
+            if series_instance_uid is not None:
+                raise ValueError(
+                    f"No series found with series instance uid {series_instance_uid}"
+                )
+            raise ValueError("No series found in DICOM directory")
+        if len(series_list) > 1:
+            raise ValueError("More than one series found in DICOM directory")
+        self.dicom_series: SingleSeriesData = series_list[0]
+
+        super().__init__(**kwargs)  # Call super last as we check member variables
+
+    def as_nifti(self) -> NiftiImageContainer:
+        """Return the image container as a NiftiImageContainer"""
+        return NiftiImageContainer(
+            nib.nifti1.load(self.dicom_series.dcm2niix_output.nifti_file)
+        )
+
+    def as_numpy(self) -> NumpyImageContainer:
+        """Return the image container as a NumpyImageContainer"""
+        return NiftiImageContainer(
+            nib.nifti1.load(self.dicom_series.dcm2niix_output.nifti_file)
+        ).as_numpy()
+
+    @property
+    def has_nifti(self) -> bool:
+        """Returns True"""
+        return True
+
+    @property
+    def image(self) -> np.ndarray:
+        """Return the image data as a numpy array.
+        Returns data in the type it is created (i.e. won't convert to float64 as
+        .get_fdata() will)"""
+        return self.as_numpy().image
+
+    @image.setter
+    def image(self, new_image: np.ndarray) -> None:
+        """Sets the image data"""
+        raise NotImplementedError
+
+    @property
+    def header(self) -> nib.nifti2.Nifti2Header | nib.nifti1.Nifti1Header:
+        """Return the image header"""
+        return self.as_nifti().header
+
+    @property
+    def shape(self) -> tuple:
+        """Returns the shape of the image [x, y, z, t, etc]"""
+        return self.as_numpy().shape
+
+    @property
+    def affine(self) -> np.ndarray:
+        return self.as_numpy().affine
+
+    @property
+    def voxel_size_mm(self) -> VoxelSizeType:
+        return self.as_numpy().voxel_size_mm
+
+    @voxel_size_mm.setter
+    def voxel_size_mm(self, voxel_size_mm: np.ndarray) -> None:
+        """Not implemented"""
+        raise NotImplementedError
+
+    @property
+    def time_step_seconds(self) -> float:
+        return self.as_numpy().time_step_seconds
+
+    @time_step_seconds.setter
+    def time_step_seconds(self, time_step: float) -> None:
+        """Not implemented"""
+        raise NotImplementedError
+
+    @property
+    def space_units(self) -> str:
+        return self.as_numpy().space_units
+
+    @space_units.setter
+    def space_units(self, space_units: str) -> None:
+        """Not implemented"""
+        raise NotImplementedError
+
+    @property
+    def time_units(self) -> str:
+        return self.as_numpy().time_units
+
+    @time_units.setter
+    def time_units(self, time_units: str) -> None:
+        """Not implemented"""
+        raise NotImplementedError
+
+
 class NiftiImageContainer(BaseImageContainer):
     """A container for an ND image. Must be initialised with
     a nibabel Nifti1Image or Nifti2Image"""
@@ -419,7 +563,7 @@ class NiftiImageContainer(BaseImageContainer):
         """Returns True if the image has an associated nifti container"""
         return True
 
-    def clone(self) -> "NiftiImageContainer":
+    def clone(self) -> NiftiImageContainer:
         """Makes a deep copy of all member variables in a new ImageContainer"""
         return deepcopy(self)
 
@@ -441,7 +585,7 @@ class NiftiImageContainer(BaseImageContainer):
         self.nifti_image.set_data_dtype(new_image.dtype)
         self.nifti_image.update_header()
 
-    def as_numpy(self) -> "NumpyImageContainer":
+    def as_numpy(self) -> NumpyImageContainer:
         """Return the NiftiImageContainer as a NumpyImageContainer."""
         new_image_container = NumpyImageContainer(
             image=self.image,
@@ -458,7 +602,7 @@ class NiftiImageContainer(BaseImageContainer):
         new_image_container.time_step_seconds = self.time_step_seconds
         return new_image_container
 
-    def as_nifti(self) -> "NiftiImageContainer":
+    def as_nifti(self) -> NiftiImageContainer:
         """Returns self"""
         return self
 
