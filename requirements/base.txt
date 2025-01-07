@@ -6,4 +6,4 @@ gitpython==3.*
 pydantic==2.*
 pint==0.*
 typer[all]==0.*
-dicom-core[nifti]==0.2.0.dev59+cbb4d6b8
+dicom-core[nifti]==0.3.1.dev16+gffff0ba
