@@ -4,6 +4,7 @@ import logging
 
 import typer
 
+from mrimagetools.cli.dwi import adc_mapping
 from mrimagetools.v2.filters.mapping import t1_cli, t2_cli
 
 from . import __version__
@@ -12,6 +13,7 @@ logging.basicConfig(level=logging.INFO)
 app = typer.Typer()
 app.add_typer(t1_cli.app, name="t1")
 app.add_typer(t2_cli.app, name="t2")
+app.add_typer(adc_mapping.app, name="adc")
 
 if __name__ == "__main__":
     app()
