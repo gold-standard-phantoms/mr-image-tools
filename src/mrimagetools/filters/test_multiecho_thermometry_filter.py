@@ -3,17 +3,21 @@
 import pdb
 from typing import Dict, List, Tuple, Union
 
+import nibabel as nib
 import numpy as np
 import pandas as pd
 import pytest
 
 from mrimagetools.filters.multiecho_thermometry_filter import (
+    MultiEchoThermometryParameters,
     calculate_df_from_temperature,
     calculate_temperature_from_df,
     calculate_temperature_uncertainty,
     lsq_fit_thermometry_signal_model,
+    multiecho_thermometry_filter,
     thermometry_signal_model,
 )
+from mrimagetools.v2.containers.image import NiftiImageContainer
 
 GAMMA_H = 42.57747892e6  # Hz/T
 
@@ -259,3 +263,118 @@ def test_lsq_fit_thermometry_signal_model(
         fitted_params, p_true, rtol=0.1
     ), f"Fitted parameters {fitted_params} do not match true parameters {p_true} within 0.1 tolerance"
     assert r_squared > 0.95  # still good fit despite noise
+
+
+@pytest.fixture
+def thermometry_test_volume() -> (
+    Tuple[
+        float,
+        np.ndarray,
+        NiftiImageContainer,
+        NiftiImageContainer,
+        np.ndarray,
+        float,
+        float,
+        float,
+        float,
+        float,
+    ]
+):
+    region_id = [1, 2, 3]
+    magnetic_field_tesla = 3.0
+    region_temperature_celsius = [20.0, 25.0, 30.0]
+    echo_times = np.linspace(0.001, 0.024, 24)
+    amplitude_1 = 1.0
+    amplitude_2 = 0.5
+    r2star_1 = 1.0  # 1/s
+    r2star_2 = 2.0  # 1/s
+    dphi_deg = 45.0
+    nx, ny, nz = 3, 2, 2  # small volume for testing
+
+    # create a small 3x3 image with 3 regions
+    true_temperature_map: np.ndarray = np.zeros((nx, ny, nz), dtype=np.float64)
+    for i, temp in enumerate(region_temperature_celsius):
+        true_temperature_map[i, :, :] = temp
+
+    # create a segmentation mask
+    segmentation_mask: np.ndarray = np.zeros((nx, ny, nz), dtype=np.int16)
+    for i, rid in enumerate(region_id):
+        segmentation_mask[i, :, :] = rid
+
+    # simulate multi-echo data
+    multi_echo_data = thermometry_signal_model(
+        echo_times,
+        amplitude_1,
+        amplitude_2,
+        r2star_1,
+        r2star_2,
+        calculate_df_from_temperature(
+            np.repeat(
+                true_temperature_map[:, :, :, np.newaxis], len(echo_times), axis=3
+            ),
+            magnetic_field_tesla,
+        ),
+        dphi_deg,
+    )
+    multi_echo_image = NiftiImageContainer(
+        nifti_img=nib.nifti1.Nifti1Image(multi_echo_data, affine=np.eye(4))
+    )
+    segmentation_image = NiftiImageContainer(
+        nifti_img=nib.nifti1.Nifti1Image(segmentation_mask, affine=np.eye(4))
+    )
+
+    return (
+        magnetic_field_tesla,
+        true_temperature_map,
+        segmentation_image,
+        multi_echo_image,
+        echo_times,
+        amplitude_1,
+        amplitude_2,
+        r2star_1,
+        r2star_2,
+        dphi_deg,
+    )
+
+
+def test_multiecho_thermometry_filter_function(
+    thermometry_test_volume: Tuple[
+        float,
+        np.ndarray,
+        NiftiImageContainer,
+        NiftiImageContainer,
+        np.ndarray,
+        float,
+        float,
+        float,
+        float,
+        float,
+    ]
+) -> None:
+    (
+        magnetic_field_tesla,
+        true_temperature_map,
+        segmentation_image,
+        multi_echo_image,
+        echo_times,
+        amplitude_1,
+        amplitude_2,
+        r2star_1,
+        r2star_2,
+        dphi_deg,
+    ) = thermometry_test_volume
+
+    results, temperature_image = multiecho_thermometry_filter(
+        parameters=MultiEchoThermometryParameters(
+            image_multiecho=multi_echo_image,
+            image_segmentation=segmentation_image,
+            echo_times=echo_times.tolist(),
+            magnetic_field_tesla=magnetic_field_tesla,
+            analysis_method="regionwise",
+        )
+    )
+
+    np.testing.assert_array_almost_equal(
+        temperature_image.image,
+        true_temperature_map,
+    )
