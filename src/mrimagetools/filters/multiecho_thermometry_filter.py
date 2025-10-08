@@ -1,10 +1,12 @@
 """Multiecho Thermometry Filter
 
-Functional implementation of fitting of multiecho magnitude data to a dual-resonance model
-for MR thermometry applications.
+Functional implementation of fitting of multiecho magnitude data
+to a dual-resonance model for MR thermometry applications.
 
-Temperature is derived from the frequency difference between the two resonance peaks for ethylene glycol
-For other substances, the frequency fitting can still be performed, but the temperature conversion will not be valid.
+Temperature is derived from the frequency difference between
+the two resonance peaks for ethylene glycol.For other substances,
+the frequency fitting can still be performed, but the temperature
+conversion will not be valid.
 
 Based on Sprinkhuizen, S.M., Bakker, C.J.G. and Bartels, L.W. (2010),
 Absolute MR thermometry using time-domain analysis of multi-gradient-echo magnitude images.
@@ -224,9 +226,12 @@ class ThermometryResults:
     """Results for a single region from the MultiEchoThermometryFilter."""
 
     region_id: int
-    temperature: float
-    temperature_uncertainty: Tuple[float, float]
-    r_squared: float
+    region_mean_temperature: float
+    region_temperature_uncertainty: Tuple[float, float]  # (uncertainty in °C, k-value)
+    r_squared: NDArray[np.floating]
+    region_temperature_values: NDArray[np.floating]
+    region_temperature_uncertainty_values: NDArray[np.floating]
+    region_size: int = 0  # number of voxels in region
 
 
 def multiecho_thermometry_filter(
@@ -245,6 +250,18 @@ def multiecho_thermometry_filter(
             - "temperature_uncertainty": tuple[float,float]. Estimated uncertainty in temperature in °C and k-value
             - "r_squared": float. Coefficient of determination for the fit.
         - an image container with the temperature map (in Celsius)
+
+    ``regionwise`` calculates the mean signal within each region for each echo time, and fits the model to this mean signal.
+    The resulting temperature is assigned to all voxels in the region. The fit uncertainty is calculated from the
+    covariance matrix of the fit, i.e. `sqrt(diag(pcov))`. The uncertainty in temperature is derived from the uncertainty
+    in the fitted frequency difference parameter (df), which is converted to temperature uncertainty using the function ``calculate_temperature_uncertainty``.
+    This uncertainty represents the precision of the fit to the mean signal, and does not account for the uncertainty
+    in the echo times.
+
+    ``voxelwise`` fits the model to each voxel independently. The uncertainty for each voxel is calculated from the covariance matrix of the fit.
+    The mean temperature for the region is calculated as the weighted mean of the voxel temperatures, using 1/uncertainty^2 as weights.
+
+    ``regionwise_bootstrap`` fits the model to the mean signal within each region, using bootstrapping to estimate the uncertainty.
     """
     image_multiecho = parameters.image_multiecho
     image_segmentation = parameters.image_segmentation
@@ -252,6 +269,7 @@ def multiecho_thermometry_filter(
     magnetic_field_tesla = parameters.magnetic_field_tesla
     analysis_method = parameters.analysis_method
     n_bootstrap = parameters.n_bootstrap
+    initial_guess = [1.0, 1.0, 50.0, 50.0, 100.0, 0.0]
 
     image_temperature = image_multiecho.clone()
     image_temperature.image = np.zeros(image_segmentation.shape, dtype=np.float64)
@@ -261,8 +279,13 @@ def multiecho_thermometry_filter(
     regions = regions[regions != 0]  # exclude background
     results = []
     for region in regions:
+        region_mask = image_segmentation.image == region
+        region_size = np.sum(region_mask)  # number of voxels in region
+        # zero fill arrays for temperature and uncertainty
+        region_temperature_values = np.zeros(region_size, dtype=np.float64)
+        region_temperature_uncertainty_values = np.zeros(region_size, dtype=np.float64)
         if analysis_method == "regionwise":
-            region_mask = image_segmentation.image == region
+            # perform fitting on a regionwise basis, based on the mean signal in the region for each echo time
             # get the mean region signal for each echo time
             region_signal = np.array(
                 [
@@ -270,26 +293,94 @@ def multiecho_thermometry_filter(
                     for echo in range(n_echoes)
                 ]
             )
-            initial_guess = [1.0, 1.0, 50.0, 50.0, 100.0, 0.0]
-            fitted_params, pcov, r_squared = lsq_fit_thermometry_signal_model(
+            fitted_params, pcov, r_squared_value = lsq_fit_thermometry_signal_model(
                 echo_times, region_signal, initial_guess
             )
             df = fitted_params[4]
+            param_uncertainties = np.sqrt(np.diag(pcov))
             df_uncertainty = (
-                np.sqrt(np.abs(pcov[4, 4])) if not np.isnan(pcov[4, 4]) else np.nan
+                param_uncertainties[4]
+                if not np.isnan(param_uncertainties[4])
+                else np.nan
             )
-            temperature = calculate_temperature_from_df(df, magnetic_field_tesla)
-            temperature_uncertainty = calculate_temperature_uncertainty(
+            mean_region_temperature = calculate_temperature_from_df(
+                df, magnetic_field_tesla
+            )
+            region_temperature_uncertainty = calculate_temperature_uncertainty(
                 df_uncertainty, magnetic_field_tesla
             )
-            results.append(
-                ThermometryResults(
-                    region_id=int(region),
-                    temperature=float(temperature),
-                    temperature_uncertainty=(2 * temperature_uncertainty, 2),
-                    r_squared=r_squared,
-                )
+
+            image_temperature.image[
+                image_segmentation.image == region
+            ] = mean_region_temperature
+            # assign the same temperature and uncertainty to all voxels in the region
+            region_temperature_values[:] = mean_region_temperature
+            region_temperature_uncertainty_values[:] = region_temperature_uncertainty
+            r_squared = np.array([r_squared_value] * region_size)
+        elif analysis_method == "voxelwise":
+            # perform fitting on a voxelwise basis
+            r_squared = np.zeros(region_size, dtype=np.float64)
+            count = 0
+            for i in range(nx):
+                for j in range(ny):
+                    for k in range(nz):
+                        if region_mask[i, j, k]:
+                            voxel_signal = image_multiecho.image[i, j, k, :]
+                            (
+                                fitted_params,
+                                pcov,
+                                r_squared_value,
+                            ) = lsq_fit_thermometry_signal_model(
+                                echo_times, voxel_signal, initial_guess
+                            )
+                            df = fitted_params[4]
+                            param_uncertainties = np.sqrt(np.diag(pcov))
+                            df_uncertainty = (
+                                param_uncertainties[4]
+                                if not np.isnan(param_uncertainties[4])
+                                else np.nan
+                            )
+                            r_squared[count] = r_squared_value
+                            region_temperature_values[
+                                count
+                            ] = calculate_temperature_from_df(df, magnetic_field_tesla)
+                            region_temperature_uncertainty_values[
+                                count
+                            ] = calculate_temperature_uncertainty(
+                                df_uncertainty, magnetic_field_tesla
+                            )
+                            image_temperature.image[
+                                i, j, k
+                            ] = region_temperature_values[count]
+                            count += 1
+
+            # calculate the weighted mean of the region temperature, using 1/uncertainty^2 as weights
+            weights = np.divide(
+                1.0,
+                region_temperature_uncertainty_values**2,
+                where=region_temperature_uncertainty_values != 0,
+                out=np.zeros_like(region_temperature_uncertainty_values),
             )
-            image_temperature.image[image_segmentation.image == region] = temperature
+            mean_region_temperature = np.average(
+                region_temperature_values, weights=weights, axis=0
+            )
+            # calculate the region-based uncertainty
+            region_temperature_uncertainty = np.sqrt(1.0 / np.sum(weights))
+
+        # add results to list
+        results.append(
+            ThermometryResults(
+                region_id=int(region),
+                region_mean_temperature=float(mean_region_temperature),
+                region_temperature_uncertainty=(
+                    region_temperature_uncertainty,
+                    1,
+                ),  # k=1
+                r_squared=r_squared,
+                region_size=int(region_size),
+                region_temperature_values=region_temperature_values,
+                region_temperature_uncertainty_values=region_temperature_uncertainty_values,
+            )
+        )
 
     return results, image_temperature
