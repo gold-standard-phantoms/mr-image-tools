@@ -324,7 +324,7 @@ def thermometry_test_volume() -> (
     rng = np.random.default_rng(43)
     noisy_multi_echo_image = NiftiImageContainer(
         nifti_img=nib.nifti1.Nifti1Image(
-            multi_echo_data + rng.normal(0, 0.001, multi_echo_data.shape),
+            multi_echo_data + rng.normal(0, 0.01, multi_echo_data.shape),
             affine=np.eye(4),
         )
     )
@@ -479,3 +479,50 @@ def test_multiecho_thermometry_filter_function_voxelwise(
             analysis_method="voxelwise",
         )
     )
+
+
+def test_multiecho_thermometry_filter_function_regionwise_bootstrap(
+    thermometry_test_volume: Tuple[
+        float,
+        np.ndarray,
+        NiftiImageContainer,
+        NiftiImageContainer,
+        NiftiImageContainer,
+        np.ndarray,
+        List[int],
+        List[float],
+    ]
+) -> None:
+    (
+        magnetic_field_tesla,
+        true_temperature_map,
+        segmentation_image,
+        multi_echo_image,
+        noisy_multi_echo_image,
+        echo_times,
+        region_id,
+        region_temperature_celsius,
+    ) = thermometry_test_volume
+    n_bootstrap = 100
+    # test regionwise AnalysisMethod with bootstrapping
+    results, temperature_image = multiecho_thermometry_filter(
+        parameters=MultiEchoThermometryParameters(
+            image_multiecho=noisy_multi_echo_image,
+            image_segmentation=segmentation_image,
+            echo_times=echo_times.tolist(),
+            magnetic_field_tesla=magnetic_field_tesla,
+            analysis_method="regionwise_bootstrap",
+            n_bootstrap=n_bootstrap,
+        )
+    )
+
+    # basic checks - correct types and sizes
+    assert isinstance(temperature_image, NiftiImageContainer)
+    for res in results:
+        # check the region id is in the expected list
+        assert res.region_id in region_id
+
+        # check that the length of region_temperature_values and r_squared arrays equal the n_bootstrap value
+        assert res.region_temperature_values.size == n_bootstrap
+        assert res.r_squared.size == n_bootstrap
+        assert res.region_temperature_uncertainty_values.size == n_bootstrap
