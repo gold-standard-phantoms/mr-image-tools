@@ -344,6 +344,92 @@ def thermometry_test_volume() -> (
     )
 
 
+def test_multiecho_thermometry_parameters(
+    thermometry_test_volume: Tuple[
+        float,
+        np.ndarray,
+        NiftiImageContainer,
+        NiftiImageContainer,
+        NiftiImageContainer,
+        np.ndarray,
+        List[int],
+        List[float],
+    ]
+) -> None:
+    """Test the MultiEchoThermometryParameters dataclass."""
+    (
+        magnetic_field_tesla,
+        true_temperature_map,
+        segmentation_image,
+        multi_echo_image,
+        noisy_multi_echo_image,
+        echo_times,
+        region_id,
+        region_temperature_celsius,
+    ) = thermometry_test_volume
+
+    # test with valid parameters
+    params = MultiEchoThermometryParameters(
+        image_multiecho=multi_echo_image,
+        image_segmentation=segmentation_image,
+        echo_times=echo_times.tolist(),
+        magnetic_field_tesla=magnetic_field_tesla,
+        analysis_method="regionwise",
+        n_bootstrap=100,
+    )
+    assert params.image_multiecho == multi_echo_image
+    assert params.image_segmentation == segmentation_image
+    assert params.echo_times == echo_times.tolist()
+    assert params.magnetic_field_tesla == magnetic_field_tesla
+    assert params.analysis_method == "regionwise"
+    assert params.n_bootstrap == 100
+
+    # test with invalid analysis_method
+    with pytest.raises(ValueError):
+        MultiEchoThermometryParameters(
+            image_multiecho=multi_echo_image,
+            image_segmentation=segmentation_image,
+            echo_times=echo_times.tolist(),
+            magnetic_field_tesla=magnetic_field_tesla,
+            analysis_method="invalid_method",  # type: ignore
+        )
+    # test with wrong image shape
+    image_multiecho_invalid_shape = NiftiImageContainer(
+        nifti_img=nib.nifti1.Nifti1Image(np.zeros((1, 1, 1, 12)), affine=np.eye(4))
+    )
+    with pytest.raises(ValueError):
+        MultiEchoThermometryParameters(
+            image_multiecho=image_multiecho_invalid_shape,
+            image_segmentation=segmentation_image,
+            echo_times=echo_times.tolist(),
+            magnetic_field_tesla=magnetic_field_tesla,
+            analysis_method="regionwise",
+        )
+
+    # test with mismatched affine
+    image_multiecho_invalid_affine = multi_echo_image.clone()
+    image_multiecho_invalid_affine.nifti_image.set_sform(2 * np.eye(4))
+
+    with pytest.raises(ValueError):
+        MultiEchoThermometryParameters(
+            image_multiecho=image_multiecho_invalid_affine,
+            image_segmentation=segmentation_image,
+            echo_times=echo_times.tolist(),
+            magnetic_field_tesla=magnetic_field_tesla,
+            analysis_method="regionwise",
+        )
+
+    # test with incorrect number of echoes
+    with pytest.raises(ValueError):
+        MultiEchoThermometryParameters(
+            image_multiecho=multi_echo_image,
+            image_segmentation=segmentation_image,
+            echo_times=echo_times.tolist()[:-1],  # one less than actual
+            magnetic_field_tesla=magnetic_field_tesla,
+            analysis_method="regionwise",
+        )
+
+
 def test_multiecho_thermometry_filter_function_regionwise(
     thermometry_test_volume: Tuple[
         float,
