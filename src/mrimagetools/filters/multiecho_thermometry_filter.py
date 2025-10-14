@@ -176,6 +176,20 @@ class MultiEchoThermometryParameters(BaseModel):
 
     The shapes and affines of the input images must match for the filter to run.
     i.e. they must be co-located in world-space.
+
+    Attributes:
+        image_multiecho (BaseImageContainer): An image with multiecho magnitude data. The fourth dimension is assumed to be the echo time dimension.
+        image_segmentation (BaseImageContainer): An integer label map image defining the region(s) to fit. The label map must be co-located with ``image_multiecho``.
+            Voxels with the same integer value are treated as one region and fitted jointly.
+        echo_times (list[float]): List of echo times, one for each multi-echo volume. Length should be the same as the fourth dimension of ``image_multiecho``.
+        magnetic_field_tesla (float): Magnetic field strength in Tesla.
+        analysis_method (AnalysisMethod): The analysis method to use. Options are:
+            - "voxelwise": Fit each voxel independently. This is the most computationally intensive option,
+              but can capture spatial variations in the parameters.
+            - "regionwise": Fit each region defined by the segmentation mask jointly.
+            - "regionwise_bootstrap": Fit each region defined by the segmentation mask jointly with bootstrapping to estimate parameter uncertainties.
+        n_bootstrap (int): Number of bootstrap samples to use for the "regionwise_bootstrap" analysis method. default is 100
+
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -232,7 +246,18 @@ class MultiEchoThermometryParameters(BaseModel):
 
 @dataclass
 class ThermometryResults:
-    """Results for a single region from the MultiEchoThermometryFilter."""
+    """Results for a single region from the MultiEchoThermometryFilter.
+
+    Attributes:
+        region_id (int): The region ID from the segmentation mask.
+        region_mean_temperature (float): The mean temperature of the region in °C.
+        region_temperature_uncertainty (Tuple[float, float]): The uncertainty in temperature in °C and k-value.
+        r_squared (NDArray[np.floating]): The coefficient of determination for the fit.
+        region_temperature_values (NDArray[np.floating]): The temperature values for each voxel in the region in °C.
+        region_temperature_uncertainty_values (NDArray[np.floating]): The standard uncertainty (k=1) in temperature for each voxel in °C
+        region_size (int): The number of voxels in the region.
+
+    """
 
     region_id: int
     region_mean_temperature: float

@@ -5,6 +5,7 @@ import logging
 import typer
 
 from mrimagetools.cli.dwi import adc_mapping
+from mrimagetools.cli.thermometry import multiecho_thermometry
 from mrimagetools.v2.filters.mapping import t1_cli, t2_cli
 
 from . import __version__
@@ -14,6 +15,7 @@ app = typer.Typer()
 app.add_typer(t1_cli.app, name="t1")
 app.add_typer(t2_cli.app, name="t2")
 app.add_typer(adc_mapping.app, name="adc")
+app.add_typer(multiecho_thermometry.app, name="thermometry")
 
 if __name__ == "__main__":
     app()
