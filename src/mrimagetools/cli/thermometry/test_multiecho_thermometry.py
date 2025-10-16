@@ -7,6 +7,7 @@ import uuid
 from typing import Union, Callable, Tuple, Any, List, cast
 import pdb
 from pathlib import Path
+import json
 
 import nibabel as nib
 import numpy as np
@@ -196,6 +197,15 @@ def test_multiecho_thermometry_cli_basic(
         true_temperature_map,
         err_msg="Output temperature map differs significantly from true temperature map.",
     )
+    # load in the report and check contents
+    with open(output_report_file, "r") as f:
+        report = json.load(f)
+
+    # check some report contents
+    assert report["analysis_method"] == method
+    assert report["n_bootstrap"] == (10 if method == "regionwise_bootstrap" else None)
+    assert len(report["report"]) == 3  # 3 regions in the segmentation mask
+    assert report["report"][0]["id"] == 1
 
 
 def test_multiecho_thermometry_cli_validation_fails(
@@ -378,6 +388,56 @@ def test_multiecho_thermometry_typer_app(
     args.extend(["--nb", "10"])  # low number for speed
     args.extend(["--output-dir", f"{tmp_path}"])
 
-    pdb.set_trace()
     result = runner.invoke(app, args)
-    # assert result.exit_code == 0
+    assert result.exit_code == 0
+
+    # check output files
+    # temperature map
+    filename_stem = remove_suffix(Path(multiecho_image_file), ".gz").stem
+    temperature_map_file = tmp_path / f"{filename_stem}_temperature_map.nii.gz"
+    assert temperature_map_file.is_file()
+    # report
+    report_file = tmp_path / f"{filename_stem}_report.json"
+    assert report_file.is_file()
+
+
+def test_multiecho_thermometry_typer_app_multiple_images(
+    thermometry_test_data: Callable, tmp_path: Path
+) -> None:
+    """Test that the typer app runs without error with multiple input images."""
+    echo_times_list = [
+        np.linspace(p[0], p[1], p[2])
+        for p in [
+            (0.002, 0.012, 6),
+            (0.003, 0.013, 6),
+            (0.014, 0.024, 6),
+            (0.015, 0.025, 6),
+        ]
+    ]
+    input_data = [thermometry_test_data(echo_times=et) for et in echo_times_list]
+    multi_echo_files = [m[4] for m in input_data]
+    segmentation_file = input_data[0][6]
+    echo_times_files = [m[2] for m in input_data]
+
+    runner = CliRunner()
+    args = []
+    args = [str(f) for f in multi_echo_files]
+    args.extend(["--segmentation", f"{segmentation_file}"])
+    args.extend(
+        [item for file in echo_times_files for item in ["--echotimes", str(file)]]
+    )
+    args.extend(["--method", "regionwise"])
+    args.extend(["--nb", "10"])  # low number for speed
+    args.extend(["--output-dir", f"{tmp_path}"])
+
+    result = runner.invoke(app, args)
+    assert result.exit_code == 0
+
+    # check output files
+    # temperature map
+    filename_stem = remove_suffix(Path(multi_echo_files[0]), ".gz").stem
+    temperature_map_file = tmp_path / f"{filename_stem}_temperature_map.nii.gz"
+    assert temperature_map_file.is_file()
+    # report
+    report_file = tmp_path / f"{filename_stem}_report.json"
+    assert report_file.is_file()
