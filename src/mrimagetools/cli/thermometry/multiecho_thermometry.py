@@ -4,7 +4,8 @@ import json
 import logging
 import time
 from pathlib import Path
-from typing import Annotated, List, Optional, cast
+from typing import Annotated, List, Optional, cast, Tuple
+import pdb
 
 import nibabel as nib
 import numpy as np
@@ -19,6 +20,7 @@ from mrimagetools.filters.multiecho_thermometry_filter import (
     multiecho_thermometry_filter,
 )
 from mrimagetools.v2.containers.image import NiftiImageContainer
+
 
 console = Console()
 logging.basicConfig(level=logging.INFO)
@@ -48,21 +50,37 @@ def load_echo_times(echo_times_file: Path) -> np.ndarray:
         raise
 
 
+def remove_suffix(filename: Path, suffix: str) -> Path:
+    """Remove a suffix from a filename.
+
+    Args:
+        filename (Path): The original filename.
+        suffix (str): The suffix to remove.
+
+    Returns:
+        Path: The filename without the suffix.
+    """
+    if filename.suffix == suffix:
+        return filename.with_suffix("")
+    return filename
+
+
 @app.command()
 def multiecho_thermometry(
-    multiecho_nifti_filenames: Annotated[
-        List[Path],
-        typer.Argument(
-            ...,
-            exists=True,
-            file_okay=True,
-            dir_okay=False,
-            readable=True,
-            resolve_path=True,
-            help="Input Multiecho (NIfTI) filenames.",
-        ),
-    ],
-    segmentation_nifti_filename: Annotated[
+    # multiecho_nifti_files: Annotated[
+    #    List[Path],
+    #    typer.Argument(
+    #        ...,
+    #        exists=True,
+    #        file_okay=True,
+    #       dir_okay=False,
+    #        readable=True,
+    #        resolve_path=True,
+    #        help="Input Multiecho (NIfTI) filenames.",
+    #    ),
+    # ],
+    multiecho_nifti_files: List[Path],
+    segmentation_nifti_file: Annotated[
         Path,
         typer.Option(
             "--segmentation",
@@ -72,16 +90,17 @@ def multiecho_thermometry(
             help="Input segmentation (NIfTI) filename.",
         ),
     ],
-    echo_times_files: Annotated[
-        List[Path],
-        typer.Option(
-            "--echo-times",
-            exists=True,
-            file_okay=True,
-            readable=True,
-            help="Input list of echo times (text file, in seconds).",
-        ),
-    ],
+    # echo_times_files: Annotated[
+    #    List[Path],
+    #    typer.Option(
+    #        "--echotimes",
+    #        exists=True,
+    #        file_okay=True,
+    #        readable=True,
+    #        help="Input list of echo times (text file, in seconds).",
+    #    ),
+    # ],
+    echo_times_files: List[Path],
     method: Annotated[
         str,
         typer.Option(
@@ -92,7 +111,7 @@ def multiecho_thermometry(
     n_bootstrap: Annotated[
         int,
         typer.Option(
-            "--n-bootstrap",
+            "--nb",
             help="Number of bootstrap iterations.",
         ),
     ] = 100,
@@ -137,6 +156,30 @@ def multiecho_thermometry(
 
     console.print("[bold]Multi-Echo Thermometry[/bold]")
 
+    # validate the input multiecho files
+    for filename in multiecho_nifti_files:
+        if not filename.exists():
+            console.print(f"[red]Error: File {filename} does not exist.[/red]")
+            raise typer.Exit(code=1)
+        if not filename.is_file():
+            console.print(f"[red]Error: {filename} is not a file.[/red]")
+            raise typer.Exit(code=1)
+        if not filename.suffix in [".nii", ".gz"]:
+            console.print(f"[red]Error: {filename} is not a NIfTI file.[/red]")
+            raise typer.Exit(code=1)
+
+    # validate the input echo times files
+    for filename in echo_times_files:
+        if not filename.exists():
+            console.print(f"[red]Error: File {filename} does not exist.[/red]")
+            raise typer.Exit(code=1)
+        if not filename.is_file():
+            console.print(f"[red]Error: {filename} is not a file.[/red]")
+            raise typer.Exit(code=1)
+        if not filename.suffix in [".txt", ".tsv", ".csv"]:
+            console.print(f"[red]Error: {filename} is not a text file.[/red]")
+            raise typer.Exit(code=1)
+
     # Validate method
     if method not in VALID_ANALYSIS_METHODS:
         console.print(
@@ -146,9 +189,9 @@ def multiecho_thermometry(
         raise typer.Exit(code=1)
 
     # Validate echo times filenames, number of files must equal the number of multiecho images
-    if len(multiecho_nifti_filenames) != len(echo_times_files):
+    if len(multiecho_nifti_files) != len(echo_times_files):
         console.print(
-            f"[red]Error: Number of Multiecho images ({len(multiecho_nifti_filenames)}) "
+            f"[red]Error: Number of Multiecho images ({len(multiecho_nifti_files)}) "
             f"does not match number of echo times files ({len(echo_times_files)})[/red]"
         )
         raise typer.Exit(code=1)
@@ -168,13 +211,13 @@ def multiecho_thermometry(
 
         multiecho_images = [
             cast(nib.Nifti1Image, nib.load(filename))
-            for filename in multiecho_nifti_filenames
+            for filename in multiecho_nifti_files
         ]
 
         # if present, also load in the json sidecar files for each multiecho image
         json_sidecars = []
-        for filename in multiecho_nifti_filenames:
-            json_filename = filename.with_suffix(".json")
+        for filename in multiecho_nifti_files:
+            json_filename = remove_suffix(filename, ".gz").with_suffix(".json")
             if json_filename.exists():
                 with open(json_filename, "r") as f:
                     json_sidecar = json.load(f)
@@ -191,7 +234,7 @@ def multiecho_thermometry(
     # all multiecho images must have the same affine
     if not all(
         (image.shape == multiecho_images[0].shape)
-        and (image.affine == multiecho_images[0].affine)
+        and (image.affine == multiecho_images[0].affine).all()
         and (image.ndim == 4)
         for image in multiecho_images
     ):
@@ -211,9 +254,7 @@ def multiecho_thermometry(
         raise typer.Exit(code=1)
 
     # Load segmentation data
-    segmentation_image = cast(
-        nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_filename)
-    )
+    segmentation_image = cast(nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_file))
 
     # Validate the segmentation image
     if not (
@@ -227,12 +268,12 @@ def multiecho_thermometry(
         raise typer.Exit(code=1)
 
     # extract the image data arrays from the multiecho data, convert to np.float64 for processing
-    multiecho_data = [image.get_fdata(dtype=np.float64) for image in multiecho_images]
+    multiecho_data = np.concatenate(
+        [image.get_fdata(dtype=np.float64) for image in multiecho_images], axis=3
+    )
     all_echo_times = np.concatenate(echo_times)
     sorted_indices = np.argsort(all_echo_times)
-    multiecho_data_sorted = np.stack(
-        [data[..., sorted_indices] for data in multiecho_data], axis=-1
-    )
+    multiecho_data_sorted = multiecho_data[:, :, :, sorted_indices]
     sorted_echo_times = all_echo_times[sorted_indices]
 
     # get the ImagingFrequency from the first json sidecar that has it, otherwise MagneticFieldStrength
@@ -240,7 +281,7 @@ def multiecho_thermometry(
     for json_sidecar in json_sidecars:
         if json_sidecar is not None and "ImagingFrequency" in json_sidecar:
             imaging_frequency_mhz = json_sidecar["ImagingFrequency"]
-            magnetic_field_tesla = imaging_frequency_mhz / GAMMA_H
+            magnetic_field_tesla = imaging_frequency_mhz / (GAMMA_H / 1e6)
             break
         elif json_sidecar is not None and "MagneticFieldStrength" in json_sidecar:
             magnetic_field_tesla = json_sidecar["MagneticFieldStrength"]
@@ -284,31 +325,40 @@ def multiecho_thermometry(
     # Save output
     # Prepare output paths
     if output_dir is None:
-        output_dir = multiecho_nifti_filenames[0].parent
+        output_dir = multiecho_nifti_files[0].parent
     output_dir.mkdir(parents=True, exist_ok=True)
 
     if output_prefix is None:
-        output_prefix = multiecho_nifti_filenames[0].stem
+        output_prefix = remove_suffix(multiecho_nifti_files[0], ".gz").stem
 
     temperature_map_filename = output_dir / f"{output_prefix}_temperature_map.nii.gz"
-    report_filename = output_dir / f"{output_prefix}_thermometry_report.json"
+    report_filename = output_dir / f"{output_prefix}_report.json"
     nib.save(
         cast(NiftiImageContainer, temperature_map).nifti_image, temperature_map_filename
     )
     console.print(f"Saved temperature map to [bold]{temperature_map_filename}[/bold]")
 
     report_data = {
-        "input_files": [str(f) for f in multiecho_nifti_filenames],
-        "segmentation_file": str(segmentation_nifti_filename),
+        "input_files": [str(f) for f in multiecho_nifti_files],
+        "segmentation_file": str(segmentation_nifti_file),
         "output_file": str(temperature_map_filename),
         "magnetic_field_tesla": magnetic_field_tesla,
         "analysis_method": method,
         "n_bootstrap": n_bootstrap if method == "regionwise_bootstrap" else None,
         "echo_times": sorted_echo_times.tolist(),
-        "report": report,
+        "report": [r.to_json() for r in report],
         "processing_date": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
         "processing_time_seconds": time.perf_counter() - tic,
     }
     with open(report_filename, "w") as f:
         json.dump(report_data, f, indent=2)
     console.print(f"Saved report to [bold]{report_filename}[/bold]")
+
+
+def main() -> None:
+    """Main entry point for CLI"""
+    app()
+
+
+if __name__ == "__main__":
+    main()
