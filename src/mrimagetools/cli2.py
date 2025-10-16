@@ -15,7 +15,7 @@ app = typer.Typer()
 app.add_typer(t1_cli.app, name="t1")
 app.add_typer(t2_cli.app, name="t2")
 app.add_typer(adc_mapping.app, name="adc")
-app.add_typer(multiecho_thermometry.app, name="thermometry")
+app.add_typer(multiecho_thermometry.app)
 
 if __name__ == "__main__":
     app()
