@@ -3,7 +3,7 @@
 import pdb
 import re
 from turtle import rt
-from typing import Dict, List, Literal, Tuple, Union
+from typing import Dict, List, Literal, Tuple, Union, Callable
 
 import nibabel as nib
 import numpy as np
@@ -269,8 +269,26 @@ def test_lsq_fit_thermometry_signal_model(
 
 
 @pytest.fixture
-def thermometry_test_volume() -> (
-    Tuple[
+def thermometry_test_volume_factory() -> (
+    Callable[
+        [np.ndarray],
+        Tuple[
+            float,
+            np.ndarray,
+            NiftiImageContainer,
+            NiftiImageContainer,
+            NiftiImageContainer,
+            np.ndarray,
+            List[int],
+            List[float],
+        ],
+    ]
+):
+    """Factory fixture to generate thermometry test volumes with specific echo times."""
+
+    def _create_volume(
+        echo_times: np.ndarray = np.linspace(0.001, 0.024, 24)
+    ) -> Tuple[
         float,
         np.ndarray,
         NiftiImageContainer,
@@ -279,84 +297,76 @@ def thermometry_test_volume() -> (
         np.ndarray,
         List[int],
         List[float],
-    ]
-):
-    region_id = [1, 2, 3]
-    magnetic_field_tesla = 3.0
-    region_temperature_celsius = [20.0, 25.0, 30.0]
-    echo_times = np.linspace(0.001, 0.024, 24)
-    amplitude_1 = 1.0
-    amplitude_2 = 0.5
-    r2star_1 = 1.0  # 1/s
-    r2star_2 = 2.0  # 1/s
-    dphi_deg = 45.0
-    nx, ny, nz = 3, 6, 4  # small volume for testing
+    ]:
+        region_id = [1, 2, 3]
+        magnetic_field_tesla = 3.0
+        region_temperature_celsius = [20.0, 25.0, 30.0]
+        amplitude_1 = 1.0
+        amplitude_2 = 0.5
+        r2star_1 = 1.0  # 1/s
+        r2star_2 = 2.0  # 1/s
+        dphi_deg = 45.0
+        nx, ny, nz = 3, 6, 4  # small volume for testing
 
-    # create a small 3x6x4 image with 3 regions
-    true_temperature_map: np.ndarray = np.zeros((nx, ny, nz), dtype=np.float64)
-    for i, temp in enumerate(region_temperature_celsius):
-        true_temperature_map[i, :, :] = temp
+        # create a small 3x6x4 image with 3 regions
+        true_temperature_map: np.ndarray = np.zeros((nx, ny, nz), dtype=np.float64)
+        for i, temp in enumerate(region_temperature_celsius):
+            true_temperature_map[i, :, :] = temp
 
-    # create a segmentation mask
-    segmentation_mask: np.ndarray = np.zeros((nx, ny, nz), dtype=np.int16)
-    for i, rid in enumerate(region_id):
-        segmentation_mask[i, :, :] = rid
+        # create a segmentation mask
+        segmentation_mask: np.ndarray = np.zeros((nx, ny, nz), dtype=np.int16)
+        for i, rid in enumerate(region_id):
+            segmentation_mask[i, :, :] = rid
 
-    # simulate multi-echo data
-    multi_echo_data = thermometry_signal_model(
-        echo_times,
-        amplitude_1,
-        amplitude_2,
-        r2star_1,
-        r2star_2,
-        calculate_df_from_temperature(
-            np.repeat(
-                true_temperature_map[:, :, :, np.newaxis], len(echo_times), axis=3
+        # simulate multi-echo data
+        multi_echo_data = thermometry_signal_model(
+            echo_times,
+            amplitude_1,
+            amplitude_2,
+            r2star_1,
+            r2star_2,
+            calculate_df_from_temperature(
+                np.repeat(
+                    true_temperature_map[:, :, :, np.newaxis], len(echo_times), axis=3
+                ),
+                magnetic_field_tesla,
             ),
-            magnetic_field_tesla,
-        ),
-        dphi_deg,
-    )
-    multi_echo_image = NiftiImageContainer(
-        nifti_img=nib.nifti1.Nifti1Image(multi_echo_data, affine=np.eye(4))
-    )
-    # add some noise to create a noisy version
-    rng = np.random.default_rng(43)
-    noisy_multi_echo_image = NiftiImageContainer(
-        nifti_img=nib.nifti1.Nifti1Image(
-            multi_echo_data + rng.normal(0, 0.01, multi_echo_data.shape),
-            affine=np.eye(4),
+            dphi_deg,
         )
-    )
-    segmentation_image = NiftiImageContainer(
-        nifti_img=nib.nifti1.Nifti1Image(segmentation_mask, affine=np.eye(4))
-    )
+        multi_echo_image = NiftiImageContainer(
+            nifti_img=nib.nifti1.Nifti1Image(multi_echo_data, affine=np.eye(4))
+        )
+        # add some noise to create a noisy version
+        rng = np.random.default_rng(43)
+        noisy_multi_echo_image = NiftiImageContainer(
+            nifti_img=nib.nifti1.Nifti1Image(
+                multi_echo_data + rng.normal(0, 0.01, multi_echo_data.shape),
+                affine=np.eye(4),
+            )
+        )
+        segmentation_image = NiftiImageContainer(
+            nifti_img=nib.nifti1.Nifti1Image(segmentation_mask, affine=np.eye(4))
+        )
 
-    return (
-        magnetic_field_tesla,
-        true_temperature_map,
-        segmentation_image,
-        multi_echo_image,
-        noisy_multi_echo_image,
-        echo_times,
-        region_id,
-        region_temperature_celsius,
-    )
+        return (
+            magnetic_field_tesla,
+            true_temperature_map,
+            segmentation_image,
+            multi_echo_image,
+            noisy_multi_echo_image,
+            echo_times,
+            region_id,
+            region_temperature_celsius,
+        )
+
+    return _create_volume
 
 
 def test_multiecho_thermometry_parameters(
-    thermometry_test_volume: Tuple[
-        float,
-        np.ndarray,
-        NiftiImageContainer,
-        NiftiImageContainer,
-        NiftiImageContainer,
-        np.ndarray,
-        List[int],
-        List[float],
-    ]
+    thermometry_test_volume_factory: callable,
 ) -> None:
     """Test the MultiEchoThermometryParameters dataclass."""
+    echo_times = np.linspace(0.001, 0.024, 24)
     (
         magnetic_field_tesla,
         true_temperature_map,
@@ -366,7 +376,7 @@ def test_multiecho_thermometry_parameters(
         echo_times,
         region_id,
         region_temperature_celsius,
-    ) = thermometry_test_volume
+    ) = thermometry_test_volume_factory(echo_times)
 
     # test with valid parameters
     params = MultiEchoThermometryParameters(
@@ -431,17 +441,9 @@ def test_multiecho_thermometry_parameters(
 
 
 def test_multiecho_thermometry_filter_function_regionwise(
-    thermometry_test_volume: Tuple[
-        float,
-        np.ndarray,
-        NiftiImageContainer,
-        NiftiImageContainer,
-        NiftiImageContainer,
-        np.ndarray,
-        List[int],
-        List[float],
-    ]
+    thermometry_test_volume_factory: callable,
 ) -> None:
+    echo_times = np.linspace(0.001, 0.024, 24)
     (
         magnetic_field_tesla,
         true_temperature_map,
@@ -451,7 +453,7 @@ def test_multiecho_thermometry_filter_function_regionwise(
         echo_times,
         region_id,
         region_temperature_celsius,
-    ) = thermometry_test_volume
+    ) = thermometry_test_volume_factory(echo_times)
 
     # test regionwise AnalysisMethod
     results, temperature_image = multiecho_thermometry_filter(
@@ -499,17 +501,9 @@ def test_multiecho_thermometry_filter_function_regionwise(
 
 
 def test_multiecho_thermometry_filter_function_voxelwise(
-    thermometry_test_volume: Tuple[
-        float,
-        np.ndarray,
-        NiftiImageContainer,
-        NiftiImageContainer,
-        NiftiImageContainer,
-        np.ndarray,
-        List[int],
-        List[float],
-    ]
+    thermometry_test_volume_factory: callable,
 ) -> None:
+    echo_times = np.linspace(0.001, 0.024, 24)
     (
         magnetic_field_tesla,
         true_temperature_map,
@@ -519,7 +513,7 @@ def test_multiecho_thermometry_filter_function_voxelwise(
         echo_times,
         region_id,
         region_temperature_celsius,
-    ) = thermometry_test_volume
+    ) = thermometry_test_volume_factory(echo_times)
 
     # test voxelwise AnalysisMethod with clean data
     results, temperature_image = multiecho_thermometry_filter(
@@ -568,17 +562,9 @@ def test_multiecho_thermometry_filter_function_voxelwise(
 
 
 def test_multiecho_thermometry_filter_function_regionwise_bootstrap(
-    thermometry_test_volume: Tuple[
-        float,
-        np.ndarray,
-        NiftiImageContainer,
-        NiftiImageContainer,
-        NiftiImageContainer,
-        np.ndarray,
-        List[int],
-        List[float],
-    ]
+    thermometry_test_volume_factory: callable,
 ) -> None:
+    echo_times = np.linspace(0.001, 0.024, 24)
     (
         magnetic_field_tesla,
         true_temperature_map,
@@ -588,7 +574,7 @@ def test_multiecho_thermometry_filter_function_regionwise_bootstrap(
         echo_times,
         region_id,
         region_temperature_celsius,
-    ) = thermometry_test_volume
+    ) = thermometry_test_volume_factory(echo_times)
     n_bootstrap = 100
     # test regionwise AnalysisMethod with bootstrapping
     results, temperature_image = multiecho_thermometry_filter(
