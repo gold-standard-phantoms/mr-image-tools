@@ -267,6 +267,18 @@ class ThermometryResults:
     region_temperature_uncertainty_values: NDArray[np.floating]
     region_size: int = 0  # number of voxels in region
 
+    def to_json(self) -> dict:
+        """Converts the results to a JSON-serializable dictionary."""
+        return {
+            "id": self.region_id,
+            "temperature": self.region_mean_temperature,
+            "temperature_uncertainty": self.region_temperature_uncertainty,
+            "r_squared": self.r_squared.tolist(),
+            "region_size": self.region_size,
+            "region_temperature_values": self.region_temperature_values.tolist(),
+            "region_temperature_uncertainty_values": self.region_temperature_uncertainty_values.tolist(),
+        }
+
 
 def multiecho_thermometry_filter(
     parameters: MultiEchoThermometryParameters,
