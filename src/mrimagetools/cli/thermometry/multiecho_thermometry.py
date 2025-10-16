@@ -25,7 +25,7 @@ from mrimagetools.v2.containers.image import NiftiImageContainer
 console = Console()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-app = typer.Typer()
+app = typer.Typer(pretty_exceptions_enable=False)
 
 VALID_ANALYSIS_METHODS = ["regionwise", "voxelwise", "regionwise_bootstrap"]
 
@@ -155,6 +155,7 @@ def multiecho_thermometry(
     tic = time.perf_counter()
 
     console.print("[bold]Multi-Echo Thermometry[/bold]")
+    # pdb.set_trace()
 
     # validate the input multiecho files
     for filename in multiecho_nifti_files:
