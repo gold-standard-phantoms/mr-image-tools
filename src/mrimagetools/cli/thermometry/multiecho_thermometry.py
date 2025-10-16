@@ -67,19 +67,6 @@ def remove_suffix(filename: Path, suffix: str) -> Path:
 
 @app.command()
 def multiecho_thermometry(
-    # multiecho_nifti_files: Annotated[
-    #    List[Path],
-    #    typer.Argument(
-    #        ...,
-    #        exists=True,
-    #        file_okay=True,
-    #       dir_okay=False,
-    #        readable=True,
-    #        resolve_path=True,
-    #        help="Input Multiecho (NIfTI) filenames.",
-    #    ),
-    # ],
-    multiecho_nifti_files: List[Path],
     segmentation_nifti_file: Annotated[
         Path,
         typer.Option(
@@ -90,17 +77,28 @@ def multiecho_thermometry(
             help="Input segmentation (NIfTI) filename.",
         ),
     ],
-    # echo_times_files: Annotated[
-    #    List[Path],
-    #    typer.Option(
-    #        "--echotimes",
-    #        exists=True,
-    #        file_okay=True,
-    #        readable=True,
-    #        help="Input list of echo times (text file, in seconds).",
-    #    ),
-    # ],
-    echo_times_files: List[Path],
+    multiecho_nifti_files: Annotated[
+        List[Path],
+        typer.Argument(
+            ...,
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            help="Input Multiecho (NIfTI) filenames.",
+        ),
+    ],
+    echo_times_files: Annotated[
+        List[Path],
+        typer.Option(
+            "--echotimes",
+            exists=True,
+            file_okay=True,
+            readable=True,
+            help="Input list of echo times (text file, in seconds), one file per multiecho image.",
+        ),
+    ],
     method: Annotated[
         str,
         typer.Option(
