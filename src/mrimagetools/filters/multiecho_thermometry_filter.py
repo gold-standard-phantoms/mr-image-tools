@@ -148,7 +148,7 @@ def lsq_fit_thermometry_signal_model(
             containing the optimal parameters, the covariance of the parameters,
             and the coefficient of determination R^2.
     """
-    bounds = (0, [10, 10, 200, 200, 500, 360])
+    bounds = (0, [1000, 1000, 200, 200, 500, 360])
     try:
         popt, pcov, *_ = curve_fit(
             thermometry_signal_model,
@@ -318,7 +318,7 @@ def multiecho_thermometry_filter(
     magnetic_field_tesla = parameters.magnetic_field_tesla
     analysis_method = parameters.analysis_method
     n_bootstrap = parameters.n_bootstrap
-    initial_guess = [1.0, 1.0, 50.0, 50.0, 100.0, 0.0]
+    initial_guess = [100.0, 100.0, 10.0, 10.0, 100.0, 0.0]
     r_squared_threshold = 0.9  # threshold for acceptable fit quality
 
     # clone the multiecho image container to create the output temperature image
