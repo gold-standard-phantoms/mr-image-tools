@@ -209,7 +209,7 @@ def multiecho_thermometry(
         task = progress.add_task("Loading Multiecho data", total=None)
 
         multiecho_images = [
-            cast(nib.Nifti1Image, nib.load(filename))
+            cast(nib.nifti1.Nifti1Image, nib.load(filename)) # type: ignore
             for filename in multiecho_nifti_files
         ]
 
@@ -253,7 +253,7 @@ def multiecho_thermometry(
         raise typer.Exit(code=1)
 
     # Load segmentation data
-    segmentation_image = cast(nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_file))
+    segmentation_image = cast(nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_file)) # type: ignore
 
     # Validate the segmentation image
     if not (
@@ -277,14 +277,25 @@ def multiecho_thermometry(
 
     # get the ImagingFrequency from the first json sidecar that has it, otherwise MagneticFieldStrength
     magnetic_field_tesla = None
+    acquisition_date_time = []
     for json_sidecar in json_sidecars:
         if json_sidecar is not None and "ImagingFrequency" in json_sidecar:
             imaging_frequency_mhz = json_sidecar["ImagingFrequency"]
             magnetic_field_tesla = imaging_frequency_mhz / (GAMMA_H / 1e6)
-            break
+
         elif json_sidecar is not None and "MagneticFieldStrength" in json_sidecar:
             magnetic_field_tesla = json_sidecar["MagneticFieldStrength"]
-            break
+
+        if (
+            json_sidecar is not None and "AcquisitionDateTime" in json_sidecar
+        ):  # use AcquisitionDateTime if available
+            acquisition_date_time.append(json_sidecar["AcquisitionDateTime"])
+        elif (
+            json_sidecar is not None and "AcquisitionTime" in json_sidecar
+        ):  # fallback to AcquisitionTime
+            acquisition_date_time.append(json_sidecar["AcquisitionTime"])
+        else:
+            acquisition_date_time.append("Unknown")
 
     if magnetic_field_tesla is None:
         console.print(
@@ -332,7 +343,7 @@ def multiecho_thermometry(
 
     temperature_map_filename = output_dir / f"{output_prefix}_temperature_map.nii.gz"
     report_filename = output_dir / f"{output_prefix}_report.json"
-    nib.save(
+    nib.nifti1.save(
         cast(NiftiImageContainer, temperature_map).nifti_image, temperature_map_filename
     )
     console.print(f"Saved temperature map to [bold]{temperature_map_filename}[/bold]")
@@ -346,6 +357,7 @@ def multiecho_thermometry(
         "n_bootstrap": n_bootstrap if method == "regionwise_bootstrap" else None,
         "echo_times": sorted_echo_times.tolist(),
         "report": [r.to_json() for r in report],
+        "acquisition_date_time": acquisition_date_time,
         "processing_date": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
         "processing_time_seconds": time.perf_counter() - tic,
     }
