@@ -4,8 +4,8 @@ import logging
 
 import typer
 
-from mrimagetools.cli.dwi import adc_mapping
-from mrimagetools.cli.thermometry import multiecho_thermometry
+from mrimagetools.pipelines.dwi import adc_mapping
+from mrimagetools.pipelines.thermometry import multiecho_thermometry
 from mrimagetools.v2.filters.mapping import t1_cli, t2_cli
 
 from . import __version__

@@ -11,7 +11,7 @@ import pytest
 import typer
 from typer.testing import CliRunner
 
-from mrimagetools.cli.thermometry.multiecho_thermometry import (
+from mrimagetools.pipelines.thermometry.multiecho_thermometry import (
     multiecho_thermometry,
     remove_suffix,
     app,
@@ -65,7 +65,9 @@ def thermometry_test_data_fixture(
             "ImagingFrequency": magnetic_field_tesla * GAMMA_H / 1e6,  # in MHz
             "MagneticFieldStrength": magnetic_field_tesla,  # in Tesla
             "SomeOtherField": 123.456,
+            "AcquisitionDateTime": "2024-01-01T12:00:00",
         }
+        sidecar_fields.append("AcquisitionDateTime")
         # only keep the requested fields in the sidecar
         json_sidecar = {
             k: full_json_sidecar[k] for k in sidecar_fields if k in full_json_sidecar
@@ -201,6 +203,7 @@ def test_multiecho_thermometry_cli_basic(
     assert report["n_bootstrap"] == (10 if method == "regionwise_bootstrap" else None)
     assert len(report["report"]) == 3  # 3 regions in the segmentation mask
     assert report["report"][0]["id"] == 1
+    assert report["acquisition_date_time"] == ["2024-01-01T12:00:00"]
 
 
 def test_multiecho_thermometry_cli_validation_fails(
