@@ -1,11 +1,7 @@
 """Tests for multiecho_thermometry.py CLI."""
-
-from operator import mul
 import os
-
 import uuid
-from typing import Union, Callable, Tuple, Any, List, cast
-import pdb
+from typing import Callable, Tuple, Any, List, cast
 from pathlib import Path
 import json
 
@@ -36,7 +32,6 @@ def test_remove_suffix() -> None:
 
 
 @pytest.fixture(name="thermometry_test_data")
-@pytest.mark.usefixtures("thermometry_test_volume")
 def thermometry_test_data_fixture(
     thermometry_test_volume_factory: Callable, tmp_path: Path
 ) -> Callable:
@@ -85,7 +80,7 @@ def thermometry_test_data_fixture(
             output_path / "multiecho_image_truncated.nii.gz"
         )
         nib.nifti1.save(
-            nib.Nifti1Image(
+            nib.nifti1.Nifti1Image(
                 multiecho_image.image[..., :-1],
                 multiecho_image.affine,
             ),
@@ -97,7 +92,7 @@ def thermometry_test_data_fixture(
             output_path / "multiecho_image_wrong_shape.nii.gz"
         )
         nib.nifti1.save(
-            nib.Nifti1Image(
+            nib.nifti1.Nifti1Image(
                 multiecho_image.image[:-1, :, :, :],
                 multiecho_image.affine,
             ),
@@ -184,7 +179,7 @@ def test_multiecho_thermometry_cli_basic(
     assert output_report_file.exists(), "Output report file was not created."
 
     # Load the output image and check its shape
-    output_img = cast(nib.Nifti1Image, nib.load(output_temperature_map_file))
+    output_img = cast(nib.nifti1.Nifti1Image, nib.load(output_temperature_map_file))  # type: ignore
     output_data = output_img.get_fdata()
 
     # Check that the output temperature map is close to the true temperature map

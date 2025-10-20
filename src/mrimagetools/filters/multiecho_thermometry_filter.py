@@ -159,7 +159,7 @@ def lsq_fit_thermometry_signal_model(
             maxfev=10000,
         )
     except RuntimeError:
-        popt = np.array([np.nan] * len(initial_guess))
+        popt = np.array([np.nan] * len(initial_guess), dtype=np.float64)
         pcov = np.full((len(initial_guess), len(initial_guess)), np.nan)
 
     r_squared = calculate_r_squared(
@@ -351,6 +351,9 @@ def multiecho_thermometry_filter(
                     for echo in range(n_echoes)
                 ]
             )
+            region_max = np.max(region_signal)
+            initial_guess[0] = float(region_max / 2.0)
+            initial_guess[1] = float(region_max / 2.0)
             fitted_params, pcov, r_squared_value = lsq_fit_thermometry_signal_model(
                 echo_times, region_signal, initial_guess
             )
@@ -375,6 +378,7 @@ def multiecho_thermometry_filter(
                 [region_temperature_uncertainty]
             )
             r_squared = np.array([r_squared_value])
+            # pdb.set_trace()
 
         elif analysis_method == "voxelwise":
             # Voxelwise Method
@@ -387,6 +391,9 @@ def multiecho_thermometry_filter(
                     for k in range(nz):
                         if region_mask[i, j, k]:
                             voxel_signal = image_multiecho.image[i, j, k, :]
+                            voxel_max = np.max(voxel_signal)
+                            initial_guess[0] = voxel_max / 2.0
+                            initial_guess[1] = voxel_max / 2.0
                             (
                                 fitted_params,
                                 pcov,
@@ -457,6 +464,9 @@ def multiecho_thermometry_filter(
                 ]
                 # calculate the mean signal of the sampled voxels for each echo time
                 region_signal = np.mean(sampled_signals, axis=0)
+                region_max = np.max(region_signal)
+                initial_guess[0] = region_max / 2.0
+                initial_guess[1] = region_max / 2.0
                 fitted_params, pcov, r_squared_value = lsq_fit_thermometry_signal_model(
                     echo_times, region_signal, initial_guess
                 )
