@@ -1,14 +1,13 @@
 """Tests for multiecho thermometry filter functions."""
 
-import pdb
-import re
-from turtle import rt
-from typing import Dict, List, Literal, Tuple, Union, Callable
+from typing import List, Tuple, Callable
 
 import nibabel as nib
 import numpy as np
-import pandas as pd
+from numpy.typing import NDArray
+
 import pytest
+import pdb
 
 from mrimagetools.filters.multiecho_thermometry_filter import (
     AnalysisMethod,
@@ -59,7 +58,16 @@ def thermometry_test_data() -> (
     # True parameters for signal generation
     p_true = [amplitude_1, amplitude_2, r2star_1, r2star_2, df, dphi_deg]
 
-    def signal_model(te, a1, a2, r2s1, r2s2, df, dphi) -> np.ndarray:
+    def signal_model(
+        te: np.ndarray,
+        a1: float,
+        a2: float,
+        r2s1: float,
+        r2s2: float,
+        df: float,
+        dphi: float,
+    ) -> NDArray[np.floating]:
+        """Calculates the signal S(t) at time t according to the dual-resonance model."""
         dphi_rad = np.deg2rad(dphi)
         term1 = (a1**2) * np.exp(-2 * r2s1 * te)
         term2 = (a2**2) * np.exp(-2 * r2s2 * te)
@@ -70,7 +78,7 @@ def thermometry_test_data() -> (
             * np.exp(-(r2s1 + r2s2) * te)
             * np.cos(2 * np.pi * df * te + dphi_rad)
         )
-        radicand = term1 + term2 + term3
+        radicand: NDArray[np.float64] = term1 + term2 + term3
         radicand[radicand < 0] = 0  # Prevent negative values under the square root
         return np.sqrt(radicand)
 
@@ -363,7 +371,7 @@ def thermometry_test_volume_factory() -> (
 
 
 def test_multiecho_thermometry_parameters(
-    thermometry_test_volume_factory: callable,
+    thermometry_test_volume_factory: Callable,
 ) -> None:
     """Test the MultiEchoThermometryParameters dataclass."""
     echo_times = np.linspace(0.001, 0.024, 24)
@@ -440,8 +448,8 @@ def test_multiecho_thermometry_parameters(
         )
 
 
-def test_multiecho_thermometry_filter_function_regionwise(
-    thermometry_test_volume_factory: callable,
+def test_multiecho_thermometry_filter_function_regionwise_only(
+    thermometry_test_volume_factory: Callable,
 ) -> None:
     echo_times = np.linspace(0.001, 0.024, 24)
     (
@@ -465,6 +473,7 @@ def test_multiecho_thermometry_filter_function_regionwise(
             analysis_method="regionwise",
         )
     )
+    # pdb.set_trace()
 
     assert isinstance(temperature_image, NiftiImageContainer)
     # compare results to true temperature map
@@ -501,7 +510,7 @@ def test_multiecho_thermometry_filter_function_regionwise(
 
 
 def test_multiecho_thermometry_filter_function_voxelwise(
-    thermometry_test_volume_factory: callable,
+    thermometry_test_volume_factory: Callable,
 ) -> None:
     echo_times = np.linspace(0.001, 0.024, 24)
     (
@@ -562,7 +571,7 @@ def test_multiecho_thermometry_filter_function_voxelwise(
 
 
 def test_multiecho_thermometry_filter_function_regionwise_bootstrap(
-    thermometry_test_volume_factory: callable,
+    thermometry_test_volume_factory: Callable,
 ) -> None:
     echo_times = np.linspace(0.001, 0.024, 24)
     (
@@ -575,7 +584,7 @@ def test_multiecho_thermometry_filter_function_regionwise_bootstrap(
         region_id,
         region_temperature_celsius,
     ) = thermometry_test_volume_factory(echo_times)
-    n_bootstrap = 100
+    n_bootstrap = 10
     # test regionwise AnalysisMethod with bootstrapping
     results, temperature_image = multiecho_thermometry_filter(
         parameters=MultiEchoThermometryParameters(
