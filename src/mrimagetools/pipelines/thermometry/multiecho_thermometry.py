@@ -129,25 +129,24 @@ def multiecho_thermometry(
             help="Output directory.",
         ),
     ] = None,
-) -> None:
-    """Command line interface for thermometry from multi-echo data.
-    Loads:
-    - 1 or more Multiecho images (4D NIfTI, last dimension = echoes)
-    - 1 segmentation image (3D NIfTI)
-    - 1 or more lists of echo times (text file, in seconds). Number corresponds to the
-    number of Multiecho images.
+) -> Tuple[NiftiImageContainer, dict]:
+    """Perform thermometry from multi-echo data.
 
-    Requires parameters for
-    - Analysis method
-    - number of boostrap iterations
-    - output filename prefix
-    - path to the output directory
+    Args:
+        segmentation_nifti_file (Path): Input segmentation (NIfTI) filename.
+        multiecho_nifti_files (List[Path]): Input Multiecho (NIfTI) filenames.
+        echo_times_files (List[Path]): Input list of echo times (text file, in seconds),
+            one file per multiecho image.
+        method (str, optional): Analysis method. Options are: voxelwise, regionwise,
+            regionwise_bootstrap. Defaults to "regionwise".
+        n_bootstrap (int, optional): Number of bootstrap iterations. Defaults to 100.
+        output_prefix (Optional[str], optional): Output filename prefix. Defaults to None.
+        output_dir (Optional[Path], optional): Output directory. Defaults to None.
 
-
-    Saves:
-    - Temperature map (3D NIfTI)
-    - Report (json format)
-
+    Returns:
+        Tuple[NiftiImageContainer, dict]: A tuple containing:
+            - temperature_map (NiftiImageContainer): The calculated temperature map.
+            - report_data (dict): A dictionary containing the report of the analysis.
     """
     # Start timing
     tic = time.perf_counter()
@@ -209,7 +208,7 @@ def multiecho_thermometry(
         task = progress.add_task("Loading Multiecho data", total=None)
 
         multiecho_images = [
-            cast(nib.nifti1.Nifti1Image, nib.load(filename)) # type: ignore
+            cast(nib.nifti1.Nifti1Image, nib.load(filename))  # type: ignore
             for filename in multiecho_nifti_files
         ]
 
@@ -253,7 +252,7 @@ def multiecho_thermometry(
         raise typer.Exit(code=1)
 
     # Load segmentation data
-    segmentation_image = cast(nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_file)) # type: ignore
+    segmentation_image = cast(nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_file))  # type: ignore
 
     # Validate the segmentation image
     if not (
@@ -329,6 +328,7 @@ def multiecho_thermometry(
                 magnetic_field_tesla=magnetic_field_tesla,
             )
         )
+        temperature_map = cast(NiftiImageContainer, temperature_map)
 
         progress.update(task, description="Thermometry Analysis Complete")
 
@@ -343,9 +343,7 @@ def multiecho_thermometry(
 
     temperature_map_filename = output_dir / f"{output_prefix}_temperature_map.nii.gz"
     report_filename = output_dir / f"{output_prefix}_report.json"
-    nib.nifti1.save(
-        cast(NiftiImageContainer, temperature_map).nifti_image, temperature_map_filename
-    )
+    nib.nifti1.save(temperature_map.nifti_image, temperature_map_filename)
     console.print(f"Saved temperature map to [bold]{temperature_map_filename}[/bold]")
 
     report_data = {
@@ -364,6 +362,7 @@ def multiecho_thermometry(
     with open(report_filename, "w") as f:
         json.dump(report_data, f, indent=2)
     console.print(f"Saved report to [bold]{report_filename}[/bold]")
+    return temperature_map, report_data
 
 
 def main() -> None:
