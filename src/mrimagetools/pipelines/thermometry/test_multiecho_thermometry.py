@@ -162,7 +162,7 @@ def test_multiecho_thermometry_cli_basic(
         _,
     ) = thermometry_test_data()
 
-    multiecho_thermometry(
+    temperature_map, pipeline_report = multiecho_thermometry(
         multiecho_nifti_files=[multiecho_image_file],
         segmentation_nifti_file=segmentation_image_file,
         echo_times_files=[echo_times_file],
@@ -183,6 +183,13 @@ def test_multiecho_thermometry_cli_basic(
     # Load the output image and check its shape
     output_img = cast(nib.nifti1.Nifti1Image, nib.load(output_temperature_map_file))  # type: ignore
     output_data = output_img.get_fdata()
+
+    # Check that the output temperature map matches the returned temperature map
+    np.testing.assert_array_equal(
+        temperature_map.image,
+        output_data,
+        err_msg="Output temperature map does not match returned temperature map.",
+    )
 
     # Check that the output temperature map is close to the true temperature map
     # within a reasonable tolerance
