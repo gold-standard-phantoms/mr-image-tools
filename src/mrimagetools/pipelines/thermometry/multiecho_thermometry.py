@@ -3,6 +3,7 @@
 import json
 import logging
 import time
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Annotated, List, Optional, cast, Tuple
 import pdb
@@ -17,9 +18,43 @@ from rich.table import Table
 from mrimagetools.filters.multiecho_thermometry_filter import (
     GAMMA_H,
     MultiEchoThermometryParameters,
+    ThermometryResults,
     multiecho_thermometry_filter,
 )
 from mrimagetools.v2.containers.image import NiftiImageContainer
+
+
+@dataclass
+class ThermometryReportData:
+    """Dataclass to hold the report data for the multiecho thermometry analysis."""
+
+    input_files: List[Path]
+    segmentation_file: Path
+    output_file: Path
+    magnetic_field_tesla: float
+    analysis_method: str
+    n_bootstrap: Optional[int]
+    echo_times: List[float]
+    report: List[ThermometryResults]
+    acquisition_date_time: List[str]
+    processing_date: str
+    processing_time_seconds: float
+
+    def to_json(self) -> dict:
+        """Return a JSON serializable dictionary."""
+        return {
+            "input_files": [str(f) for f in self.input_files],
+            "segmentation_file": str(self.segmentation_file),
+            "output_file": str(self.output_file),
+            "acquisition_date_time": self.acquisition_date_time,
+            "processing_date": self.processing_date,
+            "processing_time_seconds": self.processing_time_seconds,
+            "magnetic_field_tesla": self.magnetic_field_tesla,
+            "analysis_method": self.analysis_method,
+            "n_bootstrap": self.n_bootstrap,
+            "echo_times": self.echo_times,
+            "report": [r.to_json() for r in self.report],
+        }
 
 
 console = Console()
@@ -129,7 +164,7 @@ def multiecho_thermometry(
             help="Output directory.",
         ),
     ] = None,
-) -> Tuple[NiftiImageContainer, dict]:
+) -> Tuple[NiftiImageContainer, ThermometryReportData]:
     """Perform thermometry from multi-echo data.
 
     Args:
@@ -346,21 +381,21 @@ def multiecho_thermometry(
     nib.nifti1.save(temperature_map.nifti_image, temperature_map_filename)
     console.print(f"Saved temperature map to [bold]{temperature_map_filename}[/bold]")
 
-    report_data = {
-        "input_files": [str(f) for f in multiecho_nifti_files],
-        "segmentation_file": str(segmentation_nifti_file),
-        "output_file": str(temperature_map_filename),
-        "magnetic_field_tesla": magnetic_field_tesla,
-        "analysis_method": method,
-        "n_bootstrap": n_bootstrap if method == "regionwise_bootstrap" else None,
-        "echo_times": sorted_echo_times.tolist(),
-        "report": [r.to_json() for r in report],
-        "acquisition_date_time": acquisition_date_time,
-        "processing_date": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
-        "processing_time_seconds": time.perf_counter() - tic,
-    }
+    report_data = ThermometryReportData(
+        input_files=multiecho_nifti_files,
+        segmentation_file=segmentation_nifti_file,
+        output_file=temperature_map_filename,
+        magnetic_field_tesla=magnetic_field_tesla,
+        analysis_method=method,
+        n_bootstrap=n_bootstrap if method == "regionwise_bootstrap" else None,
+        echo_times=sorted_echo_times.tolist(),
+        report=report,
+        acquisition_date_time=acquisition_date_time,
+        processing_date=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+        processing_time_seconds=time.perf_counter() - tic,
+    )
     with open(report_filename, "w") as f:
-        json.dump(report_data, f, indent=2)
+        json.dump(report_data.to_json(), f, indent=2)
     console.print(f"Saved report to [bold]{report_filename}[/bold]")
     return temperature_map, report_data
 
