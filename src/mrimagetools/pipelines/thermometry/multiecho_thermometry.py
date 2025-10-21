@@ -382,9 +382,9 @@ def multiecho_thermometry(
     console.print(f"Saved temperature map to [bold]{temperature_map_filename}[/bold]")
 
     report_data = ThermometryReportData(
-        input_files=multiecho_nifti_files,
-        segmentation_file=segmentation_nifti_file,
-        output_file=temperature_map_filename,
+        input_files=[f.relative_to(output_dir) for f in multiecho_nifti_files],
+        segmentation_file=segmentation_nifti_file.relative_to(output_dir),
+        output_file=temperature_map_filename.relative_to(output_dir),
         magnetic_field_tesla=magnetic_field_tesla,
         analysis_method=method,
         n_bootstrap=n_bootstrap if method == "regionwise_bootstrap" else None,
