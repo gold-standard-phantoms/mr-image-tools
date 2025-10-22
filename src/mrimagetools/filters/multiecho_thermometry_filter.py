@@ -148,7 +148,11 @@ def lsq_fit_thermometry_signal_model(
             containing the optimal parameters, the covariance of the parameters,
             and the coefficient of determination R^2.
     """
-    bounds = (0, [1000, 1000, 200, 200, 500, 360])
+    max_amplitude = np.max(signal_values)
+    bounds = (
+        [0, 0, 1e-3, 1e-3, 0, -360],
+        [max_amplitude, max_amplitude, 1000, 1000, 1000, 360],
+    )
     try:
         popt, pcov, *_ = curve_fit(
             thermometry_signal_model,
