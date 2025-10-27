@@ -20,7 +20,6 @@ DOI: https://doi.org/10.1021/ac50048a040
 
 """
 
-import pdb
 from dataclasses import dataclass
 from typing import List, Literal, Tuple, Union
 
@@ -274,6 +273,7 @@ class ThermometryResults:
     region_temperature_uncertainty_values: NDArray[np.floating]
     fitted_params: NDArray[np.floating]  # list of fitted parameters,
     signal_values: NDArray[np.floating]  # list of the signal values
+    mean_fitted_params: NDArray[np.floating]
     region_size: int = 0  # number of voxels in region
 
     def to_json(self) -> dict:
@@ -283,6 +283,7 @@ class ThermometryResults:
             "temperature": self.region_mean_temperature,
             "temperature_uncertainty": self.region_temperature_uncertainty,
             "region_size": self.region_size,
+            "mean_fitted_params": self.mean_fitted_params.tolist(),
             "region_temperature_values": self.region_temperature_values.tolist(),
             "region_temperature_uncertainty_values": self.region_temperature_uncertainty_values.tolist(),
             "fitted_params": self.fitted_params.tolist(),
@@ -351,6 +352,18 @@ def multiecho_thermometry_filter(
         region_mask = image_segmentation.image == region
         region_size = np.sum(region_mask)  # number of voxels in region
 
+        # Initialize variables to ensure they are always bound, especially for empty regions
+        mean_region_temperature: float = np.nan
+        region_temperature_uncertainty: Tuple[float, float] = (np.nan, 1)
+        region_temperature_values: NDArray[np.floating] = np.array([])
+        region_temperature_uncertainty_values: NDArray[np.floating] = np.array([])
+        r_squared: NDArray[np.floating] = np.array([])
+
+        if region_size == 0:
+            # If the region is empty, assign NaN values and skip fitting
+            # The initialized NaN values will be used for this region's results
+            continue  # Skip to the next region
+
         if analysis_method == "regionwise":
             # Regionwise Method
             # perform fitting on a regionwise basis, based on the mean signal
@@ -379,18 +392,19 @@ def multiecho_thermometry_filter(
                 if not np.isnan(param_uncertainties[4])
                 else np.nan
             )
-            mean_region_temperature = calculate_temperature_from_df(
-                df, magnetic_field_tesla
+            mean_region_temperature = float(
+                calculate_temperature_from_df(df, magnetic_field_tesla)
             )
-            region_temperature_uncertainty = calculate_temperature_uncertainty(
-                df_uncertainty, magnetic_field_tesla
+            region_temperature_uncertainty = (
+                calculate_temperature_uncertainty(df_uncertainty, magnetic_field_tesla),
+                1,
             )
 
             image_temperature.image[region_mask] = mean_region_temperature
-            # one one value per region
+            # only one value per region
             region_temperature_values = np.array([mean_region_temperature])
             region_temperature_uncertainty_values = np.array(
-                [region_temperature_uncertainty]
+                [region_temperature_uncertainty[0]]
             )
             r_squared = np.array([r_squared_value])
             # pdb.set_trace()
@@ -458,7 +472,7 @@ def multiecho_thermometry_filter(
                 region_temperature_values, weights=weights, axis=0
             )
             # calculate the region-based uncertainty
-            region_temperature_uncertainty = np.sqrt(1.0 / np.sum(weights))
+            region_temperature_uncertainty = (np.sqrt(1.0 / np.sum(weights)), 1)
 
         elif analysis_method == "regionwise_bootstrap":
             # Regionwise Bootstrap Method
@@ -513,27 +527,40 @@ def multiecho_thermometry_filter(
                 region_temperature_uncertainty_values_list
             )
             r_squared = np.array(r_squared_list)
-            mean_region_temperature = (
+            mean_region_temperature = float(
                 np.average(region_temperature_values[r_squared >= r_squared_threshold])
                 if np.any(r_squared >= r_squared_threshold)
                 else np.nan
             )
-            region_temperature_uncertainty = (
+            region_temperature_uncertainty_val = (
                 np.std(region_temperature_values[r_squared >= r_squared_threshold])
                 if np.any(r_squared >= r_squared_threshold)
                 else np.nan
             )
+            region_temperature_uncertainty = (
+                float(region_temperature_uncertainty_val),
+                1.0,
+            )
             image_temperature.image[region_mask] = mean_region_temperature
 
         # add results to list
+        # Filter fitted_params_list by r_squared threshold.
+        # If r_squared is empty or all values are below threshold, this will result in an empty array.
+        filtered_fitted_params = (
+            np.array(fitted_params_list)[r_squared >= r_squared_threshold, :]
+            if r_squared.size > 0 and np.any(r_squared >= r_squared_threshold)
+            else np.array([]).reshape(0, len(initial_guess))
+        )
+
+        # Calculate mean_fit_params. np.mean handles empty arrays by returning NaNs of the correct shape.
+        mean_fit_params = np.mean(filtered_fitted_params, axis=0)
+
         results.append(
             ThermometryResults(
                 region_id=int(region),
                 region_mean_temperature=float(mean_region_temperature),
-                region_temperature_uncertainty=(
-                    float(region_temperature_uncertainty),
-                    1,
-                ),  # k=1
+                region_temperature_uncertainty=region_temperature_uncertainty,
+                mean_fitted_params=mean_fit_params,
                 r_squared=r_squared,
                 region_size=int(region_size),
                 region_temperature_values=region_temperature_values,

@@ -1,13 +1,12 @@
 """Tests for multiecho thermometry filter functions."""
 
-from typing import List, Tuple, Callable
+import pdb
+from typing import Callable, List, Tuple
 
 import nibabel as nib
 import numpy as np
-from numpy.typing import NDArray
-
 import pytest
-import pdb
+from numpy.typing import NDArray
 
 from mrimagetools.filters.multiecho_thermometry_filter import (
     AnalysisMethod,
