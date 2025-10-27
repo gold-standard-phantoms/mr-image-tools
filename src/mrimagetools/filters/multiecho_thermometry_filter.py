@@ -259,6 +259,8 @@ class ThermometryResults:
         r_squared (NDArray[np.floating]): The coefficient of determination for the fit.
         region_temperature_values (NDArray[np.floating]): The temperature values for each voxel in the region in °C.
         region_temperature_uncertainty_values (NDArray[np.floating]): The standard uncertainty (k=1) in temperature for each voxel in °C
+        fitted_params (NDArray[np.floating]): The fitted parameters.
+        signal_values (NDArray[np.floating]): The signal values.
         region_size (int): The number of voxels in the region.
 
     """
@@ -269,6 +271,8 @@ class ThermometryResults:
     r_squared: NDArray[np.floating]
     region_temperature_values: NDArray[np.floating]
     region_temperature_uncertainty_values: NDArray[np.floating]
+    fitted_params: NDArray[np.floating]  # list of fitted parameters,
+    signal_values: NDArray[np.floating]  # list of the signal values
     region_size: int = 0  # number of voxels in region
 
     def to_json(self) -> dict:
@@ -277,10 +281,12 @@ class ThermometryResults:
             "id": self.region_id,
             "temperature": self.region_mean_temperature,
             "temperature_uncertainty": self.region_temperature_uncertainty,
-            "r_squared": self.r_squared.tolist(),
             "region_size": self.region_size,
             "region_temperature_values": self.region_temperature_values.tolist(),
             "region_temperature_uncertainty_values": self.region_temperature_uncertainty_values.tolist(),
+            "fitted_params": self.fitted_params.tolist(),
+            "signal_values": self.signal_values.tolist(),
+            "r_squared": self.r_squared.tolist(),
         }
 
 
@@ -338,6 +344,8 @@ def multiecho_thermometry_filter(
     for region in regions:
         region_temperature_values_list = []
         region_temperature_uncertainty_values_list = []
+        fitted_params_list = []
+        signal_values_list = []
         r_squared_list = []
         region_mask = image_segmentation.image == region
         region_size = np.sum(region_mask)  # number of voxels in region
@@ -362,7 +370,9 @@ def multiecho_thermometry_filter(
                 echo_times, region_signal, initial_guess
             )
             df = fitted_params[4]
+            fitted_params_list.append(fitted_params)
             param_uncertainties = np.sqrt(np.diag(pcov))
+            signal_values_list.append(region_signal)
             df_uncertainty = (
                 param_uncertainties[4]
                 if not np.isnan(param_uncertainties[4])
@@ -406,6 +416,8 @@ def multiecho_thermometry_filter(
                                 echo_times, voxel_signal, initial_guess
                             )
                             df = fitted_params[4]
+                            fitted_params_list.append(fitted_params)
+                            signal_values_list.append(voxel_signal)
                             param_uncertainties = np.sqrt(np.diag(pcov))
                             df_uncertainty = (
                                 param_uncertainties[4]
@@ -455,7 +467,7 @@ def multiecho_thermometry_filter(
             rng = np.random.default_rng(seed=RANDOM_SEED)
 
             # perform bootrap fitting on a regionwise basis
-            for b in range(n_bootstrap):
+            for _ in range(n_bootstrap):
                 # sample with replacement from the voxel signals in the region
 
                 sampled_indices = rng.choice(
@@ -474,6 +486,8 @@ def multiecho_thermometry_filter(
                 fitted_params, pcov, r_squared_value = lsq_fit_thermometry_signal_model(
                     echo_times, region_signal, initial_guess
                 )
+                fitted_params_list.append(fitted_params)
+                signal_values_list.append(region_signal)
                 df = fitted_params[4]  # fitted frequency difference
                 param_uncertainties = np.sqrt(np.diag(pcov))
                 df_uncertainty = (
@@ -523,6 +537,8 @@ def multiecho_thermometry_filter(
                 region_size=int(region_size),
                 region_temperature_values=region_temperature_values,
                 region_temperature_uncertainty_values=region_temperature_uncertainty_values,
+                fitted_params=np.array(fitted_params_list),
+                signal_values=np.array(signal_values_list),
             )
         )
 
