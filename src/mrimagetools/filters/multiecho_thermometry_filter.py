@@ -34,6 +34,7 @@ from mrimagetools.v2.containers.image import BaseImageContainer
 
 GAMMA_H = 42.57747892e6  # Hz/T
 RANDOM_SEED = 840275920  # fixed seed for reproducibility
+R_SQUARED_THRESHOLD = 0.9  # threshold for acceptable fit quality
 
 
 def thermometry_signal_model(
@@ -329,7 +330,7 @@ def multiecho_thermometry_filter(
     analysis_method = parameters.analysis_method
     n_bootstrap = parameters.n_bootstrap
     initial_guess = [100.0, 100.0, 10.0, 10.0, 100.0, 0.0]
-    r_squared_threshold = 0.9  # threshold for acceptable fit quality
+    r_squared_threshold = R_SQUARED_THRESHOLD  # threshold for acceptable fit quality
 
     # clone the multiecho image container to create the output temperature image
     image_temperature = image_multiecho.clone()
