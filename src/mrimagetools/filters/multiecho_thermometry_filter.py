@@ -151,7 +151,7 @@ def lsq_fit_thermometry_signal_model(
     max_amplitude = np.max(signal_values)
     bounds = (
         [0, 0, 1e-3, 1e-3, 0, -360],
-        [max_amplitude, max_amplitude, 1000, 1000, 1000, 360],
+        [10 * max_amplitude, 10 * max_amplitude, 1000, 1000, 1000, 360],
     )
     try:
         popt, pcov, *_ = curve_fit(
