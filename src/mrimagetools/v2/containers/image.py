@@ -4,6 +4,7 @@ be instantiated with either NIFTI files or using numpy arrays """
 
 from __future__ import annotations
 
+import logging
 import pathlib
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -12,14 +13,6 @@ from typing import Any, Optional, Union
 import nibabel as nib
 import numpy as np
 import numpy.typing as npt
-from dicom_core.nifti.dcm2niix import Dcm2NiixConfig
-from dicom_core.nifti.load import (
-    DicomToNiftiConfig,
-    SeriesInstanceUID,
-    SeriesSelection,
-    SingleSeriesData,
-    dicom_to_nifti,
-)
 
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
 
@@ -418,6 +411,21 @@ class DicomImageContainer(BaseImageContainer):
             supplied config
         :raises DicomToNiftiError: if the DICOM to NIfTI conversion fails
         """
+        
+         # Check if dicom-core is available
+        try:
+            from dicom_core.nifti.dcm2niix import Dcm2NiixConfig
+            from dicom_core.nifti.load import (
+                DicomToNiftiConfig,
+                SeriesInstanceUID,
+                SeriesSelection,
+                dicom_to_nifti,
+            )
+        except ImportError as e:
+            raise ImportError(
+                "dicom-core is required to use DicomImageContainer. "
+            ) from e
+
         if isinstance(directory, pathlib.Path):
             directory = directory.resolve()
         else:
@@ -657,7 +665,7 @@ class NiftiImageContainer(BaseImageContainer):
         return self.header["pixdim"][1:4] * self._space_units_to_mm(self.space_units)
 
     @voxel_size_mm.setter
-    def voxel_size_mm(self, voxel_size_mm: VoxelSizeType):
+    def voxel_size_mm(self, voxel_size_mm: VoxelSizeType) -> None:
         """Sets the voxel size in mm
         :param voxel_size: the voxel size in mm
         :type voxel size: list
