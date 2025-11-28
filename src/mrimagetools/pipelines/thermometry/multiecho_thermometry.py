@@ -3,17 +3,16 @@
 import json
 import logging
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from typing import Annotated, List, Optional, cast, Tuple
-import pdb
+from typing import Annotated, List, Optional, Tuple, cast
 
 import nibabel as nib
 import numpy as np
 import typer
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.table import Table
 
 from mrimagetools.filters.multiecho_thermometry_filter import (
     GAMMA_H,
@@ -24,6 +23,14 @@ from mrimagetools.filters.multiecho_thermometry_filter import (
 from mrimagetools.v2.containers.image import NiftiImageContainer
 
 
+class AnalysisMethod(str, Enum):
+    """The analysis method to use."""
+
+    REGIONWISE = "regionwise"
+    REGIONWISE_BOOTSTRAP = "regionwise_bootstrap"
+    VOXELWISE = "voxelwise"
+
+
 @dataclass
 class ThermometryReportData:
     """Dataclass to hold the report data for the multiecho thermometry analysis."""
@@ -32,7 +39,7 @@ class ThermometryReportData:
     segmentation_file: Path
     output_file: Path
     magnetic_field_tesla: float
-    analysis_method: str
+    analysis_method: AnalysisMethod
     n_bootstrap: Optional[int]
     echo_times: List[float]
     report: List[ThermometryResults]
@@ -50,7 +57,7 @@ class ThermometryReportData:
             "processing_date": self.processing_date,
             "processing_time_seconds": self.processing_time_seconds,
             "magnetic_field_tesla": self.magnetic_field_tesla,
-            "analysis_method": self.analysis_method,
+            "analysis_method": self.analysis_method.value,
             "n_bootstrap": self.n_bootstrap,
             "echo_times": self.echo_times,
             "report": [r.to_json() for r in self.report],
@@ -61,8 +68,6 @@ console = Console()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 app = typer.Typer(pretty_exceptions_enable=False)
-
-VALID_ANALYSIS_METHODS = ["regionwise", "voxelwise", "regionwise_bootstrap"]
 
 
 def load_echo_times(echo_times_file: Path) -> np.ndarray:
@@ -135,12 +140,12 @@ def multiecho_thermometry(
         ),
     ],
     method: Annotated[
-        str,
+        AnalysisMethod,
         typer.Option(
             "--method",
             help="Analysis method. Options are: voxelwise, regionwise, regionwise_bootstrap.",
         ),
-    ] = "regionwise",
+    ] = AnalysisMethod.REGIONWISE,
     n_bootstrap: Annotated[
         int,
         typer.Option(
@@ -172,8 +177,8 @@ def multiecho_thermometry(
         multiecho_nifti_files (List[Path]): Input Multiecho (NIfTI) filenames.
         echo_times_files (List[Path]): Input list of echo times (text file, in seconds),
             one file per multiecho image.
-        method (str, optional): Analysis method. Options are: voxelwise, regionwise,
-            regionwise_bootstrap. Defaults to "regionwise".
+        method (AnalysisMethod, optional): Analysis method. Options are: voxelwise,
+            regionwise, regionwise_bootstrap. Defaults to AnalysisMethod.REGIONWISE.
         n_bootstrap (int, optional): Number of bootstrap iterations. Defaults to 100.
         output_prefix (Optional[str], optional): Output filename prefix. Defaults to None.
         output_dir (Optional[Path], optional): Output directory. Defaults to None.
@@ -197,7 +202,7 @@ def multiecho_thermometry(
         if not filename.is_file():
             console.print(f"[red]Error: {filename} is not a file.[/red]")
             raise typer.Exit(code=1)
-        if not filename.suffix in [".nii", ".gz"]:
+        if filename.suffix not in [".nii", ".gz"]:
             console.print(f"[red]Error: {filename} is not a NIfTI file.[/red]")
             raise typer.Exit(code=1)
 
@@ -209,17 +214,9 @@ def multiecho_thermometry(
         if not filename.is_file():
             console.print(f"[red]Error: {filename} is not a file.[/red]")
             raise typer.Exit(code=1)
-        if not filename.suffix in [".txt", ".tsv", ".csv"]:
+        if filename.suffix not in [".txt", ".tsv", ".csv"]:
             console.print(f"[red]Error: {filename} is not a text file.[/red]")
             raise typer.Exit(code=1)
-
-    # Validate method
-    if method not in VALID_ANALYSIS_METHODS:
-        console.print(
-            f"[red]Error: Invalid analysis method '{method}'. Valid methods are:"
-            f"{', '.join(VALID_ANALYSIS_METHODS)}[/red]"
-        )
-        raise typer.Exit(code=1)
 
     # Validate echo times filenames, number of files must equal the number of multiecho images
     if len(multiecho_nifti_files) != len(echo_times_files):
@@ -243,7 +240,7 @@ def multiecho_thermometry(
         task = progress.add_task("Loading Multiecho data", total=None)
 
         multiecho_images = [
-            cast(nib.nifti1.Nifti1Image, nib.load(filename))  # type: ignore
+            cast(nib.nifti1.Nifti1Image, nib.load(filename))
             for filename in multiecho_nifti_files
         ]
 
@@ -272,7 +269,8 @@ def multiecho_thermometry(
         for image in multiecho_images
     ):
         console.print(
-            f"[red]Error: Multiecho images must be 4 dimensional, have the same shape, and affine[/red]"
+            "[red]Error: Multiecho images must be 4 dimensional, have the same shape, "
+            "and affine[/red]"
         )
         raise typer.Exit(code=1)
 
@@ -282,12 +280,15 @@ def multiecho_thermometry(
         for i, image in enumerate(multiecho_images)
     ):
         console.print(
-            f"[red]Error: Number of echoes in each Multiecho image must match the number of echo times provided[/red]"
+            "[red]Error: Number of echoes in each Multiecho image must match the "
+            "number of echo times provided[/red]"
         )
         raise typer.Exit(code=1)
 
     # Load segmentation data
-    segmentation_image = cast(nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_file))  # type: ignore
+    segmentation_image = cast(
+        nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_file)
+    )
 
     # Validate the segmentation image
     if not (
@@ -358,7 +359,7 @@ def multiecho_thermometry(
                 image_multiecho=multiecho_input_image,
                 image_segmentation=segmentation_input_image,
                 echo_times=sorted_echo_times.tolist(),
-                analysis_method=method,  # type: ignore
+                analysis_method=method.value,
                 n_bootstrap=n_bootstrap,
                 magnetic_field_tesla=magnetic_field_tesla,
             )
@@ -387,7 +388,11 @@ def multiecho_thermometry(
         output_file=temperature_map_filename.relative_to(output_dir),
         magnetic_field_tesla=magnetic_field_tesla,
         analysis_method=method,
-        n_bootstrap=n_bootstrap if method == "regionwise_bootstrap" else None,
+        n_bootstrap=(
+            n_bootstrap
+            if method is AnalysisMethod.REGIONWISE_BOOTSTRAP
+            else None
+        ),
         echo_times=sorted_echo_times.tolist(),
         report=report,
         acquisition_date_time=acquisition_date_time,
