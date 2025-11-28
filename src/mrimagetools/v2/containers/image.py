@@ -7,21 +7,31 @@ from __future__ import annotations
 import pathlib
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import nibabel as nib
 import numpy as np
 import numpy.typing as npt
-from dicom_core.nifti.dcm2niix import Dcm2NiixConfig
-from dicom_core.nifti.load import (
-    DicomToNiftiConfig,
-    SeriesInstanceUID,
-    SeriesSelection,
-    SingleSeriesData,
-    dicom_to_nifti,
-)
 
 from mrimagetools.v2.containers.image_metadata import ImageMetadata
+
+# Optional dicom-core dependency
+try:
+    from dicom_core.nifti.dcm2niix import Dcm2NiixConfig
+    from dicom_core.nifti.load import (
+        DicomToNiftiConfig,
+        SeriesInstanceUID,
+        SeriesSelection,
+        SingleSeriesData,
+        dicom_to_nifti,
+    )
+
+    _DICOM_AVAILABLE = True
+except ImportError:
+    _DICOM_AVAILABLE = False
+
+if TYPE_CHECKING:
+    from dicom_core.nifti.load import SingleSeriesData
 
 UNITS_UNKNOWN = "unknown"
 UNITS_METERS = "meter"
@@ -417,7 +427,14 @@ class DicomImageContainer(BaseImageContainer):
         :raises ValueError: if more than one, or zero series, are found using the
             supplied config
         :raises DicomToNiftiError: if the DICOM to NIfTI conversion fails
+        :raises ImportError: if the 'dicom' extra is not installed
         """
+        if not _DICOM_AVAILABLE:
+            raise ImportError(
+                "DicomImageContainer requires the 'dicom' extra. "
+                "Install with: pip install mrimagetools[dicom]"
+            )
+
         if isinstance(directory, pathlib.Path):
             directory = directory.resolve()
         else:

@@ -6,4 +6,3 @@ gitpython==3.*
 pydantic==2.*
 pint==0.*
 typer[all]==0.*
-dicom-core[nifti] @ git+ssh://git@github.com/gold-standard-phantoms/dicom-core.git@fae4169

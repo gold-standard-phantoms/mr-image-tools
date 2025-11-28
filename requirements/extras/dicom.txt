@@ -1,0 +1,1 @@
+dicom-core[nifti] @ git+ssh://git@github.com/gold-standard-phantoms/dicom-core.git@fae4169
