@@ -1,158 +1,172 @@
-# Overview
+# MRImageTools
+
+## Overview
 
 MRImageTools was developed to address the need to test MR image processing pipelines.
-A strong emphasis has been placed on ensuring traceability of the developed
-code, in particular with respect to testing. The library uses a ‘pipe and filter’ architecture
-with ‘filters’ performing data processing, which provides a common interface between processing
-blocks.
+A strong emphasis has been placed on ensuring traceability of the developed code, in
+particular with respect to testing. The library uses a “pipe and filter” architecture
+with “filters” performing data processing, which provides a common interface between
+processing blocks.
 
-## How To Cite
+## How to cite
 
-If you use MRImageTools in your work, please include the following citation
+If you use MRImageTools in your work, please include the following citation:
 
-## How To Contribute
+
+## How to contribute
 
 Got a great idea for something to implement in MRImageTools, or maybe you have just
 found a bug? Create an issue at
-[https://github.com/gold-standard-phantoms/mrimagetools/issues](https://github.com/gold-standard-phantoms/mrimagetools/issues) to get in touch with
+`https://github.com/gold-standard-phantoms/mr-image-tools/issues` to get in touch with
 the development team and we’ll take it from there.
 
-# Installation
+## Installation
 
-MRImageTools can be installed as a module directly from the python package index.
-For more information how to use a python package in this
-way please see [https://docs.python.org/3/installing/index.html](https://docs.python.org/3/installing/index.html)
+MRImageTools can be installed from PyPI.
 
-## Python Version
+### Python version
 
-We recommend using the latest version of Python. MRImageTools supports Python
-3.9 and newer.
+MRImageTools supports Python 3.9 and newer.
 
-## Dependencies
+### Install (recommended)
 
-These distributions will be installed automatically when installing MRImageTools.
+```sh
+pip install mrimagetools
+```
 
+### Install from source (development)
 
-* [nibabel](https://nipy.org/nibabel/) provides read / write access to some common neuroimaging file formats
+```sh
+pip install -e .
+```
 
+## Virtual environments (`.venv`)
 
-* [numpy](https://numpy.org/) provides efficient calculations with arrays and matrices
-
-
-* [jsonschema](https://python-jsonschema.readthedocs.io/en/stable/) provides an implementation of JSON Schema validation for Python
-
-
-* [nilearn](https://nipy.org/packages/nilearn/index.html) provides image manipulation tools and statistical learning for neuroimaging data
-
-## Virtual environments
-
-Use a virtual environment to manage the dependencies for your project, both in
+Use a virtual environment to manage dependencies for your project, both in
 development and in production.
 
-What problem does a virtual environment solve? The more Python projects you
-have, the more likely it is that you need to work with different versions of
-Python libraries, or even Python itself. Newer versions of libraries for one
-project can break compatibility in another project.
-
-Virtual environments are independent groups of Python libraries, one for each
-project. Packages installed for one project will not affect other projects or
-the operating system’s packages.
-
-Python comes bundled with the `venv` module to create virtual
-environments.
-
-### Create an environment
-
-Create a project folder and a `venv` folder within:
+From the repository root, create a `.venv` folder:
 
 ```sh
-$ mkdir myproject
-$ cd myproject
-$ python3 -m venv venv
+python -m venv .venv
 ```
 
 On Windows:
 
 ```bat
-$ py -3 -m venv venv
+py -m venv .venv
 ```
 
-### Activate the environment
-
-Before you work on your project, activate the corresponding environment:
+Activate the environment:
 
 ```sh
-$ . venv/bin/activate
+source .venv/bin/activate
 ```
 
-On Windows:
+On Windows (PowerShell):
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+On Windows (cmd):
 
 ```bat
-> venv\Scripts\activate
+.\.venv\Scripts\activate.bat
 ```
 
-Your shell prompt will change to show the name of the activated
-environment.
+## Command-line tools
 
-## Install MRImageTools
+MRImageTools installs two console scripts:
 
-Within the activated environment, use the following command to install
-MRImageTools:
+- **`mrimagetools2`**: newer Typer-based CLI (actively developed).
+- **`mrimagetools`**: legacy argparse-based CLI (older commands; will be merged in the future).
+
+Use `--help` to discover commands and options:
 
 ```sh
-$ pip install mrimagetools
+mrimagetools2 --help
+mrimagetools2 <command> --help
+mrimagetools --help
+mrimagetools <command> --help
 ```
 
-MRImageTools is now installed. Go to the [Documentation Overview](../index.md).
+### `mrimagetools2` (new)
 
-# Command-line tools
+Top-level command groups include:
 
-There are some WIP command-line tools. After installing the `mrimagetools`
-package, you can find these by running `mrimagetools --help`, or
-mrimagetools2 –help. This will list the commands that are available with a short
-description. To get more information about a command, run
-`mrimagetools <command> --help` or `mrimagetools2 <command> --help`.
+- **`version`**: print the installed package version.
+- **`t1`**: T1 mapping tools.
+- **`t2`**: T2 mapping tools.
+- **`adc`**: diffusion ADC mapping tools.
+- **`multiecho-thermometry`**: temperature estimation from multi-echo magnitude data.
 
-The newer commands can be found in `mrimagetools2`, and the older ones in
-`mrimagetools`. These will be merged in the future.
-
-# Web UI
-
-The newer commands found in `mrimagetools2` can be accessed through the web browser.
-
-Install the dependencies for the web UI support as follows.
+Examples:
 
 ```sh
-$ pip install mrimagetools[web]
+mrimagetools2 version
+mrimagetools2 multiecho-thermometry --help
+```
+
+Multi-echo thermometry example:
+
+```sh
+mrimagetools2 multiecho-thermometry \
+  --segmentation segmentation.nii.gz \
+  --echotimes echo_times_1.txt \
+  --echotimes echo_times_2.txt \
+  --method regionwise \
+  --output-dir outputs \
+  --output-prefix subject01 \
+  multiecho_1.nii.gz multiecho_2.nii.gz
+```
+
+Notes:
+
+- Echo-time files must contain echo times **in seconds**, one per echo/volume.
+- Thermometry requires B0 metadata from an input JSON sidecar (`ImagingFrequency` or `MagneticFieldStrength`).
+- Outputs are written as `<prefix>_temperature_map.nii.gz` and `<prefix>_report.json`.
+
+### `mrimagetools` (legacy)
+
+This CLI contains older commands. Exact availability can change by version, so
+use `mrimagetools --help` as the source of truth. Common commands include:
+
+- **`mtr-quantify`**: magnetisation transfer ratio mapping.
+- **`adc-quantify`**: apparent diffusion coefficient mapping.
+- **`create-hrgt`**: generate a high-resolution ground truth image.
+- **`generate`**: generate Digital Reference Objects (DROs) for supported modalities.
+- **`pipeline`**: run v2 pipelines via a nested subcommand structure.
+
+## Web UI
+
+The newer commands found in `mrimagetools2` can be accessed through a web browser.
+
+Install the dependencies for the web UI support as follows:
+
+```sh
+pip install mrimagetools[web]
 ```
 
 Launch the web server by calling the `mrimagetools.web2` module as follows:
 
 ```sh
-$ python -m mrimagetools.web2
+python -m mrimagetools.web2
 ```
 
-# Development
+## Development
 
-Development of this software project must comply with a few code styling/quality rules and processes:
+Development of this project must comply with the styling/quality rules and processes below:
 
-
-* Before pushing any code, make sure the CHANGELOG.md is updated as per the instructions in the CHANGELOG.md file. tox should also be run to ensure that tests and code-quality checks pass.
-
-
-* Ensure that a good level of test coverage is kept. The test reports will be committed to the CI system when testing is run, and these will be made available during code review. If you wish to view test coverage locally, run coverage report.
-
-
-* To ensure these code quality rules are kept to, [pre-commit]([https://pre-commit.com/](https://pre-commit.com/)) should be installed (see the requirements/dev.txt), and pre-commit install run when first cloning this repo. This will install some pre-commit hooks that will ensure any committed code meets the minimum code-quality and is formatted correctly *before* being committed to Git. mypy, Pylint, black and isort will be run automatically, and results displayed after a git commit. These will also be checked on the GitLab CI system after code is pushed. The tools should also be included in any IDEs/editors used, where possible.
-
-
-* [mypy]([https://github.com/python/mypy](https://github.com/python/mypy)) should be run on all source code to find any static typing errors.
-
-
-* [Pylint]([https://pylint.org/](https://pylint.org/)) must be used as the linter for all source code. A linting configuration can be found in .pylintrc. There should be as few linting errors as possible when checking in code. Code score should be kept high (close to 10), and if linting error are occurring frequently where they aren’t expected, relevant changes should be make to the .pylintrc file to reflect these (and then code-reviewed).
-
-
-* Before committing any files, [black]([https://black.readthedocs.io/en/stable/](https://black.readthedocs.io/en/stable/)) must be run with the default settings in order perform autoformatting on any python files.
-
-
-* [isort]([https://isort.readthedocs.io/en/latest/](https://isort.readthedocs.io/en/latest/)) should be run on all files before they are committed.
+- Before pushing code, ensure `CHANGELOG.md` is updated (see instructions in that file).
+  Run `tox` to ensure tests and code-quality checks pass.
+- Keep a good level of test coverage. To view coverage locally, run `coverage report`.
+- Use [pre-commit](https://pre-commit.com/) (see `requirements/dev.txt`) and run
+  `pre-commit install` when first cloning this repo. Hooks enforce minimum
+  code-quality and formatting before commits. mypy, Pylint, black and isort will be
+  run automatically, and results displayed after a git commit and on CI.
+- Run [mypy](https://github.com/python/mypy) on source code to find static typing errors.
+- Use [Pylint](https://pylint.org/) as the linter (config in `.pylintrc`). Keep lint
+  errors low and the score high (close to 10).
+- Use [black](https://black.readthedocs.io/en/stable/) for auto-formatting Python files.
+- Use [isort](https://isort.readthedocs.io/en/latest/) to keep imports consistent.

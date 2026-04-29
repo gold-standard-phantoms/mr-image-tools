@@ -1,0 +1,49 @@
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "#313C52",
+    "primaryColor": "#53607A",
+    "primaryTextColor": "#FFFFFF",
+    "primaryBorderColor": "#53607A",
+    "lineColor": "#FFD42A",
+    "secondaryColor": "#FF7F2A",
+    "secondaryTextColor": "#FFFFFF",
+    "secondaryBorderColor": "#FF7F2A",
+    "tertiaryColor": "#3C485F",
+    "tertiaryTextColor": "#FFD42A",
+    "tertiaryBorderColor": "#3C485F",
+    "clusterBkg": "#3C485F",
+    "clusterBorder": "transparent",
+    "edgeLabelBackground": "#313C52",
+    "fontFamily": "monospace",
+    "fontSize": "14px"
+  }
+}}%%
+
+flowchart LR
+  %% Landscape layout (wide): CLI lane on the left, Filter lane on the right.
+  %% Flows stay left->right within each lane. Avoid back-edges that encourage
+  %% a tall/portrait packing in some renderers.
+
+  subgraph CLI["multiecho_thermometry.py (CLI)"]
+    direction LR
+    A["Typer cmd\nmultiecho-thermometry"] --> B["Load & validate\nNIfTI + seg + TE"]
+    B --> C["Concat + sort by TE\nmake containers"]
+    C --> D["Get B0 from JSON\nsidecar metadata"]
+    D --> E["Call filter\nmultiecho_thermometry_filter"]
+    E --> F["Write outputs\nNIfTI + JSON report"]
+  end
+
+  subgraph FILT["multiecho_thermometry_filter.py (algorithm)"]
+    direction TB
+    P["Validate params\n(shape/affine/TE)"] --> G["Regions (labels!=0)\nchoose method"]
+    G --> R["regionwise"] --> H["Fit core\ncurve_fit + R²"] --> T["df→T + u(T)"] --> O["Results[] + temp map"]
+    G --> V["voxelwise"] --> H
+    G --> S["bootstrap"] --> H
+  end
+
+  %% Cross-link (one-way) from CLI -> Filter
+  E --> P
+  O --> F
+

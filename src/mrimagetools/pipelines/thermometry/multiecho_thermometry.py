@@ -1,4 +1,19 @@
-"""Command line interface for theremometry from multi-echo data."""
+"""Multi-echo MR thermometry command line interface.
+
+This module provides a Typer-based CLI command that estimates temperature from
+multi-echo magnitude NIfTI images using the dual-resonance model implemented in
+`mrimagetools.filters.multiecho_thermometry_filter`.
+
+At a high level the command:
+
+- Loads one or more 4D multi-echo magnitude images (echo dimension is the last axis).
+- Loads a 3D segmentation/label map (same XYZ shape/affine as the images).
+- Loads echo times for each input image (text files, in seconds), concatenates and sorts
+  all echoes by TE.
+- Determines B0 in Tesla from an optional JSON sidecar (`ImagingFrequency` or
+  `MagneticFieldStrength`).
+- Runs voxelwise or regionwise fitting, writes a temperature map NIfTI and a JSON report.
+"""
 
 import json
 import logging
@@ -73,11 +88,19 @@ app = typer.Typer(pretty_exceptions_enable=False)
 def load_echo_times(echo_times_file: Path) -> np.ndarray:
     """Load echo times from a text file.
 
+    The file must contain a 1D list/array of echo times **in seconds**. Common
+    extensions (e.g. `.txt`, `.tsv`, `.csv`) are accepted by the CLI, but the
+    contents must still parse as numeric values.
+
     Args:
-        echo_times_file (Path): Path to the text file containing echo times in seconds.
+        echo_times_file: Path to a text file containing echo times in seconds.
 
     Returns:
-        np.ndarray: Array of echo times in seconds.
+        A 1D NumPy array of echo times in seconds.
+
+    Raises:
+        ValueError: If the parsed data is not 1D.
+        Exception: Propagates any I/O or parsing errors from NumPy.
     """
     try:
         echo_times = np.loadtxt(echo_times_file)
@@ -91,14 +114,14 @@ def load_echo_times(echo_times_file: Path) -> np.ndarray:
 
 
 def remove_suffix(filename: Path, suffix: str) -> Path:
-    """Remove a suffix from a filename.
+    """Remove a single suffix from a filename.
 
     Args:
-        filename (Path): The original filename.
-        suffix (str): The suffix to remove.
+        filename: The original filename.
+        suffix: The suffix to remove (e.g. `.gz`).
 
     Returns:
-        Path: The filename without the suffix.
+        The filename without the suffix if it matches; otherwise the original filename.
     """
     if filename.suffix == suffix:
         return filename.with_suffix("")
@@ -170,23 +193,59 @@ def multiecho_thermometry(
         ),
     ] = None,
 ) -> Tuple[NiftiImageContainer, ThermometryReportData]:
-    """Perform thermometry from multi-echo data.
+    """Estimate temperature from multi-echo magnitude images and a segmentation.
+
+    This is the **user-facing** entrypoint used by the `mrimagetools` CLI.
+
+    You provide:
+
+    - One or more 4D multi-echo magnitude NIfTI files (echo dimension must be the last axis).
+    - A 3D segmentation/label-map NIfTI file that is co-located with the multi-echo data
+      (same XYZ shape and affine). Label value 0 is treated as background.
+    - A list of echo-time text files (one per multi-echo image), containing echo times
+      **in seconds**. The number of echo times in each file must match the number of
+      echoes (4th dimension) in its corresponding image.
+
+    The command concatenates all echoes across all provided multi-echo images, sorts them
+    by echo time, and then runs one of the analysis methods:
+
+    - `regionwise`: Fit the dual-resonance model to the **mean** signal within each
+      non-zero segmentation label. The fitted temperature is assigned to all voxels
+      in that region.
+    - `voxelwise`: Fit the model independently per voxel within each region; the output
+      map is voxelwise, and region summaries are computed from voxel estimates.
+    - `regionwise_bootstrap`: Like `regionwise`, but uses bootstrapping within each
+      region to estimate uncertainty (controlled by `--nb/--n-bootstrap`).
+
+    Magnetic field strength B0 (Tesla) is determined from an optional JSON sidecar
+    for the input images. The first sidecar containing either `ImagingFrequency` (MHz) or
+    `MagneticFieldStrength` (Tesla) is used. If no suitable metadata is found, the command
+    exits with an error.
+
+    Outputs (written into `--output-dir` or the input directory by default):
+
+    - `<output_prefix>_temperature_map.nii.gz`: Temperature map in °C.
+    - `<output_prefix>_report.json`: Summary report including per-region results and
+      timing/metadata.
 
     Args:
-        segmentation_nifti_file (Path): Input segmentation (NIfTI) filename.
-        multiecho_nifti_files (List[Path]): Input Multiecho (NIfTI) filenames.
-        echo_times_files (List[Path]): Input list of echo times (text file, in seconds),
-            one file per multiecho image.
-        method (AnalysisMethod, optional): Analysis method. Options are: voxelwise,
-            regionwise, regionwise_bootstrap. Defaults to AnalysisMethod.REGIONWISE.
-        n_bootstrap (int, optional): Number of bootstrap iterations. Defaults to 100.
-        output_prefix (Optional[str], optional): Output filename prefix. Defaults to None.
-        output_dir (Optional[Path], optional): Output directory. Defaults to None.
+        segmentation_nifti_file: Segmentation/label-map NIfTI (3D).
+        multiecho_nifti_files: One or more multi-echo magnitude NIfTI files (4D).
+        echo_times_files: Echo-time text files (seconds), one per multi-echo image.
+        method: Analysis method to use.
+        n_bootstrap: Number of bootstrap iterations (only used for `regionwise_bootstrap`).
+        output_prefix: Prefix for output filenames. Defaults to the first input image stem.
+        output_dir: Output directory. Defaults to the directory of the first input image.
 
     Returns:
-        Tuple[NiftiImageContainer, dict]: A tuple containing:
-            - temperature_map (NiftiImageContainer): The calculated temperature map.
-            - report_data (dict): A dictionary containing the report of the analysis.
+        A tuple of `(temperature_map, report_data)` where:
+
+        - `temperature_map` is a `NiftiImageContainer` containing the output temperature map.
+        - `report_data` is a `ThermometryReportData` instance suitable for JSON serialization.
+
+    Raises:
+        typer.Exit: For invalid inputs (missing files, mismatched shapes/affines, echo-time
+            length mismatches, or missing B0 metadata).
     """
     # Start timing
     tic = time.perf_counter()
@@ -240,7 +299,7 @@ def multiecho_thermometry(
         task = progress.add_task("Loading Multiecho data", total=None)
 
         multiecho_images = [
-            cast(nib.nifti1.Nifti1Image, nib.load(filename))
+            cast(nib.Nifti1Image, nib.load(filename))
             for filename in multiecho_nifti_files
         ]
 
@@ -286,9 +345,7 @@ def multiecho_thermometry(
         raise typer.Exit(code=1)
 
     # Load segmentation data
-    segmentation_image = cast(
-        nib.nifti1.Nifti1Image, nib.load(segmentation_nifti_file)
-    )
+    segmentation_image = cast(nib.Nifti1Image, nib.load(segmentation_nifti_file))
 
     # Validate the segmentation image
     if not (
@@ -340,9 +397,7 @@ def multiecho_thermometry(
 
     # create image containers for multiecho_data_sorted and segmentation data
     multiecho_input_image = NiftiImageContainer(
-        nifti_img=nib.nifti1.Nifti1Image(
-            multiecho_data_sorted, multiecho_images[0].affine
-        )
+        nifti_img=nib.Nifti1Image(multiecho_data_sorted, multiecho_images[0].affine)
     )
     segmentation_input_image = NiftiImageContainer(nifti_img=segmentation_image)
 
@@ -379,7 +434,7 @@ def multiecho_thermometry(
 
     temperature_map_filename = output_dir / f"{output_prefix}_temperature_map.nii.gz"
     report_filename = output_dir / f"{output_prefix}_report.json"
-    nib.nifti1.save(temperature_map.nifti_image, temperature_map_filename)
+    nib.save(temperature_map.nifti_image, temperature_map_filename)
     console.print(f"Saved temperature map to [bold]{temperature_map_filename}[/bold]")
 
     report_data = ThermometryReportData(
@@ -389,9 +444,7 @@ def multiecho_thermometry(
         magnetic_field_tesla=magnetic_field_tesla,
         analysis_method=method,
         n_bootstrap=(
-            n_bootstrap
-            if method is AnalysisMethod.REGIONWISE_BOOTSTRAP
-            else None
+            n_bootstrap if method is AnalysisMethod.REGIONWISE_BOOTSTRAP else None
         ),
         echo_times=sorted_echo_times.tolist(),
         report=report,
