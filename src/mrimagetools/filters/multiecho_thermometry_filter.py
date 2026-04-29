@@ -1,23 +1,22 @@
-"""Multiecho Thermometry Filter
+r"""Multi-echo MR thermometry (dual-resonance magnitude model).
 
-Functional implementation of fitting of multiecho magnitude data
-to a dual-resonance model for MR thermometry applications.
+This module implements fitting of multi-echo *magnitude* MRI data to the
+dual-resonance model described by Sprinkhuizen et al. (2010). The fitted
+frequency difference parameter, $\Delta f$, can be converted to temperature (°C)
+using a calibration derived for ethylene glycol. For other substances, the fit
+can still be performed, but the $\Delta f \rightarrow T$ conversion may not be
+valid.
 
-Temperature is derived from the frequency difference between
-the two resonance peaks for ethylene glycol.For other substances,
-the frequency fitting can still be performed, but the temperature
-conversion will not be valid.
+References:
 
-Based on Sprinkhuizen, S.M., Bakker, C.J.G. and Bartels, L.W. (2010),
-Absolute MR thermometry using time-domain analysis of multi-gradient-echo magnitude images.
-Magn. Reson. Med., 64: 239-248. https://doi.org/10.1002/mrm.22429
-
-Chemical shift to temperature conversion is based on
-Calibration of methanol and ethylene glycol nuclear magnetic resonance thermometers
-David S. Raiford, Cherie L. Fisk, and Edwin D. Becker
-Analytical Chemistry 1979 51 (12), 2050-2051
-DOI: https://doi.org/10.1021/ac50048a040
-
+- Sprinkhuizen, S.M., Bakker, C.J.G. and Bartels, L.W. (2010).
+  "Absolute MR thermometry using time-domain analysis of multi-gradient-echo
+  magnitude images." *Magn. Reson. Med.*, 64:239-248.
+  https://doi.org/10.1002/mrm.22429
+- Raiford, D.S., Fisk, C.L., Becker, E.D. (1979).
+  "Calibration of methanol and ethylene glycol nuclear magnetic resonance
+  thermometers." *Analytical Chemistry*, 51(12):2050-2051.
+  https://doi.org/10.1021/ac50048a040
 """
 
 from dataclasses import dataclass
@@ -45,22 +44,27 @@ def thermometry_signal_model(
     df: Union[NDArray[np.floating], float],
     dphi_deg: float,
 ) -> NDArray[np.floating]:
-    """Calculates the signal S(t) at time t according to the dual-resonance model.
+    r"""Evaluate the dual-resonance magnitude signal model.
 
-    .. math::
-        S(t) = \\sqrt{A_1^2e^{-2R_{2,1}^*t} + A_2^2e^{-2R_{2,2}^*t} + 2A_1A_2e^{-(R_{2,1}^* + R_{2,2}^*)t} \\cos(2\\pi\\Delta f_{12}t + \\Delta\\phi_{12})}
+    The magnitude signal is modelled as:
+
+    $$S(t)=\sqrt{
+      A_1^2 e^{-2R_{2,1}^* t}
+      + A_2^2 e^{-2R_{2,2}^* t}
+      + 2A_1A_2 e^{-(R_{2,1}^*+R_{2,2}^*) t}\cos(2\pi\,\Delta f\,t+\Delta\phi)
+    }$$
 
     Args:
-        t (NDArray[np.floating]): The time vector.
-        amplitude_1 (float): The amplitude of the first signal component.
-        amplitude_2 (float): The amplitude of the second signal component.
-        r2star_1 (float): The R2* value of the first signal component.
-        r2star_2 (float): The R2* value of the second signal component.
-        df (float): The frequency offset between the two signal components.
-        dphi_deg (float): The phase offset between the two signal components.
+        t: Time vector (seconds), typically the echo times.
+        amplitude_1: Amplitude of resonance component 1.
+        amplitude_2: Amplitude of resonance component 2.
+        r2star_1: $R_2^*$ of component 1 (1/s).
+        r2star_2: $R_2^*$ of component 2 (1/s).
+        df: Frequency difference $\Delta f$ (Hz). Can be scalar or vector.
+        dphi_deg: Phase offset $\Delta\phi$ (degrees).
 
     Returns:
-        NDArray[np.floating]: The signal S(t) at time t according to the dual-resonance model.
+        Modelled magnitude signal $S(t)$.
     """
     dphi_rad = np.deg2rad(dphi_deg)
     radicand: NDArray[np.float64] = (
@@ -72,24 +76,26 @@ def thermometry_signal_model(
         * np.exp(-(r2star_1 + r2star_2) * t)
         * np.cos(2 * np.pi * df * t + dphi_rad)
     )
-    radicand[radicand < 0] = 0  # Prevent negative values under the square root
+    # Prevent negative values under the square root (numerical precision).
+    np.maximum(radicand, 0.0, out=radicand)
     return np.sqrt(radicand)
 
 
 def calculate_df_from_temperature(
     temperature_celsius: Union[NDArray[np.floating], float], magnetic_field_tesla: float
 ) -> Union[NDArray[np.floating], float]:
-    """Calculates frequency difference (df) from temperature and magnetic field.
+    r"""Convert temperature (°C) to frequency difference $\Delta f$ (Hz).
 
-    .. math::
-        T[°C] = 193.35 - 1.02 \\cdot 10^8 \\cdot \\frac{\\Delta f_{hm}[\\text{Hz}]}{\\gamma B_0}
+    Uses the calibration:
+
+    $$T[^\circ C] = 193.35 - 1.02\times10^8 \cdot \frac{\Delta f\,[\mathrm{Hz}]}{\gamma B_0}$$
 
     Args:
-        temperature_celsius (float): The temperature in Celsius.
-        magnetic_field_tesla (float): The magnetic field strength in Tesla.
+        temperature_celsius: Temperature in °C.
+        magnetic_field_tesla: Magnetic field strength $B_0$ in Tesla.
 
     Returns:
-        float: The frequency difference (df) in Hz.
+        Frequency difference $\Delta f$ in Hz (same shape as `temperature_celsius`).
     """
     return ((193.35 - temperature_celsius) * GAMMA_H * magnetic_field_tesla) / 1.02e8
 
@@ -97,17 +103,22 @@ def calculate_df_from_temperature(
 def calculate_temperature_from_df(
     df: Union[NDArray[np.floating], float], magnetic_field_tesla: float
 ) -> Union[NDArray[np.floating], float]:
-    """Calculates temperature from frequency difference (df) and magnetic field.
+    r"""Convert frequency difference $\Delta f$ (Hz) to temperature (°C).
 
-    .. math::
-        T[°C] = 193.35 - 1.02 \\cdot 10^8 \\cdot \\frac{\\Delta f_{hm}[\\text{Hz}]}{\\gamma B_0}
+    Uses the calibration:
+
+    $$T[^\circ C] = 193.35 - 1.02\times10^8 \cdot \frac{|\Delta f|\,[\mathrm{Hz}]}{\gamma B_0}$$
+
+    Note:
+        The implementation uses $|\Delta f|$ to return a non-negative temperature
+        shift with respect to the calibration.
 
     Args:
-        df (float): The frequency difference (df) in Hz.
-        magnetic_field_tesla (float): The magnetic field strength in Tesla.
+        df: Frequency difference $\Delta f$ in Hz.
+        magnetic_field_tesla: Magnetic field strength $B_0$ in Tesla.
 
     Returns:
-        float: The temperature in Celsius.
+        Temperature in °C (same shape as `df`).
     """
     return 193.35 - (1.02e8 * np.abs(df)) / (GAMMA_H * magnetic_field_tesla)
 
@@ -115,17 +126,16 @@ def calculate_temperature_from_df(
 def calculate_temperature_uncertainty(
     df_uncertainty: float, magnetic_field_tesla: float
 ) -> float:
-    """Calculates temperature uncertainty from frequency difference uncertainty.
+    r"""Convert $\Delta f$ uncertainty (Hz) to temperature uncertainty (°C).
 
-    .. math::
-        u(T) = 1.02 \\cdot 10^8 \\cdot \\frac{u(\\Delta f_{hm})}{\\gamma B_0}
+    $$u(T) = 1.02\times10^8 \cdot \frac{u(\Delta f)\,[\mathrm{Hz}]}{\gamma B_0}$$
 
     Args:
-        df_uncertainty (float): The uncertainty in frequency difference (df) in Hz.
-        magnetic_field_tesla (float): The magnetic field strength in Tesla.
+        df_uncertainty: Standard uncertainty in $\Delta f$ (Hz).
+        magnetic_field_tesla: Magnetic field strength $B_0$ in Tesla.
 
     Returns:
-        float: The uncertainty in temperature measurement in Celsius.
+        Standard uncertainty in temperature (°C).
     """
     return (1.02e8 * df_uncertainty) / (GAMMA_H * magnetic_field_tesla)
 
@@ -135,18 +145,24 @@ def lsq_fit_thermometry_signal_model(
     signal_values: NDArray[np.floating],
     initial_guess: list[float],
 ) -> tuple[NDArray[np.floating], NDArray[np.floating], float]:
-    """Performs a least squares fit of the thermometry signal model.
+    r"""Least-squares fit of `thermometry_signal_model` to a single signal vector.
+
+    This is a bounded non-linear least squares fit using `scipy.optimize.curve_fit`.
+    If the optimizer fails to converge, NaNs are returned for both the parameters
+    and their covariance.
 
     Args:
-        echo_times (NDArray[np.floating]): The echo times.
-        signal_values (NDArray[np.floating]): The signal values.
-        initial_guess (list[float]): Initial guess for the parameters
-            [amplitude_1, amplitude_2, r2star_1, r2star_2, df, dphi_deg].
+        echo_times: Echo times (seconds), shape `(n_echoes,)`.
+        signal_values: Magnitude signal values, shape `(n_echoes,)`.
+        initial_guess: Initial parameter guess as
+            `[A1, A2, R2*_1, R2*_2, df, dphi_deg]`.
 
     Returns:
-        tuple[NDArray[np.floating], NDArray[np.floating], float]: A tuple
-            containing the optimal parameters, the covariance of the parameters,
-            and the coefficient of determination R^2.
+        `(popt, pcov, r_squared)` where:
+
+        - `popt`: Optimal parameters, shape `(6,)`.
+        - `pcov`: Estimated covariance matrix, shape `(6, 6)`.
+        - `r_squared`: Coefficient of determination $R^2$ for the fitted model.
     """
     max_amplitude = np.max(signal_values)
     bounds = (
@@ -295,34 +311,42 @@ class ThermometryResults:
 def multiecho_thermometry_filter(
     parameters: MultiEchoThermometryParameters,
 ) -> Tuple[List[ThermometryResults], BaseImageContainer]:
-    """Filter to perform multi-echo thermometry analysis.
+    r"""Run multi-echo thermometry and return per-region results plus a temperature map.
+
+    The segmentation image defines discrete regions by integer label. Label `0` is
+    treated as background and ignored. For each non-zero region the dual-resonance
+    model is fitted and converted to temperature using `calculate_temperature_from_df`.
 
     Args:
-        parameters (MultiEchoThermometryParameters): Parameters for the filter.
+        parameters: Validated `MultiEchoThermometryParameters`. In particular:
+            - `image_multiecho` must be 4D `(nx, ny, nz, n_echoes)`
+            - `image_segmentation` must be 3D `(nx, ny, nz)`
+            - `echo_times` must have length `n_echoes` and be in seconds.
 
     Returns:
-        tuple containing
-        - ThermometryResults with the results for each region, with the following properties:
-            - "id": int. The region ID from the segmentation mask.
-            - "temperature": float. Estimated region temperature in °C
-            - "temperature_uncertainty": tuple[float,float]. Estimated uncertainty in temperature in °C and k-value
-            - "r_squared": float. Coefficient of determination for the fit.
-        - an image container with the temperature map (in Celsius)
+        `(results, image_temperature)` where:
 
-    ``regionwise`` calculates the mean signal within each region for each echo time, and fits the model to this mean signal.
-    The resulting temperature is assigned to all voxels in the region. The fit uncertainty is calculated from the
-    covariance matrix of the fit, i.e. `sqrt(diag(pcov))`. The uncertainty in temperature is derived from the uncertainty
-    in the fitted frequency difference parameter (df), which is converted to temperature uncertainty using the function ``calculate_temperature_uncertainty``.
-    This uncertainty represents the precision of the fit to the mean signal, and does not account for the uncertainty
-    in the echo times.
+        - `results` is a list of `ThermometryResults`, one entry per region label.
+          `ThermometryResults.r_squared` stores the $R^2$ values for fits performed
+          within the region (one per voxel for voxelwise, one per bootstrap sample for
+          regionwise_bootstrap, or a single value for regionwise).
+        - `image_temperature` is an image container whose `.image` is a 3D temperature
+          map in °C, co-located with the segmentation.
 
-    ``voxelwise`` fits the model to each voxel independently. The uncertainty for each voxel is calculated from the covariance matrix of the fit.
-    The mean temperature for the region is calculated as the weighted mean of the voxel temperatures, using 1/uncertainty^2 as weights.
+    Analysis methods:
 
-    ``regionwise_bootstrap`` fits the model to the mean signal within each region, using bootstrapping to estimate the uncertainty.
-    Within each region, a signal vector is created by sampling with replacement from the voxel signals in the region.
-    The model is fitted to this signal vector, and the temperature is calculated from the fitted df parameter.
-    This is repeated ``n_bootstrap`` times, and the uncertainty is calculated as the standard deviation of the bootstrap temperatures.
+    - `regionwise`: Compute the mean magnitude signal in the region for each echo and
+      fit once. The resulting temperature is assigned to all voxels in the region.
+      Uncertainty is derived from the fitted $\Delta f$ parameter uncertainty
+      (via `calculate_temperature_uncertainty`) using $\sqrt{\mathrm{diag}(pcov)}$.
+    - `voxelwise`: Fit each voxel independently. Region summaries use a weighted mean
+      of voxel temperatures with weights proportional to $1/\sigma_T^2$.
+    - `regionwise_bootstrap`: Repeatedly sample voxels (with replacement) within the
+      region, compute a mean signal per sample, and fit each sample. The region mean
+      and standard deviation are computed over samples with $R^2 \geq R_SQUARED_THRESHOLD`.
+
+    Note:
+        $R^2$ filtering is also used when computing `ThermometryResults.mean_fitted_params`.
     """
     image_multiecho = parameters.image_multiecho
     image_segmentation = parameters.image_segmentation
@@ -450,9 +474,9 @@ def multiecho_thermometry_filter(
                                 )
                             )
                             # assign voxel temperature to output image
-                            image_temperature.image[
-                                i, j, k
-                            ] = region_temperature_values_list[count]
+                            image_temperature.image[i, j, k] = (
+                                region_temperature_values_list[count]
+                            )
                             count += 1
 
             # calculate the weighted mean of the region temperature, using 1/uncertainty^2 as weights
